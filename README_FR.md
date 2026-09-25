@@ -13,7 +13,7 @@ Correctifs et outils pour **International Karate +** (IK+) sur Atari ST :
 >
 > *International Karate +* (IK+) © 1987–1988 System 3 / Archer Maclean. Ce projet **n'est ni affilié, ni approuvé, ni lié** à System 3 ou à un autre ayant droit.
 >
-> **Ce dépôt ne contient aucune partie du jeu** : ni programme, ni graphismes, ni musique, ni données, qu'ils soient d'origine ou modifiés. Il ne contient que du code source original et des outils. Ceux-ci modifient, **sur votre propre ordinateur**, une copie du jeu que **vous** fournissez. Vous seul êtes responsable de vous assurer que vous avez le droit d'utiliser cette copie, par exemple en possédant un original.
+> **Ce dépôt ne contient aucune partie du jeu** : ni programme, ni graphismes, ni musique, ni données, qu'ils soient d'origine ou modifiés. Il ne contient que du code source original et des outils. Ceux-ci modifient, **sur votre propre ordinateur**, une copie du jeu que **vous** fournissez. Vous seul êtes responsable de vous assurer que vous avez le droit d'utiliser cette copie, par exemple en possédant un original. Même en possédant l'original, vous **devez** fournir la version du jeu cracké par Ator des Blade Runners, aucune autre version ne fonctionnera.
 >
 > Les noms et marques cités appartiennent à leurs propriétaires respectifs. L'ensemble est fourni « tel quel », sans aucune garantie. Vous l'utilisez à vos risques, y compris sur une vraie machine.
 
