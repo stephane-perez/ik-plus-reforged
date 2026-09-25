@@ -1,0 +1,41 @@
+name: build
+
+# Builds everything that does not need the game: the loader, the 3-player
+# code and JOYTEST. No game file is ever downloaded, stored or produced here.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache vasm
+        uses: actions/cache@v4
+        with:
+          path: .tools
+          key: vasm-${{ runner.os }}-${{ hashFiles('scripts/get-vasm.sh') }}
+
+      - name: Build vasm (68000 assembler)
+        run: sh scripts/get-vasm.sh .tools
+
+      - name: Build
+        run: make VASM=.tools/vasm/vasmm68k_mot
+
+      - name: Check the Python tools
+        run: python3 -m py_compile tools/*.py
+
+      - name: Upload the build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ik-plus-reforged
+          path: |
+            build/IK_PLUS.TOS
+            build/p3.bin
+            build/p3_s4.bin
+            build/JOYTEST.TOS
+            build/JOYTSTEN.TOS

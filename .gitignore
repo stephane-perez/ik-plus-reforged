@@ -1,0 +1,32 @@
+# Build output and local tools
+build/
+work/
+.tools/
+
+# Never commit game files or anything derived from them
+*.EXE
+*.exe
+*.PRG
+*.prg
+*.TOS
+*.tos
+*.DT0
+*.DT1
+*.ZIP
+*.zip
+*.ST
+*.st
+*.STX
+*.stx
+*.MSA
+*.msa
+orig/
+
+# TOS ROM images (copyrighted)
+*.img
+*.IMG
+*.rom
+*.ROM
+
+__pycache__/
+*.pyc
