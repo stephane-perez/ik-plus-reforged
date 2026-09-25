@@ -13,7 +13,7 @@ Patches and tools for **International Karate +** (IK+) on the Atari ST:
 >
 > *International Karate +* (IK+) © 1987–1988 System 3 / Archer Maclean. This project is **not affiliated with, endorsed by or connected to** System 3 or any other rights holder.
 >
-> **This repository contains no part of the game**: no program, graphics, music or data, whether original or modified. It only contains original source code and tools. They modify, **on your own computer**, a copy of the game that **you** provide. You alone are responsible for making sure you have the right to use that copy, for example by owning an original.
+> **This repository contains no part of the game**: no program, graphics, music or data, whether original or modified. It only contains original source code and tools. They modify, **on your own computer**, a copy of the game that **you** provide. You alone are responsible for making sure you have the right to use that copy, for example by owning an original. Even if you own the original, you **must** provide the game cracked by Ator of The Blade Runners, no other version will work.
 >
 > The names and trademarks mentioned belong to their respective owners. Everything is provided "as is", without any warranty. Use it at your own risk, including on real hardware.
 
