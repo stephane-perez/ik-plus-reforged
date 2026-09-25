@@ -2,6 +2,7 @@ name: build
 
 # Builds everything that does not need the game: the loader, the 3-player
 # code and JOYTEST. No game file is ever downloaded, stored or produced here.
+# Pushing a v* tag also publishes a GitHub release with the built files.
 
 on:
   push:
@@ -11,6 +12,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -34,6 +37,19 @@ jobs:
         with:
           name: ik-plus-reforged
           path: |
+            build/IK_PLUS.TOS
+            build/p3.bin
+            build/p3_s4.bin
+            build/JOYTEST.TOS
+            build/JOYTSTEN.TOS
+
+      - name: Publish the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
             build/IK_PLUS.TOS
             build/p3.bin
             build/p3_s4.bin
