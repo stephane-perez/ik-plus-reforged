@@ -47,3 +47,14 @@ Il remplace `IK_PLUS.TOS`, `DT0` et `DT1` : il n'y a plus d'intro ni d'écran pi
   - Après correction, la trace ne montre plus que `$5C`, `$78`, `$7E` et `$7F` (le `$C0` au démarrage vient du TOS).
 - **Leçon** : pour tout accès matériel, valider aussi la **configuration** des registres (sens des ports, masques), pas seulement les valeurs lues. L'émulateur peut être plus permissif que la machine.
 - **JOYTEST** : version anglaise par `-DENGLISH` (`JOYTSTEN.TOS`), avec un `README.TXT` en anglais pour la diffusion.
+
+## 9. Version 5 : le joueur 3 dans les épreuves bonus
+
+- **Retour STE / TOS 1.62** : sur la prise 3, faux tirs intermittents sur BUSY, déjà vus sous Dynabusters ; aucun problème sur la prise 4. Même adaptateur, même joystick : **ça marche sur le Mega STE**. Diagnostic : **l'entrée BUSY de ce STE** (ligne mal tenue à l'état haut ou contact du port parallèle) ; ce n'est pas un défaut d'IK+. Remède matériel proposé : une résistance de rappel d'environ 4,7 kΩ entre BUSY (broche 11) et +5 V.
+- **Épreuves bonus** : A (balles et bouclier, `$DFA0`, état 5) et B (bombes, `$EEC8`, état 7). Les humains y jouent **à tour de rôle** : `$1077` (joueur) et `$1078` (combattant) partent de 1 et descendent jusqu'à 0 (`L_0E146` / `L_0F088`). Chaque tour n'a lieu que si `$1007[joueur]` est actif.
+- **Accroches 15 à 21** :
+  - `$DFCE`/`$DFD4`, `$EF02`/`$EF08` : départ à **2**. Sans joueur 3, le tour 2 est sauté : comportement identique à l'original.
+  - `$DFF8` (`blinka`), `$EF4A` (`blinkb`) : `$14` n'est écrit dans `$1314[joueur]` (clignotement du poing) que pour les joueurs 0 et 1. Pour le joueur 2, l'écriture serait tombée sur `$1316`, un drapeau d'état.
+  - `$ED04` (`rdhook`) : `F_0ED04` lit les joysticks pendant les épreuves sans passer par `F_07732`. On y lit donc aussi l'adaptateur (routine commune `readjoy3`).
+- **Couleurs dans l'épreuve B** : `$1022` est la couleur 1 (`$FF8242`), posée par le raster (`$1AF2`, routines Timer B en `$1934`). Elle vaut normalement `$007` (veste du bleu). L'épreuve B la met à `$700` (`$EEEC`) et la remet à `$007` à la fin (`$F0AE`). `blinkb` la met à `$007` pendant le tour du joueur 3 et à `$700` pour les autres. Effet de bord accepté : explosions et bulle de l'arbitre en bleu pendant ce tour.
+- Validé dans Hatari (STF/1.04, 3 humains) : épreuve A au round 3 et épreuve B au round 6, avec le joueur 3 en premier, puis les joueurs 2 et 1 ; `$1316` reste à 0 ; le bleu est bien affiché. Empreintes : `IK3J_S3/ATOR.EXE` = `cd6b83ab485dc33f0b6de4bbc8df2423`, `IK3J_S4/ATOR.EXE` = `c70c6e623faa00cce0509e4c527b757d`.

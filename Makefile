@@ -63,7 +63,7 @@ game: all $(B)/ATOR_STE.EXE
 # Expected MD5 with the default LIMIT=300
 check:
 	@$(PY) -c "import hashlib,sys; \
-exp={'$(B)/IK3J_S3/ATOR.EXE':'f5b9267d9eaec3f3e02d55d9b33a7e17','$(B)/IK3J_S4/ATOR.EXE':'5ebc2295d80d9c0e7e0d96bf61859cf4','$(B)/IK_PLUS.TOS':'0a89bb68ba0b62e122cc9d63670fe7fa'}; \
+exp={'$(B)/IK3J_S3/ATOR.EXE':'cd6b83ab485dc33f0b6de4bbc8df2423','$(B)/IK3J_S4/ATOR.EXE':'c70c6e623faa00cce0509e4c527b757d','$(B)/IK_PLUS.TOS':'0a89bb68ba0b62e122cc9d63670fe7fa'}; \
 bad=[f for f,h in exp.items() if hashlib.md5(open(f,'rb').read()).hexdigest()!=h]; \
 print('OK' if not bad else 'MISMATCH: '+' '.join(bad)); sys.exit(1 if bad else 0)"
 

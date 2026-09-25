@@ -45,6 +45,7 @@ Le jeu a été conçu autour de trois combattants, et ses données avaient déj�
   - l'arbitre annonce des résultats neutres (« X IS BEST / Y IS SECOND / Z IS WORST »…) ;
   - le match dure **5 minutes de combat**, puis l'arbitre annonce « MATCH OVER » et le jeu revient au menu.
 - F3 ne gère plus la musique, qui reste toujours active. L'écran d'aide affiche encore « F3 MUSIC ON/OFF », car c'est une image.
+- Le joueur 3 participe aussi aux deux **épreuves bonus** (balles à renvoyer avec le bouclier, bombes à écarter), à tour de rôle avec les autres joueurs humains. Dans l'épreuve des bombes, la couleur de la veste du bleu sert aussi aux explosions : pendant son tour, elles sont bleues au lieu de rouges.
 - Sans joueur 3, le jeu se comporte exactement comme l'original.
 
 Le joueur 3 utilise un **adaptateur joystick sur le port parallèle**, du type de ceux de *Gauntlet II*, *Leatherneck* ou *Dynabusters+*. Deux versions sont produites, une pour chaque prise de l'adaptateur :
@@ -89,8 +90,8 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 
 | Fichier | MD5 |
 |---|---|
-| `IK3J_S3/ATOR.EXE` | `f5b9267d9eaec3f3e02d55d9b33a7e17` |
-| `IK3J_S4/ATOR.EXE` | `5ebc2295d80d9c0e7e0d96bf61859cf4` |
+| `IK3J_S3/ATOR.EXE` | `cd6b83ab485dc33f0b6de4bbc8df2423` |
+| `IK3J_S4/ATOR.EXE` | `c70c6e623faa00cce0509e4c527b757d` |
 | `IK_PLUS.TOS` | `0a89bb68ba0b62e122cc9d63670fe7fa` |
 
 **Option** : `make game LIMIT=180 ATOR=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.

@@ -51,6 +51,9 @@ FIST_X      equ $78             ; blanc $28, rouge $50, bleu $78 (octets)
             bra.w roundend      ; $81C  fin de round : masque des humains qui restent
             bra.w roundmsg      ; $820  message de fin de round ($1092)
             bra.w f3key         ; $824  touche F3 : joueur 3 oui / non
+            bra.w rdhook        ; $828  début de F_0ED04 (joysticks des épreuves bonus)
+            bra.w blinka        ; $82C  épreuve A : clignotement du poing (joueurs 0-1)
+            bra.w blinkb        ; $830  épreuve B : idem
 
 ; --- variables ----------------------------------------------------------------
 gamesec     dc.w 0              ; secondes de combat depuis l'arrivée du joueur 3
@@ -63,6 +66,31 @@ fiston      dc.b 0              ; poing bleu affiché ?
 ; sélectionner un registre du PSG, en masquant les IRQ le temps de la lecture.
 ; ----------------------------------------------------------------------------
 pre         movem.l d0-d2/a0,-(a7)
+            bsr     readjoy3
+
+            ; poing bleu synchronisé avec $1009
+.sync       move.b  P3.w,d0
+            cmp.b   fiston(pc),d0
+            beq.s   .done
+            move.b  d0,fiston
+            tst.b   d0
+            beq.s   .erase
+            bsr     drawblue
+            bra.s   .done
+.erase      bsr     eraseblue
+.done       movem.l (a7)+,d0-d2/a0
+            clr.w   d0
+            clr.w   d1
+            clr.w   d2
+            rts
+
+; ----------------------------------------------------------------------------
+; readjoy3 : lit l'adaptateur du port parallèle et écrit $126E au format
+; du jeu (bits 0-3 directions actives à 0, bit 4 = tir). Détruit d0-d2.
+; Contexte : boucle principale (pas une interruption) ; IRQ masquées
+; le temps des accès au PSG.
+; ----------------------------------------------------------------------------
+readjoy3
             move.w  sr,-(a7)
             or.w    #$0700,sr
             ; Port B du PSG (données du port parallèle) en ENTRÉE : la routine
@@ -103,22 +131,43 @@ pre         movem.l d0-d2/a0,-(a7)
             bne.s   .nofire
             bset    #4,d0                   ; tir appuyé
 .nofire     move.b  d0,JOY3.w
+            rts
 
-            ; poing bleu synchronisé avec $1009
-.sync       move.b  P3.w,d0
-            cmp.b   fiston(pc),d0
-            beq.s   .done
-            move.b  d0,fiston
-            tst.b   d0
-            beq.s   .erase
-            bsr     drawblue
-            bra.s   .done
-.erase      bsr     eraseblue
-.done       movem.l (a7)+,d0-d2/a0
+; ----------------------------------------------------------------------------
+; rdhook : remplace « clr.w d0 / clr.w d1 / clr.w d2 » au début de F_0ED04,
+; la lecture des joysticks pendant les épreuves bonus (qui ne passe pas par
+; F_07732) : le joystick 3 y est aussi tenu à jour.
+; ----------------------------------------------------------------------------
+rdhook      movem.l d0-d2,-(a7)
+            bsr     readjoy3
+            movem.l (a7)+,d0-d2
             clr.w   d0
             clr.w   d1
             clr.w   d2
             rts
+
+; ----------------------------------------------------------------------------
+; blinka / blinkb : les épreuves bonus écrivent $14 dans $1314[joueur]
+; (clignotement du poing). Il n'y a que 2 cases : pour le joueur 2 ce serait
+; $1316, un drapeau d'état du jeu. On n'écrit que pour les joueurs 0 et 1.
+; blinka remplace, en $DFF8 : move.b #$14,d0 / lea $1314.w,a0 / move.b d0,(a0,d2.w)
+; blinkb remplace, en $EF4A : lea $1314.w,a0 / move.b #$14,(a0,d2.w)
+; ----------------------------------------------------------------------------
+blinka      move.b  #$14,d0
+            lea     $1314.w,a0
+            bra.s   blnk
+            ; Épreuve B : le jeu met la couleur 1 (écrite par le raster depuis
+            ; $1022) à $700 (rouge) pour toute l'épreuve. C'est la couleur de
+            ; la veste du bleu : pendant le tour du joueur 3, on la remet à $007.
+blinkb      lea     $1314.w,a0
+            move.w  #$700,$1022.w
+            cmpi.b  #2,d2
+            bcs.s   blnk
+            move.w  #$007,$1022.w
+blnk        cmpi.b  #2,d2
+            bcc.s   .r
+            move.b  #$14,(a0,d2.w)
+.r          rts
 
 ; ----------------------------------------------------------------------------
 ; looptail : remplace la fin de boucle de F_07732 ($7850-$7869).

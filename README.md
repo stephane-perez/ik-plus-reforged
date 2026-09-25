@@ -45,6 +45,7 @@ The game was designed around three fighters, and its data already had room for a
   - the referee announces neutral results ("X IS BEST / Y IS SECOND / Z IS WORST"…);
   - the match lasts **5 minutes of fighting**, then the referee says "MATCH OVER" and the game returns to the menu.
 - F3 no longer controls the music, which is always on. The help screen still shows "F3 MUSIC ON/OFF", because it is a picture.
+- Player 3 also takes part in the two **bonus stages** (deflecting balls with the shield, kicking bombs), taking turns with the other human players. In the bomb stage, the fighter's jacket colour is also used for the explosions: during player 3's turn they are blue instead of red.
 - Without player 3, the game behaves exactly like the original.
 
 Player 3 uses a **parallel-port joystick adapter**, the kind used by *Gauntlet II*, *Leatherneck* or *Dynabusters+*. Two builds are produced, one for each socket of the adapter:
@@ -89,8 +90,8 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 
 | File | MD5 |
 |---|---|
-| `IK3J_S3/ATOR.EXE` | `f5b9267d9eaec3f3e02d55d9b33a7e17` |
-| `IK3J_S4/ATOR.EXE` | `5ebc2295d80d9c0e7e0d96bf61859cf4` |
+| `IK3J_S3/ATOR.EXE` | `cd6b83ab485dc33f0b6de4bbc8df2423` |
+| `IK3J_S4/ATOR.EXE` | `c70c6e623faa00cce0509e4c527b757d` |
 | `IK_PLUS.TOS` | `0a89bb68ba0b62e122cc9d63670fe7fa` |
 
 **Option**: `make game LIMIT=180 ATOR=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.

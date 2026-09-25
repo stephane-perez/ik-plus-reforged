@@ -1,10 +1,11 @@
 """patch_p3.py <ATOR.EXE corrigé STE> <build/p3.bin> <sortie>
 
 Pose le code du mode 3 joueurs (src/p3.s, assemblé en $800) dans l'image
-du jeu et le relie par 14 accroches. Chaque accroche vérifie les octets
+du jeu et le relie par 21 accroches. Chaque accroche vérifie les octets
 d'origine avant de les remplacer.
 Entrées fixes de p3.s : $800 pre, $804 looptail, $808 other, $80C elim,
-$810 tick, $814 erasehook, $818 drawhook, $81C roundend, $820 roundmsg, $824 f3key.
+$810 tick, $814 erasehook, $818 drawhook, $81C roundend, $820 roundmsg, $824 f3key,
+$828 rdhook, $82C blinka, $830 blinkb.
 """
 import sys, hashlib
 
@@ -73,8 +74,22 @@ def main(src, binf, dst):
     # 14. idem en $B2D0 (son coupé) : $F8 -> $78
     put(0xB2D0, '21fc0700f8008800', bytes.fromhex('21fc070078008800'))
 
+    # 15-18. épreuves bonus A ($DFA0) et B ($EEC8) : les humains jouent à tour
+    #        de rôle, $1077/$1078 = 1 puis 0. Départ à 2 : le joueur 3 a son
+    #        tour ; sans lui, le tour 2 est sauté (test de $1007[2] = $1009).
+    for a in (0xDFCE, 0xEF02):
+        put(a, '11fc00011077', bytes.fromhex('11fc00021077'))
+    for a in (0xDFD4, 0xEF08):
+        put(a, '11fc00011078', bytes.fromhex('11fc00021078'))
+    # 19. début de F_0ED04 (joysticks des épreuves) : clr d0/d1/d2 -> jsr rdhook
+    put(0xED04, '424042414242', jsr(0x828))
+    # 20. épreuve A : clignotement du poing $1314[joueur] -> jsr blinka + NOP
+    put(0xDFF8, '103c0014' '41f81314' '11802000', jsr(0x82C) + nops(3))
+    # 21. épreuve B : idem -> jsr blinkb + NOP
+    put(0xEF4A, '41f81314' '11bc00142000', jsr(0x830) + nops(2))
+
     open(dst, 'wb').write(d)
-    print('%s : code 3 joueurs %d octets en $800, 14 accroches' % (dst, len(code)))
+    print('%s : code 3 joueurs %d octets en $800, 21 accroches' % (dst, len(code)))
 
 
 if __name__ == '__main__':
