@@ -17,7 +17,8 @@ image mémoire du jeu chargée en `$700`, point d'entrée `$1000`).
   pas d'élimination à 3 ; fin de match après 5 min de combat ; le joueur 3
   joue aussi les épreuves bonus. Deux versions : `IK3J_S3` (prise joystick 3
   = D4–D7 + BUSY) et `IK3J_S4` (prise 4 = D0–D3 + STROBE).
-- **v6, version STE, testée seulement dans Hatari** (branche `ste`) :
+- **v6, version STE** (branche `ste`), affichage validé sur STE réel
+  (v6.1, garde du blitter), port étendu pas encore testé sur la machine :
   `IK3J_STE`, STE avec 1 Mo minimum ; joueur 3 sur le port joystick étendu A ;
   bruitages en DMA ; combattants dessinés au blitter ; turbo (F6) à
   25 images/s en permanence.

@@ -107,5 +107,5 @@ Ligne 0 (`$FF9202` = `$FFFE`) : directions en bits 8–11, actives à 0 ; `$FF92
   - interruption de la ligne 190 : retards jusqu'à ~430 cycles, déjà présents dans la v5 (340) ; ils viennent de l'interruption clavier/joystick (IKBD, `$2492`), qui arrive vers les lignes 186 à 189 dans les deux versions ; sans effet visible (10 dernières lignes, adresse d'écran prise au VBL suivant) ;
   - vitesse : turbo (F6) à 2 VBL par image dans 100 % des images de combat, comme avant ; sans limite (`unlock.py`) : 25,3 images/s avec ou sans garde ;
   - contrôle octet par octet (`-DCHECK`, 3 humains) : 420 appels, aucune différence.
-- À vérifier sur la machine : plus de clignotement du reflet ni de l'image entière ; au besoin, comparer avec une version `-DNOGUARD`.
+- **Retour de la machine réelle** (STE 4 Mo / TOS 1.62, `IKPLUS_STE_v3`) : **affichage parfait**, plus aucun clignotement du reflet ni de l'image entière. L'hypothèse du retard dû au blitter est donc confirmée par le correctif. Reste à tester : la manette Jaguar sur le port étendu A.
 - Empreintes : `IK3J_STE/ATOR.EXE` = `000bc16b2c0866b16e001c22b0c8048d` (inchangé), `IK3J_STE/IK_PLUS.TOS` = `ac65346a23401c7e02d1402a39b3dc96`.
