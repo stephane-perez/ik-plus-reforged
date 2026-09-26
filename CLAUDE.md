@@ -129,7 +129,7 @@ Tu fournis les ROM TOS (pas dans le dépôt). Scripts dans `hatari/` :
 ## Façon de travailler
 
 - Une branche par sujet, une demande de fusion (PR) décrite en français ;
-  on ne fusionne dans `main` qu'après le retour de la machine réelle.
+  on ne fusionne dans `master` qu'après le retour de la machine réelle.
 - Mettre à jour `docs/fr/VERSIONS.md` (nouvelle section numérotée) et, si
   besoin, `CODE_MAP.md` à chaque version.
 - Livrer à Stéphane un zip avec le dossier prêt à copier sur l'Atari et un

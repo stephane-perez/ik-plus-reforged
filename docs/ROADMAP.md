@@ -12,7 +12,7 @@ Sur le STE 4 Mo / TOS 1.62, avec `IK3J_STE` et le nouveau JOYTEST :
 - turbo (F6) régulier ;
 - écran vert d'environ 2 s au lancement (conversion des sons) : normal.
 
-Si c'est bon : fusionner la branche `ste` dans `main`, étiquette `v6`.
+Si c'est bon : fusionner la branche `ste` dans `master`, étiquette `v6`.
 
 ## 2. Réglage du blitter par `Blitmode(-1)`
 
