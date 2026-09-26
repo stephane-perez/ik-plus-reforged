@@ -30,3 +30,10 @@ orig/
 
 __pycache__/
 *.pyc
+
+# Hatari runs (screenshots of the game, logs, profiles, sound)
+hatari/out/
+hatari/measure/out/
+hatari/measure/profile.txt
+*.wav
+*.png

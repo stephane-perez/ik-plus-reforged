@@ -6,8 +6,9 @@ Patches and tools for **International Karate +** (IK+) on the Atari ST:
 
 - **STE / Mega STE / TOS 2.06 compatibility**: the game now runs on STF, STE and Mega STE, at 8 and 16 MHz;
 - a **simultaneous 3-player mode**: the third player uses a joystick on a parallel-port adapter;
+- an **STE version**: player 3 on the STE's enhanced joystick port, sound effects played by DMA, fighters drawn by the blitter; the turbo speed now holds 25 frames per second;
 - a **new loader** with no intro, which starts the game directly;
-- **JOYTEST**, a small utility that shows the state of every joystick, including those on the parallel port.
+- **JOYTEST**, a small utility that shows the state of every joystick, including those on the parallel port and the STE's enhanced ports.
 
 > ## ⚠️ Disclaimer
 >
@@ -55,12 +56,30 @@ Player 3 uses a **parallel-port joystick adapter**, the kind used by *Gauntlet I
 | `IK3J_S3` | joystick 3 | D4–D7 | BUSY |
 | `IK3J_S4` | joystick 4 | D0–D3 | STROBE |
 
+### STE version
+
+The `IK3J_STE` folder is for the **STE only, with 1 MB of memory or more**. On any other machine, the loader shows a message and stops. It has the same 3-player mode, with three differences:
+
+- **Player 3 uses the STE's enhanced joystick port A** (the 15-pin socket): a Jaguar pad, or an ordinary joystick with a DB15 adapter. Fire = A, B, C or Pause. No parallel-port adapter is needed.
+- **Sound effects are played by DMA**, at 12,517 Hz. The original played each effect through the YM chip, with one interrupt per sample, which used 13 to 18% of the processor. The 18 sounds are converted when the game starts, which takes about 2 seconds of green screen. The music now keeps its three voices during the shouts, and the effects no longer vary in pitch.
+- **The fighters are drawn and erased by the blitter.** The result is identical, byte for byte, to the original drawing: this was checked in the emulator over more than a thousand calls.
+
+Measured in Hatari during a fight:
+
+| Build | Frames per second, with no speed limit | Turbo (F6) |
+|---|---|---|
+| Original | 20.0 on average | 22.5 on average: 1 frame in 6 drops to 16.7 or 12.5 |
+| STE version | 25.5 on average | **25 all the time** |
+
+In IK+, one frame is one step of the game: F6 to F10 set a minimum number of screen refreshes per frame, so F6 (turbo) is limited to 25 frames per second, and F8 (normal) to 10. Running at 50 frames per second would make the game twice as fast as the turbo, not smoother, so it is not offered.
+
 ### JOYTEST
 
 `JOYTSTEN.TOS` (English) and `JOYTEST.TOS` (French) show, in real time:
 
 - ports 0 and 1 of the ST: the 8 directions and the fire button;
-- the parallel port: the directions read on D0–D3 and on D4–D7, the fire button on BUSY and on STROBE, and the 8 raw data lines.
+- the parallel port: the directions read on D0–D3 and on D4–D7, the fire button on BUSY and on STROBE, and the 8 raw data lines;
+- on an STE or a Falcon, the enhanced ports A and B: the directions and the A, B, C, Pause (P) and Option (O) buttons.
 
 This makes it easy to check any joystick adapter. Press any key to quit: the mouse is switched back on.
 
@@ -68,7 +87,7 @@ This makes it easy to check any joystick adapter. Press any key to quit: the mou
 
 ### Automatic build (GitHub Actions)
 
-Every push builds the loader, the 3-player code and JOYTEST. The result can be downloaded from the **Actions** tab, as the `ik-plus-reforged` artifact. The game itself is **never** built there, because no game file is available to the workflow.
+Every push builds the loaders, the 3-player code, the STE module and JOYTEST. The result can be downloaded from the **Actions** tab, as the `ik-plus-reforged` artifact. The game itself is **never** built there, because no game file is available to the workflow.
 
 ### Manual build
 
@@ -77,7 +96,7 @@ Requirements: `make`, a C compiler (to build the vasm assembler), `python3`, and
 ```sh
 git clone https://github.com/stephane-perez/ik-plus-reforged
 cd ik-plus-reforged
-make                                  # loader, 3-player code, JOYTEST
+make                                  # loaders, 3-player code, STE module, JOYTEST
 make game ATOR=/path/to/ATOR.EXE      # patches YOUR copy of the game
 make check                            # checks the result
 ```
@@ -86,13 +105,15 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 
 **The file to provide**: `ATOR.EXE`, the memory image of the game (340,224 bytes, MD5 `d76da60c6cd7d9f6ce42630b1271d8d7`). The tools refuse any other file.
 
-**The result**: `build/IK3J_S3/` and `build/IK3J_S4/` each contain `IK_PLUS.TOS` and the patched `ATOR.EXE`. Copy the folder that matches your adapter socket to a floppy disk or a hard disk, then run `IK_PLUS.TOS`. The original's other files are no longer needed. With the default settings, `make check` compares the result with the expected checksums:
+**The result**: `build/IK3J_S3/`, `build/IK3J_S4/` and `build/IK3J_STE/` each contain `IK_PLUS.TOS` and the patched `ATOR.EXE`. Copy the folder you need to a floppy disk or a hard disk, then run `IK_PLUS.TOS`: `IK3J_S3` or `IK3J_S4` for the socket of your parallel-port adapter, or `IK3J_STE` for an STE. The original's other files are no longer needed. With the default settings, `make check` compares the result with the expected checksums:
 
 | File | MD5 |
 |---|---|
 | `IK3J_S3/ATOR.EXE` | `cd6b83ab485dc33f0b6de4bbc8df2423` |
 | `IK3J_S4/ATOR.EXE` | `c70c6e623faa00cce0509e4c527b757d` |
 | `IK_PLUS.TOS` | `0a89bb68ba0b62e122cc9d63670fe7fa` |
+| `IK3J_STE/ATOR.EXE` | `000bc16b2c0866b16e001c22b0c8048d` |
+| `IK3J_STE/IK_PLUS.TOS` | `1a711eae25e9a54b95d59478dbc3e1b4` |
 
 **Option**: `make game LIMIT=180 ATOR=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
 
@@ -107,9 +128,10 @@ Note: Hatari 2.4.1 is more permissive than real hardware on the parallel port. I
 
 ## How it works
 
-- `src/loader.s`: the loader, which replaces the intro and the old start-up programs.
+- `src/loader.s`: the loader, which replaces the intro and the old start-up programs. Assembled with `-DSTE`, it also loads the STE module.
 - `src/p3.s`: the 3-player code, placed at `$800` in unused memory.
-- `tools/patch_game.py` and `tools/patch_p3.py`: apply the patches. Before changing any byte, they check the checksum and the original bytes.
+- `src/ste.s`: the STE module (DMA sound, blitter), placed at `$C0000`, above the 512 KB the game was written for.
+- `tools/patch_game.py`, `tools/patch_p3.py` and `tools/patch_ste.py`: apply the patches. Before changing any byte, they check the checksum and the original bytes.
 - `src/joytest.s`: JOYTEST.
 - `tools/trace_ik.py` and `tools/show.py`: a recursive disassembler and a listing viewer, for study. They need `pip install capstone`.
 - `docs/fr/`: the technical notes (methodology, code map, version history).

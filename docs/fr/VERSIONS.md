@@ -1,4 +1,4 @@
-# IK+ — historique des versions 2 à 4 (essais sur machine réelle)
+# IK+ — historique des versions (essais sur machine réelle)
 
 *Notes de travail, en français. Les numéros de section suivent ceux de [METHODOLOGIE.md](METHODOLOGIE.md).*
 
@@ -58,3 +58,39 @@ Il remplace `IK_PLUS.TOS`, `DT0` et `DT1` : il n'y a plus d'intro ni d'écran pi
   - `$ED04` (`rdhook`) : `F_0ED04` lit les joysticks pendant les épreuves sans passer par `F_07732`. On y lit donc aussi l'adaptateur (routine commune `readjoy3`).
 - **Couleurs dans l'épreuve B** : `$1022` est la couleur 1 (`$FF8242`), posée par le raster (`$1AF2`, routines Timer B en `$1934`). Elle vaut normalement `$007` (veste du bleu). L'épreuve B la met à `$700` (`$EEEC`) et la remet à `$007` à la fin (`$F0AE`). `blinkb` la met à `$007` pendant le tour du joueur 3 et à `$700` pour les autres. Effet de bord accepté : explosions et bulle de l'arbitre en bleu pendant ce tour.
 - Validé dans Hatari (STF/1.04, 3 humains) : épreuve A au round 3 et épreuve B au round 6, avec le joueur 3 en premier, puis les joueurs 2 et 1 ; `$1316` reste à 0 ; le bleu est bien affiché. Empreintes : `IK3J_S3/ATOR.EXE` = `cd6b83ab485dc33f0b6de4bbc8df2423`, `IK3J_S4/ATOR.EXE` = `c70c6e623faa00cce0509e4c527b757d`.
+
+## 10. Version 6 : version STE (port étendu, son DMA, blitter)
+
+Version réservée au **STE avec au moins 1 Mo** (cookie `_MCH` = `$00010000`, `phystop` ≥ `$100000`) : dossier `IK3J_STE`, chargeur `loader.s -DSTE` qui inclut `build/ste.bin` et le recopie en `$C0000`. Le jeu, écrit pour 512 Ko, n'utilise rien au-dessus de `$80000`.
+
+### Mesures de départ (Hatari, STE/1.62, combat)
+
+- **Une image = un pas du jeu.** `F_06EBE` attend que le compteur de VBL `$124A` dépasse `P_06EB8[$100D + $1010]` = [1, 3, 4, 5, 6, 7] ; `$100D` = 0 à 4 selon F6 à F10 (`$7086`). F6 (turbo) : 2 VBL par image au minimum (25 images/s) ; F8 (normal) : 5 VBL (10 images/s). À 50 images/s, le jeu irait deux fois plus vite que le turbo.
+- `F_06EDC` (échange des écrans) attend d'abord que le faisceau soit entre les lignes 150 et 160 (`F_076D6`, lecture de `$FF8207`) : temps d'attente pure.
+- Table mise à zéro (plus de limite) : 2,50 VBL par image en moyenne (61 % en 2 VBL, 23 % en 3, 14 % en 4).
+- Profil : combattants 27 % (`F_09C5C`, `P_09D70`, `F_09E90`), effacement 13 % (`F_0D6C4`), bruitages 13 % hors coût d'entrée des interruptions (`P_017D8`/`P_0180E`), attente du faisceau 12 %, textes 8×8 6 % (`F_084C0`), raster 5 %.
+
+### Joueur 3 sur le port étendu A (`p3.s -DSTEPAD`)
+
+Ligne 0 (`$FF9202` = `$FFFE`) : directions en bits 8–11, actives à 0 ; `$FF9200` (accès en mot) bit 0 = Pause, bit 1 = A. Lignes 1 et 2 : bit 1 = B, puis C. Tir = A, B, C ou Pause. JOYTEST affiche aussi les ports A et B (STE et Falcon seulement : lire `$FF9202` sur STF provoque une erreur de bus).
+
+### Son DMA (`ste.s` : `init`, `dmaplay`)
+
+- Bruitages d'origine : 18 échantillons 8 bits non signés (centrés sur `$80`, multiples de 4) en `$2B178`, débuts et fins en `$2B078`/`$2B0F8`. Lancement en `$2064` (combat) et `$E36E` (épreuves) : Timer C, diviseur 4 et donnée `$3D`–`$44` (≈ 9,0 à 10,1 kHz, tirée au hasard), avec une interruption par octet qui convertit l'octet en deux volumes YM (registres 9 et 10, table en `$1834`). Pendant un bruitage, `$1374` ≠ 0 et la musique n'utilise plus que la voie A.
+- Au lancement : rééchantillonnage à 12 517 Hz (interpolation linéaire, virgule fixe 16 bits, 8 bits signés, volume divisé par 2) en `$D0000`–`$EBE74`, en environ 2,3 s. Le résultat est identique octet par octet à une référence en Python. Le LMC1992 est réglé par le Microwire (0 dB, YM mélangé au DMA).
+- Accroches : `$2064` → `jsr dmaplay` / `rts` ; `$E36E` → `jsr dmaplay` / `bra.s $E3BA`. Le Timer C n'est plus armé et `$1374` reste à 0 : la musique garde ses 3 voies.
+- Gain : 85 % des images en 2 VBL (au lieu de 61 %), 2,11 VBL en moyenne.
+
+### Blitter (`ste.s` : `initspr`, `drawf0/1/2`, `restore`, `rasterw`)
+
+- Sprites des combattants : banques `$43078` (et miroir `$53078`), fabriquées par `F_02570` au démarrage (`$2208`). Table de 96 images ; une image = suite de bandes (décalage.w, nombre.w, puis nombre lignes de 3 mots), terminée par nombre = 0. Une bande fait 16 pixels de large, les décalages sont multiples de 8. Le masque est le OU des 3 plans.
+- Chaque combattant répartit ses 3 plans sur les 4 plans de l'écran : blanc [effacé, p0, p1, p2], rouge [p1, p0, p1, p2], bleu [p1, p0, effacé, p2]. C'est ce qui donne la couleur de la veste.
+- `initspr` recopie les deux banques au format du blitter (masque, p0, p1, p2 par ligne) en `$80000`, soit environ 142 Ko.
+- Dessin : par bande, une passe par plan d'écran « ET NON masque » (op 4) puis « OU plan » (op 7), plus « OU masque » dans la carte de collision `($9FAC)` si `$9FB4` ≠ 0. Décalage de 0 à 14 pixels par le registre de décalage : 2 mots par ligne, sans FXSR ni NFSR. Le 2ᵉ mot source lu est la ligne suivante (pas en X = 8, pas en Y = 0) ; les restes sont coupés par les masques de bord. La liste de restauration et l'ombre (`F_0D818`, avec `a5` et `d7` comme l'original) sont inchangées.
+- `restore` : copie de 8 mots × (nombre + 1) lignes depuis le décor `$23378`, et remise à zéro des cartes `($9FAC)`/`($9FB0)` si `$9FB4`/`$9FB6`.
+- **Contrôle** (`-DCHECK`, `-DCHECKBONUS`) : chaque appel exécute l'original puis la nouvelle routine sur le même état, avec les interruptions masquées, et compare l'écran, les deux cartes, la liste et son pointeur. Résultat : 1 158 appels en combat à 3 joueurs et 15 dans les épreuves, **aucune différence**.
+- **Deux pièges du mode partagé** :
+  1. **Raster** : les couleurs changent parfois toutes les 2 lignes (table `$199C`). Le gestionnaire du Timer B (`$1934`) doit donc écrire le compteur suivant en moins de 2 lignes. Si le blitter partage le bus, il n'y arrive plus, et le bas de l'écran prend les couleurs de la zone d'avant (mer grise, pantalon noir : environ 1 image sur 25). Correctif : `$1934` → `jmp rasterw`, qui met le blitter en pause (bit 7 de `$FF8A3C` à 0), et la boucle d'attente `$194A` perd 3 tours pour compenser les 40 cycles ajoutés. Résultat : 0 défaut sur 186 captures, contre 6 sur 158 avant.
+  2. **Fin de travail** : après cette pause, le bit 7 se relit à 0. La boucle d'Atari (`bset #7` / `nop` / `bne`) croyait alors le travail fini et reprogrammait le blitter en pleine copie : il restait des morceaux de combattants dans l'épreuve A. La fin se teste donc maintenant sur le compteur de lignes (`$FF8A38` = 0).
+- Résultat final, sans limite de vitesse : 1,96 VBL par image (87 % en 2 VBL, 4 % en 3). **Turbo (F6) : 25 images/s dans 100 % des images mesurées**, contre 22,5 en moyenne pour l'original.
+- Empreintes : `IK3J_STE/ATOR.EXE` = `000bc16b2c0866b16e001c22b0c8048d`, `IK3J_STE/IK_PLUS.TOS` = `1a711eae25e9a54b95d59478dbc3e1b4`.

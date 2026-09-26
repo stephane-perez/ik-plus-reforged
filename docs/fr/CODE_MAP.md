@@ -80,3 +80,19 @@ Tout est indexé par combattant, **i = 0 (blanc), 1 (rouge), 2 (bleu)**, et joue
 | `$662C` → `roundmsg` | `move.b d0,$1092.w / move.w #2,d2` | Avec joueur 3 : message neutre (`$0A`, `$06`, `$08`, `$09`) |
 | `$1DCC` → `tick` | `move.b #$32,$125B.w` | Compteur de secondes de combat |
 | `$7680` / `$765C` | entrées de `F_07680` / `F_0765C` | Poing bleu (`$78`) |
+
+## Affichage, son et vitesse (version STE)
+
+| Adresse | Rôle |
+|---|---|
+| `$6EB8` | Table de vitesse [1,3,4,5,6,7] : nombre minimal de VBL par image − 1, indice `$100D` (F6–F10 → 0–4) + `$1010` |
+| `F_06EBE` / `F_06EDC` | Attente de la vitesse (`$124A` = VBL depuis la dernière image), puis échange des écrans (`$1015`, table `P_06F54`) |
+| `F_076D6` | Attente du faisceau entre deux lignes (lit `$FF8207`) |
+| `F_09C5C`, `P_09D70`, `F_09E90` | Dessin des combattants 0, 1, 2 (image `$107B+i`, x `$107E+i` par 2 pixels, sens `$1081+i`) |
+| `F_02570` | Fabrique les banques de sprites `$43078` / `$53078` (miroir) |
+| `F_0D6C4` | Effacement : liste `$103A` (adresse.l, nombre.w), décor en `$23378` |
+| `$9FAC` / `$9FB0` | Cartes de collision (1 bit par pixel, 40 octets par ligne), actives si `$9FB4` / `$9FB6` |
+| `F_0D818` | Ombre d'un combattant (plan 0, 8 lignes) |
+| `$1934` | Raster (Timer B) : zones `$19AA`, compteurs `$199C` |
+| `$2064` / `$E36E` | Lancement d'un bruitage (Timer C, `P_017D8` / `P_0180E`) ; banque `$2B178` |
+| `F_036B2` | Hasard : dépend aussi de `$1006` (VBL) et de `$FF8209` (faisceau) |
