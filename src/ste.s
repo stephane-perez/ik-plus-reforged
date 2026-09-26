@@ -325,11 +325,8 @@ drawf       lea     $107b.w,a0
             move.l  a1,B_DST(a6)
             move.w  d3,B_YC(a6)
             move.w  d2,B_HOP(a6)
-            move.b  #$80,B_CTL(a6)          ; départ, mode partagé
-.w1         bset.b  #7,B_CTL(a6)            ; (re)lance ; fini quand le compteur
-            nop
-            tst.w   B_YC(a6)                ; de lignes est à 0 (pas le bit 7 :
-            bne.s   .w1                     ;  rasterw peut le mettre à 0)
+            clr.b   B_CTL(a6)               ; mode partagé, sans HOG
+            bsr     bwait                   ; lance et attend la fin
             bra.s   .pass
 
 .coll       tst.w   $9fb4                   ; carte de collision : OU masque
@@ -346,11 +343,8 @@ drawf       lea     $107b.w,a0
             move.w  d1,B_DYI(a6)
             move.w  d3,B_YC(a6)
             move.w  #$0207,B_HOP(a6)
-            move.b  #$80,B_CTL(a6)
-.w2         bset.b  #7,B_CTL(a6)            ; (re)lance ; fini quand le compteur
-            nop
-            tst.w   B_YC(a6)                ; de lignes est à 0 (pas le bit 7 :
-            bne.s   .w2                     ;  rasterw peut le mettre à 0)
+            clr.b   B_CTL(a6)               ; mode partagé, sans HOG
+            bsr     bwait                   ; lance et attend la fin
             move.w  #8,B_DXI(a6)
             move.w  d6,B_DYI(a6)
 
@@ -385,6 +379,42 @@ pass2       dc.w    0,0,$0204, 4,0,$0207    ; bleu : plan 0 = sprite 1,
             dc.w    0,4,$0204               ; plan 3 = sprite 2
             dc.w    0,6,$0204, 6,6,$0207
             dc.w    -1
+
+; ----------------------------------------------------------------------------
+; bwait : lance le travail préparé dans le blitter (mode partagé) et attend
+; sa fin. Machine réelle : une interruption qui arrive pendant que le blitter
+; tient le bus attend qu'il le rende (jusqu'à 64 accès, ~256 cycles), et si
+; la boucle le relance juste avant que le 68000 prenne l'interruption, il le
+; reprend aussitôt. Le gestionnaire raster (Timer B) écrit alors ses couleurs
+; trop tard : dégradé du reflet décalé, voire compteur suivant raté.
+; Garde : on ne lance ni ne relance jamais le blitter pendant la dernière
+; ligne avant une interruption raster (compteur du Timer B, $FFFA21, à 1) ;
+; on le met en pause et on attend que l'interruption soit passée. Lancé
+; quand il reste au moins 2 lignes (>= 512 cycles), il rend le bus au bout
+; de 256 cycles au plus, et la boucle le met en pause avant l'interruption.
+; La fin se teste sur le compteur de lignes, jamais sur le bit 7 (qui se
+; relit à 0 après une pause).
+; -DNOGUARD : ancienne boucle, sans garde (essais de comparaison).
+; ----------------------------------------------------------------------------
+bwait
+            ifnd NOGUARD
+.lp         cmpi.b  #1,$fffffa21.w          ; dernière ligne avant le raster ?
+            bne.s   .run
+            tst.b   $fffffa1b.w             ; Timer B arrêté : pas d'interruption
+            beq.s   .run
+            bclr.b  #7,B_CTL(a6)            ; pause jusqu'à l'interruption
+            bra.s   .lp
+.run        bset.b  #7,B_CTL(a6)            ; (re)lance
+            nop
+            tst.w   B_YC(a6)                ; fini quand le compteur de lignes
+            bne.s   .lp                     ;  est à 0
+            else
+.lp         bset.b  #7,B_CTL(a6)
+            nop
+            tst.w   B_YC(a6)
+            bne.s   .lp
+            endif
+            rts
 
 ; ----------------------------------------------------------------------------
 ; rasterw : début de l'interruption raster (Timer B, $1934). Les couleurs
@@ -433,11 +463,8 @@ restore     move.l  a6,-(a7)
             move.w  #160-14,B_DYI(a6)
             move.w  d1,B_YC(a6)
             move.w  #$0203,B_HOP(a6)        ; copie
-            move.b  #$80,B_CTL(a6)
-.w1         bset.b  #7,B_CTL(a6)            ; (re)lance ; fini quand le compteur
-            nop
-            tst.w   B_YC(a6)                ; de lignes est à 0 (pas le bit 7 :
-            bne.s   .w1                     ;  rasterw peut le mettre à 0)
+            clr.b   B_CTL(a6)               ; mode partagé, sans HOG
+            bsr     bwait                   ; lance et attend la fin
             lsr.w   #2,d2                   ; position dans les cartes
             move.w  #2,B_XC(a6)
             move.w  #40-2,B_DYI(a6)
@@ -448,22 +475,16 @@ restore     move.l  a6,-(a7)
             add.l   $9fac,d4
             move.l  d4,B_DST(a6)
             move.w  d1,B_YC(a6)
-            move.b  #$80,B_CTL(a6)
-.w2         bset.b  #7,B_CTL(a6)            ; (re)lance ; fini quand le compteur
-            nop
-            tst.w   B_YC(a6)                ; de lignes est à 0 (pas le bit 7 :
-            bne.s   .w2                     ;  rasterw peut le mettre à 0)
+            clr.b   B_CTL(a6)               ; mode partagé, sans HOG
+            bsr     bwait                   ; lance et attend la fin
 .m2         tst.w   $9fb6
             beq.s   .m3
             move.l  d2,d4
             add.l   $9fb0,d4
             move.l  d4,B_DST(a6)
             move.w  d1,B_YC(a6)
-            move.b  #$80,B_CTL(a6)
-.w3         bset.b  #7,B_CTL(a6)            ; (re)lance ; fini quand le compteur
-            nop
-            tst.w   B_YC(a6)                ; de lignes est à 0 (pas le bit 7 :
-            bne.s   .w3                     ;  rasterw peut le mettre à 0)
+            clr.b   B_CTL(a6)               ; mode partagé, sans HOG
+            bsr     bwait                   ; lance et attend la fin
 .m3         dbra    d3,.ent
 .end        move.l  (a7)+,a6
             jmp     F_0D752

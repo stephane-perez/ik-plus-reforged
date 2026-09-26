@@ -93,6 +93,6 @@ Tout est indexé par combattant, **i = 0 (blanc), 1 (rouge), 2 (bleu)**, et joue
 | `F_0D6C4` | Effacement : liste `$103A` (adresse.l, nombre.w), décor en `$23378` |
 | `$9FAC` / `$9FB0` | Cartes de collision (1 bit par pixel, 40 octets par ligne), actives si `$9FB4` / `$9FB6` |
 | `F_0D818` | Ombre d'un combattant (plan 0, 8 lignes) |
-| `$1934` | Raster (Timer B) : zones `$19AA`, compteurs `$199C` |
+| `$1934` | Raster (Timer B) : routines `$19AA`, compteurs `$199C` ; armé par `F_023B2` (VBL). Interruptions aux lignes 14, 19, 22, 68, 70, 72, 74, 76 (dégradé du reflet, couleur 10), 101, 115, 190 (voir VERSIONS.md §11) |
 | `$2064` / `$E36E` | Lancement d'un bruitage (Timer C, `P_017D8` / `P_0180E`) ; banque `$2B178` |
 | `F_036B2` | Hasard : dépend aussi de `$1006` (VBL) et de `$FF8209` (faisceau) |

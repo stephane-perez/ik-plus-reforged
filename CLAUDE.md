@@ -121,6 +121,13 @@ Tu fournis les ROM TOS (pas dans le dépôt). Scripts dans `hatari/` :
   compteur suivant du Timer B en moins de 2 lignes → `rasterw` met le blitter
   en pause. Après une pause, le bit 7 se relit à 0 : la fin d'un travail se
   teste sur le compteur de lignes (`$FF8A38` = 0), jamais sur le bit 7.
+- **Blitter et interruptions raster sur la machine réelle** : une interruption
+  qui arrive pendant un paquet du blitter attend jusqu'à ~256 cycles, et
+  Hatari ne reproduit pas tous les cas. `bwait` (seule façon de lancer le
+  blitter) ne le lance jamais quand le Timer B est à 1 ligne de son
+  interruption (`$FFFA21` = 1). Le dégradé du reflet (lignes 68–76, couleur
+  10) est la zone la plus sensible. Mesure : points d'arrêt à l'entrée du
+  gestionnaire avec `HBL` / `LineCycles` (VERSIONS.md §11).
 - Le hasard du jeu (`F_036B2`) dépend du VBL et du faisceau : deux versions
   n'évoluent pas pareil. Pour comparer, préférer le mode contrôle.
 - Dans IK+, une image = un pas du jeu (table de vitesse `$6EB8`) : plus

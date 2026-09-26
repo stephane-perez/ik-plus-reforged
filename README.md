@@ -113,7 +113,7 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 | `IK3J_S4/ATOR.EXE` | `c70c6e623faa00cce0509e4c527b757d` |
 | `IK_PLUS.TOS` | `0a89bb68ba0b62e122cc9d63670fe7fa` |
 | `IK3J_STE/ATOR.EXE` | `000bc16b2c0866b16e001c22b0c8048d` |
-| `IK3J_STE/IK_PLUS.TOS` | `1a711eae25e9a54b95d59478dbc3e1b4` |
+| `IK3J_STE/IK_PLUS.TOS` | `ac65346a23401c7e02d1402a39b3dc96` |
 
 **Option**: `make game LIMIT=180 ATOR=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
 
