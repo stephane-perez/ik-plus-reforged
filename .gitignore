@@ -31,3 +31,14 @@ orig/
 
 __pycache__/
 *.pyc
+
+# Super Sprint game files (never commit them)
+*.DAT
+*.dat
+*.HSC
+*.hsc
+*.SEQ
+*.seq
+
+# Hatari test output
+out/

@@ -116,6 +116,10 @@ Attention : Hatari 2.4.1 est plus permissif que la vraie machine sur le port par
 
 Les commentaires du code, les messages des outils et les notes techniques sont en français.
 
+## Super Sprint
+
+Le dossier [`super-sprint/`](super-sprint/README_FR.md) applique les mêmes méthodes et outils à *Super Sprint* (Electric Dreams, 1986) : installation sur disque dur, 4e voiture jouable, joysticks sur port parallèle et joypads STE.
+
 ## Crédits
 
 - *International Karate +* : Archer Maclean (1962–2022), System 3.

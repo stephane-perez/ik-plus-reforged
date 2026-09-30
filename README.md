@@ -116,6 +116,10 @@ Note: Hatari 2.4.1 is more permissive than real hardware on the parallel port. I
 
 Source comments, tool messages and technical notes are in French.
 
+## Super Sprint
+
+The [`super-sprint/`](super-sprint/README.md) folder applies the same methods and tools to *Super Sprint* (Electric Dreams, 1986): hard disk install, a playable 4th car, parallel-port joysticks and STE joypads.
+
 ## Credits
 
 - *International Karate +*: Archer Maclean (1962–2022), System 3.
