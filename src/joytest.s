@@ -12,7 +12,8 @@
 ;    ça permet de reconnaître le câblage de n'importe quel adaptateur ;
 ;  - STE et Falcon (cookie _MCH) : ports joystick étendus A et B (manette
 ;    Jaguar) : directions, et boutons A, B, C, Pause, Option ; plus les
-;    valeurs brutes lues pour chacune des 4 lignes de sélection.
+;    valeurs brutes lues pour chacune des 4 lignes de sélection, avec trois
+;    façons de lire $FF9200 (diagnostic sur machine réelle).
 ;
 ; Une touche quelconque quitte. En sortant : joyvec d'origine, souris
 ; réactivée ($08), registres 7 et 14 du PSG remis comme avant.
@@ -155,25 +156,42 @@ loop        move.w  #37,-(a7)               ; Vsync
             ; --- ports étendus A et B (STE, Falcon)
             tst.b   haspad
             beq     .nopad
-            ; lignes 0 à 3 des deux ports : $FF9202 puis $FF9200, en brut
+            ; lignes 0 à 3 des deux ports, lues de 3 façons (diagnostic de la
+            ; manette Jaguar sur machine réelle) :
+            ;  (1) $FF9200 lu juste après la sélection ;
+            ;  (2) $FF9200 lu après une attente de ~64 cycles ;
+            ;  (3) $FF9202 lu d'abord, puis $FF9200 (ordre de la v1 pour la
+            ;      ligne 0, et du jeu).
             ; ligne 0 : directions (A bits 8-11, B bits 12-15), Pause (bit 0 /
             ; bit 2) et A (bit 1 / bit 3) ; lignes 1, 2, 3 : pavé numérique
             ; (bits 8-15) et B, C, Option (bit 1 / bit 3)
             lea     sels(pc),a2
             lea     praw(pc),a1
             moveq   #3,d1
-.row        move.w  (a2)+,$ffff9202.w
-            move.w  $ffff9202.w,(a1)+
-            move.w  $ffff9200.w,(a1)+
-            dbra    d1,.row
+.row        move.w  (a2),$ffff9202.w        ; (1)
+            move.w  $ffff9200.w,d2
             move.w  #$ffff,$ffff9202.w
+            move.w  (a2),$ffff9202.w        ; (2)
+            rept    16
+            nop
+            endr
+            move.w  $ffff9200.w,d3
+            move.w  #$ffff,$ffff9202.w
+            move.w  (a2)+,$ffff9202.w       ; (3)
+            move.w  $ffff9202.w,(a1)+
+            move.w  $ffff9200.w,d4
+            move.w  d2,(a1)+
+            move.w  d3,(a1)+
+            move.w  d4,(a1)+
+            move.w  #$ffff,$ffff9202.w
+            dbra    d1,.row
             lea     praw(pc),a1             ; prow : directions, puis boutons
-            lea     prow(pc),a0             ;  des lignes 0 à 3
+            lea     prow(pc),a0             ;  des lignes 0 à 3, lecture (1)
             move.w  (a1),(a0)+
             move.w  2(a1),(a0)+
-            move.w  6(a1),(a0)+
             move.w  10(a1),(a0)+
-            move.w  14(a1),(a0)+
+            move.w  18(a1),(a0)+
+            move.w  26(a1),(a0)+
             lea     prow(pc),a0             ; actifs à 0 -> actifs à 1
             moveq   #4,d0
 .inv        not.w   (a0)+
@@ -204,20 +222,26 @@ loop        move.w  #37,-(a7)               ; Vsync
             move.b  d5,d0
             add.b   #'0',d0
             move.b  d0,(a4)+
-            lea     t_r9202(pc),a0
-            bsr     copys
+            moveq   #3,d6                   ; $FF9202, puis (1), (2), (3)
+.rv         move.b  #' ',(a4)+
+            move.b  #' ',(a4)+
             move.w  (a3)+,d0
             bsr     hex4
-            lea     t_r9200(pc),a0
-            bsr     copys
-            move.w  (a3)+,d0
-            bsr     hex4
+            dbra    d6,.rv
             clr.b   (a4)
             pea     rawbuf(pc)
             bsr     print
             addq.w  #1,d5
             cmp.w   #4,d5
             bne.s   .rl
+            moveq   #21,d7
+            bsr     gotoline
+            pea     t_pleg(pc)
+            bsr     print
+            moveq   #22,d7
+            bsr     gotoline
+            pea     t_pleg2(pc)
+            bsr     print
 .nopad
             move.w  #11,-(a7)               ; Cconis
             trap    #1
@@ -346,13 +370,6 @@ padline     lea     prow(pc),a0
 .p          move.b  d2,(a2)+
             rts
 
-; copys : copie la chaîne a0 (sans le 0 final) en (a4)+
-copys       move.b  (a0)+,d0
-            beq.s   .f
-            move.b  d0,(a4)+
-            bra.s   copys
-.f          rts
-
 ; hex4 : mot d0 en 4 chiffres hexadécimaux, en (a4)+
 hex4        moveq   #3,d1
 .h          rol.w   #4,d0
@@ -396,7 +413,9 @@ t_strobe    dc.b    '  Fire STROBE: ',0
 t_raw       dc.b    'Lines D7..D0    : ',0
 t_pa        dc.b    'STE port A      : ',0
 t_pb        dc.b    'STE port B      : ',0
-t_prw       dc.b    'Raw lines (0 bits = pressed):',0
+t_prw       dc.b    '    9202  (1)   (2)   (3)  0=pressed',0
+t_pleg      dc.b    'FF9200: (1) at once  (2) after a wait',0
+t_pleg2     dc.b    '        (3) after reading FF9202',0
 cls         dc.b    27,'E',27,'f'
             dc.b    'JOYTEST - joystick status',13,10
             dc.b    'Press any key to quit.',13,10,0
@@ -423,15 +442,15 @@ t_strobe    dc.b    '  Tir STROBE : ',0
 t_raw       dc.b    'Lignes D7..D0   : ',0
 t_pa        dc.b    'Port etendu A   : ',0
 t_pb        dc.b    'Port etendu B   : ',0
-t_prw       dc.b    'Lignes brutes (bits a 0 = appuye) :',0
+t_prw       dc.b    '    9202  (1)   (2)   (3)  0=appuye',0
+t_pleg      dc.b    'FF9200 : (1) direct  (2) apres attente',0
+t_pleg2     dc.b    '         (3) apres lecture de FF9202',0
 cls         dc.b    27,'E',27,'f'
             dc.b    'JOYTEST - etat des joysticks',13,10
             dc.b    'Une touche pour quitter.',13,10,0
 bye         dc.b    27,'E',27,'e',0
             endif
 esc_y       dc.b    27,'Y',32,32+1,0
-t_r9202     dc.b    '  FF9202=',0
-t_r9200     dc.b    '  FF9200=',0
             even
 sels        dc.w    $ffee,$ffdd,$ffbb,$ff77 ; ligne 0 à 3 des deux ports
 ikbd_joy    dc.b    $14
@@ -453,6 +472,6 @@ bits        ds.b    10
 haspad      ds.b    1
             even
 prow        ds.w    5
-praw        ds.w    8               ; lignes 0 à 3 : $FF9202, $FF9200
+praw        ds.w    16              ; lignes 0 à 3 : $FF9202, $FF9200 (1) (2) (3)
 rawbuf      ds.b    32
 btn         ds.b    8
