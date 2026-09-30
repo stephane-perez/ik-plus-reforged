@@ -109,3 +109,9 @@ Ligne 0 (`$FF9202` = `$FFFE`) : directions en bits 8–11, actives à 0 ; `$FF92
   - contrôle octet par octet (`-DCHECK`, 3 humains) : 420 appels, aucune différence.
 - **Retour de la machine réelle** (STE 4 Mo / TOS 1.62, `IKPLUS_STE_v3`) : **affichage parfait**, plus aucun clignotement du reflet ni de l'image entière. L'hypothèse du retard dû au blitter est donc confirmée par le correctif. Reste à tester : la manette Jaguar sur le port étendu A.
 - Empreintes : `IK3J_STE/ATOR.EXE` = `000bc16b2c0866b16e001c22b0c8048d` (inchangé), `IK3J_STE/IK_PLUS.TOS` = `ac65346a23401c7e02d1402a39b3dc96`.
+
+## 12. Manette Jaguar sur STE réel : A et Option muets
+
+- **Retour de la machine réelle** (STE 4 Mo / TOS 1.62, `IKPLUS_STE_v3`) : bruitages présents, volume correct par rapport à la musique. Manette Jaguar sur le port étendu A : directions, B, C et Pause fonctionnent dans JOYTEST et dans le jeu ; **A et Option ne réagissent pas**, ni dans JOYTEST ni dans le jeu. Dans le jeu, B et C servent de tir.
+- Les deux programmes suivent le brochage documenté (et émulé par Hatari) : ligne 0 (`$FF9202` = `$FFFE`) → directions en bits 8–11, Pause en bit 0 et **A en bit 1** de `$FF9200` ; lignes 1, 2, 3 → B, C, **Option** en bit 1. B et C (lignes 1 et 2) arrivent bien sur le bit 1 : c'est le bit 1 des lignes 0 et 3 qui reste muet. Cette manette (ou un adaptateur) envoie donc A et Option ailleurs, ou pas du tout.
+- **JOYTEST** : nouvelles lignes « Lignes brutes », qui affichent pour les lignes 0 à 3 (les deux ports sélectionnés ensemble : `$FFEE`, `$FFDD`, `$FFBB`, `$FF77`) les valeurs lues dans `$FF9202` et `$FF9200`, bits à 0 = appuyé. Vérifié dans Hatari (sans manette : `FFFF` partout). À faire sur la machine : noter les 8 valeurs au repos, puis en appuyant sur A, puis sur Option.
