@@ -49,6 +49,27 @@ lui demande, avec une liste précise de choses à vérifier.
 5. Toujours tester dans Hatari avant de livrer, et dire clairement ce qui
    n'a été vérifié que dans l'émulateur.
 
+## Reprendre le travail (nouvelle session)
+
+Le code se fait ici, dans Claude Code : on travaille sur une branche, on
+pousse, et on ouvre une PR décrite en français. La machine de la session est
+temporaire : tout ce qui n'est pas poussé disparaît avec elle.
+
+1. **Outils** : `scripts/setup-dev.sh` installe vasm, Hatari, capstone,
+   Pillow et numpy. Sur le web, le hook `.claude/hooks/session-start.sh` le
+   lance tout seul au début de chaque session (une fois fusionné dans
+   `master`).
+2. **Fichiers du jeu**, jamais dans le dépôt : Stéphane les envoie dans la
+   conversation (ils arrivent dans `/root/.claude/uploads/<session>/`). Les
+   ranger dans `../ikplus-local/` (à côté du dépôt, variable `IKPLUS_LOCAL`) :
+   `ATOR.EXE` et `rom/tos104.img` (STF), `rom/tos162.img` (STE),
+   `rom/tos206.img` (Mega STE). Puis relancer `sh scripts/setup-dev.sh`,
+   qui fait `make game` et `make check`.
+3. **Où on en est** : la fin de ce fichier (« Le projet »), `docs/ROADMAP.md`
+   et les tickets GitHub ouverts ; l'historique dans `docs/fr/VERSIONS.md`.
+4. **Étiquettes** : le proxy git des sessions refuse de pousser les
+   étiquettes (`git push origin v6` → 403). Donner la commande à Stéphane.
+
 ## Construire
 
 ```sh
