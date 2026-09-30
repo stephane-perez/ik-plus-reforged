@@ -65,7 +65,7 @@ temporaire : tout ce qui n'est pas poussé disparaît avec elle.
    `ATOR.EXE` et `rom/tos104.img` (STF), `rom/tos162.img` (STE),
    `rom/tos206.img` (Mega STE). Puis relancer `sh scripts/setup-dev.sh`,
    qui fait `make game` et `make check`.
-3. **Où on en est** : la fin de ce fichier (« Le projet »), `docs/ROADMAP.md`
+3. **Où on en est** : la section « Le projet » ci-dessus, `docs/ROADMAP.md`
    et les tickets GitHub ouverts ; l'historique dans `docs/fr/VERSIONS.md`.
 4. **Étiquettes** : le proxy git des sessions refuse de pousser les
    étiquettes (`git push origin v6` → 403). Donner la commande à Stéphane.
