@@ -139,6 +139,10 @@ Tu fournis les ROM TOS (pas dans le dépôt). Scripts dans `hatari/` :
 - Le TOS passe à `joyvec` un tampon de 3 octets (en-tête, joystick 0, joystick 1).
 - Lire `$FF9202` sur une machine sans ports étendus (STF, Mega STE) peut
   provoquer une erreur de bus.
+- **Ports étendus sur la machine réelle** : une lecture de `$FF9202`
+  (directions) masque les boutons dans la lecture suivante de `$FF9200`
+  (relu `$FFFF`). Toujours lire `$FF9200` juste après la sélection de la
+  ligne, avant `$FF9202`. Hatari ne le reproduit pas (VERSIONS.md §12).
 - **Blitter en mode partagé** : l'interruption raster (`$1934`) doit écrire le
   compteur suivant du Timer B en moins de 2 lignes → `rasterw` met le blitter
   en pause. Après une pause, le bit 7 se relit à 0 : la fin d'un travail se

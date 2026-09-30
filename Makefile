@@ -80,7 +80,7 @@ game: all $(B)/ATOR_STE.EXE
 # Expected MD5 with the default LIMIT=300
 check:
 	@$(PY) -c "import hashlib,sys; \
-exp={'$(B)/IK3J_S3/ATOR.EXE':'cd6b83ab485dc33f0b6de4bbc8df2423','$(B)/IK3J_S4/ATOR.EXE':'c70c6e623faa00cce0509e4c527b757d','$(B)/IK_PLUS.TOS':'0a89bb68ba0b62e122cc9d63670fe7fa','$(B)/IK3J_STE/ATOR.EXE':'000bc16b2c0866b16e001c22b0c8048d','$(B)/IK_STE.TOS':'ac65346a23401c7e02d1402a39b3dc96'}; \
+exp={'$(B)/IK3J_S3/ATOR.EXE':'cd6b83ab485dc33f0b6de4bbc8df2423','$(B)/IK3J_S4/ATOR.EXE':'c70c6e623faa00cce0509e4c527b757d','$(B)/IK_PLUS.TOS':'0a89bb68ba0b62e122cc9d63670fe7fa','$(B)/IK3J_STE/ATOR.EXE':'b13f02f89dcebf935af8a1a5f6c4cc83','$(B)/IK_STE.TOS':'ac65346a23401c7e02d1402a39b3dc96'}; \
 bad=[f for f,h in exp.items() if hashlib.md5(open(f,'rb').read()).hexdigest()!=h]; \
 print('OK' if not bad else 'MISMATCH: '+' '.join(bad)); sys.exit(1 if bad else 0)"
 

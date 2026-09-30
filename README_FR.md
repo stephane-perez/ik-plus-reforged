@@ -112,7 +112,7 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 | `IK3J_S3/ATOR.EXE` | `cd6b83ab485dc33f0b6de4bbc8df2423` |
 | `IK3J_S4/ATOR.EXE` | `c70c6e623faa00cce0509e4c527b757d` |
 | `IK_PLUS.TOS` | `0a89bb68ba0b62e122cc9d63670fe7fa` |
-| `IK3J_STE/ATOR.EXE` | `000bc16b2c0866b16e001c22b0c8048d` |
+| `IK3J_STE/ATOR.EXE` | `b13f02f89dcebf935af8a1a5f6c4cc83` |
 | `IK3J_STE/IK_PLUS.TOS` | `ac65346a23401c7e02d1402a39b3dc96` |
 
 **Option** : `make game LIMIT=180 ATOR=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.

@@ -98,9 +98,12 @@ readjoy3
             ; haut, bas, gauche, droite du port A, actifs à 0. $FF9200 (accès
             ; en mot obligatoire) : bit 0 = Pause, bit 1 = A, B, C ou Option
             ; selon la ligne sélectionnée, actifs à 0. Tir = A, B, C ou Pause.
+            ; Sur la machine réelle, une lecture de $FF9202 masque les boutons
+            ; dans la lecture suivante de $FF9200 (qui relit alors $FFFF) :
+            ; on lit donc $FF9200 d'abord (JOYTEST, VERSIONS.md section 12).
             move.w  #$fffe,$ffff9202.w      ; ligne 0 : directions, A, Pause
-            move.w  $ffff9202.w,d0
-            move.w  $ffff9200.w,d1
+            move.w  $ffff9200.w,d1          ; boutons d'abord
+            move.w  $ffff9202.w,d0          ; puis directions
             move.w  #$fffd,$ffff9202.w      ; ligne 1 : B
             and.w   $ffff9200.w,d1
             move.w  #$fffb,$ffff9202.w      ; ligne 2 : C
