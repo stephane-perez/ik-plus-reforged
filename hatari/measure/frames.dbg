@@ -1,0 +1,4 @@
+# Hatari debugger script (--parse frames.dbg, from the hatari/measure folder):
+# at every screen swap (F_06EDC), print the VBL number, then the long words
+# at $1076 (top byte = game state) and $1090 (top byte = message).
+b pc = $6edc :trace :file frames_hit.dbg

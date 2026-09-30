@@ -1,0 +1,4 @@
+# Profile a window of the run: profiling starts at VBL 900 and is saved at
+# VBL 1450 into profile.txt (adjust the VBL numbers to the part you want).
+b VBL = 900 :once :trace :file profile_on.dbg
+b VBL = 1450 :once :trace :file profile_save.dbg
