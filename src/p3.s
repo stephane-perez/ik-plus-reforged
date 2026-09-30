@@ -17,9 +17,9 @@
 ;    termine après LIMIT secondes de combat cumulées (chronomètre du jeu).
 ;
 ; Adaptateur (câblage vérifié sur machine réelle avec JOYTEST) :
-;  prise « joystick 3 » : directions D4-D7 (0 = appuyé), tir sur BUSY (GPIP bit 0) ;
-;  prise « joystick 4 » (-DPORT4) : directions D0-D3, tir sur STROBE (PSG port A
-;  bit 5). Hatari : « parport stick 1 » / « 2 ».
+;  prise « joystick 3 » : directions D4-D7 (0 = appuyé), tir sur BUSY (GPIP bit 0).
+;  Hatari : « parport stick 1 ». (La prise « joystick 4 », D0-D3 + STROBE, n'est
+;  plus prise en charge depuis la v6 : voir docs/fr/VERSIONS.md, section 13.)
 ; ============================================================================
 
             ifnd LIMIT
@@ -125,25 +125,6 @@ readjoy3
             move.b  $ffff8800.w,d1
             bclr    #7,d1
             move.b  d1,$ffff8802.w
-            ifd PORT4
-            ; prise « joystick 4 » : directions sur D0-D3, tir sur STROBE
-            ; (bit 5 du port A du PSG). Le jeu met STROBE à 0 : on le remet
-            ; à 1, sinon le bouton serait toujours vu appuyé.
-            ; Sélection + lecture deux fois : sous Hatari la valeur lue est
-            ; figée à la sélection ; sur la machine, on lit l'état des broches.
-            move.b  #14,$ffff8800.w
-            move.b  $ffff8800.w,d1
-            move.b  #14,$ffff8800.w
-            move.b  $ffff8800.w,d1          ; bit 5 = tir, 0 = appuyé
-            move.b  d1,d2
-            bset    #5,d2                   ; STROBE remis à 1
-            move.b  d2,$ffff8802.w
-            move.b  #15,$ffff8800.w
-            move.b  $ffff8800.w,d0          ; D0-D3 : directions, actives à 0
-            move.w  (a7)+,sr
-            andi.b  #$0f,d0
-            btst    #5,d1
-            else
             ; prise « joystick 3 » : directions sur D4-D7, tir sur BUSY
             move.b  #15,$ffff8800.w         ; PSG registre 15 = données du port parallèle
             move.b  $ffff8800.w,d0
@@ -151,7 +132,6 @@ readjoy3
             move.w  (a7)+,sr
             lsr.b   #4,d0                   ; D4-D7 -> bits 0-3, actifs à 0
             btst    #0,d1
-            endif
             bne.s   .nofire
             endif
             bset    #4,d0                   ; tir appuyé

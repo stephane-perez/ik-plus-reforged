@@ -120,3 +120,12 @@ Ligne 0 (`$FF9202` = `$FFFE`) : directions en bits 8–11, actives à 0 ; `$FF92
 - **JOYTEST, 3ᵉ version** : pour chaque ligne, `$FF9200` est lu de trois façons : (1) juste après la sélection, (2) après ~64 cycles d'attente, (3) après une lecture de `$FF9202`. La ligne « Port étendu » utilise la lecture (1). Vérifié dans Hatari (sans manette : `FFFF` partout).
 - **Troisième essai** (JOYTEST 3ᵉ version, photos sur STE réel) : avec les lectures (1) et (2), les cinq boutons répondent (A et Pause sur la ligne 0, B sur la ligne 1, Option sur la ligne 3 : `FFFD` ou `FFFE`) ; avec la lecture (3), `$FF9200` relit toujours `FFFF`. Même résultat sur le port B. **Sur la machine, une lecture de `$FF9202` masque les boutons dans la lecture suivante de `$FF9200`** ; une nouvelle sélection remet tout en ordre. Hatari ne reproduit pas ce comportement.
 - **Correctif** (`p3.s -DSTEPAD`) : sur la ligne 0, `$FF9200` est lu avant `$FF9202`. A redevient un tir, comme B, C et Pause (Stéphane : A, B et C suffisent ; Option n'est pas utilisé). Vérifié dans Hatari (manette émulée : tir → `$126E` = `$1F`, droite → `$07`, haut → `$0E`). Empreinte : `IK3J_STE/ATOR.EXE` = `b13f02f89dcebf935af8a1a5f6c4cc83` (`IK3J_STE/IK_PLUS.TOS` inchangé : `ac65346a23401c7e02d1402a39b3dc96`).
+
+## 13. Deux dossiers : IK3J_PAR et IK3J_STE
+
+- **Retour de la machine réelle** (STE, `IKPLUS_STE_v4`) : tout est validé : manette Jaguar (directions, tir A, B et C, F3 dans les deux sens), épreuves bonus à 3, affichage, bruitages, turbo.
+- **Décision de Stéphane** : deux versions seulement.
+  - `IK3J_PAR` (ex-`IK3J_S3`) : STF, STE, Mega STE ; joueur 3 sur la prise joystick 3 de l'adaptateur parallèle (D4–D7 + BUSY). Même fichier qu'avant : `IK3J_PAR/ATOR.EXE` = `cd6b83ab485dc33f0b6de4bbc8df2423`.
+  - `IK3J_STE` : STE uniquement ; manette Jaguar sur le port étendu A ; son DMA et blitter.
+- **Abandon de la prise joystick 4** (`IK3J_S4`, `p3.s -DPORT4`, D0–D3 + STROBE) : code retiré de `p3.s` (`p3.bin` et `p3_ste.bin` inchangés à l'octet) et du `Makefile`. Les faux tirs de BUSY sur la prise 3 (§9) venaient de l'ancien STE de Stéphane ; sa machine actuelle n'a pas ce défaut. JOYTEST affiche toujours les deux prises.
+- Le chargeur n'impose rien selon la machine : c'est le dossier choisi qui décide du périphérique du joueur 3 (on ne peut pas détecter une manette Jaguar : au repos, elle lit comme un port vide). Un petit menu au démarrage est envisagé plus tard.

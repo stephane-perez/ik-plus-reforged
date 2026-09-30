@@ -49,18 +49,20 @@ The game was designed around three fighters, and its data already had room for a
 - Player 3 also takes part in the two **bonus stages** (deflecting balls with the shield, kicking bombs), taking turns with the other human players. In the bomb stage, the fighter's jacket colour is also used for the explosions: during player 3's turn they are blue instead of red.
 - Without player 3, the game behaves exactly like the original.
 
-Player 3 uses a **parallel-port joystick adapter**, the kind used by *Gauntlet II*, *Leatherneck* or *Dynabusters+*. Two builds are produced, one for each socket of the adapter:
+Player 3 uses a **parallel-port joystick adapter**, the kind used by *Gauntlet II*, *Leatherneck* or *Dynabusters+*. Two folders are produced:
 
-| Folder | Adapter socket | Directions | Fire |
+| Folder | Machines | Player 3 | Extras |
 |---|---|---|---|
-| `IK3J_S3` | joystick 3 | D4–D7 | BUSY |
-| `IK3J_S4` | joystick 4 | D0–D3 | STROBE |
+| `IK3J_PAR` | STF, STE, Mega STE | parallel-port adapter, joystick 3 socket (directions D4–D7, fire on BUSY) | — |
+| `IK3J_STE` | STE with 1 MB or more | Jaguar pad on enhanced joystick port A | DMA sound, blitter (see below) |
+
+The adapter's joystick 4 socket is not supported.
 
 ### STE version
 
 The `IK3J_STE` folder is for the **STE only, with 1 MB of memory or more**. On any other machine, the loader shows a message and stops. It has the same 3-player mode, with three differences:
 
-- **Player 3 uses the STE's enhanced joystick port A** (the 15-pin socket): a Jaguar pad, or an ordinary joystick with a DB15 adapter. Fire = A, B, C or Pause. No parallel-port adapter is needed.
+- **Player 3 uses the STE's enhanced joystick port A** (the 15-pin socket): a Jaguar pad (tested on a real STE), or an ordinary joystick with a DB15 adapter (not tested). Fire = A, B, C or Pause. No parallel-port adapter is needed.
 - **Sound effects are played by DMA**, at 12,517 Hz. The original played each effect through the YM chip, with one interrupt per sample, which used 13 to 18% of the processor. The 18 sounds are converted when the game starts, which takes about 2 seconds of green screen. The music now keeps its three voices during the shouts, and the effects no longer vary in pitch.
 - **The fighters are drawn and erased by the blitter.** The result is identical, byte for byte, to the original drawing: this was checked in the emulator over more than a thousand calls.
 
@@ -105,12 +107,11 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 
 **The file to provide**: `ATOR.EXE`, the memory image of the game (340,224 bytes, MD5 `d76da60c6cd7d9f6ce42630b1271d8d7`). The tools refuse any other file.
 
-**The result**: `build/IK3J_S3/`, `build/IK3J_S4/` and `build/IK3J_STE/` each contain `IK_PLUS.TOS` and the patched `ATOR.EXE`. Copy the folder you need to a floppy disk or a hard disk, then run `IK_PLUS.TOS`: `IK3J_S3` or `IK3J_S4` for the socket of your parallel-port adapter, or `IK3J_STE` for an STE. The original's other files are no longer needed. With the default settings, `make check` compares the result with the expected checksums:
+**The result**: `build/IK3J_PAR/` and `build/IK3J_STE/` each contain `IK_PLUS.TOS` and the patched `ATOR.EXE`. Copy the folder you need to a floppy disk or a hard disk, then run `IK_PLUS.TOS`: `IK3J_PAR` with a parallel-port adapter (any ST), or `IK3J_STE` with a Jaguar pad on an STE. The original's other files are no longer needed. With the default settings, `make check` compares the result with the expected checksums:
 
 | File | MD5 |
 |---|---|
-| `IK3J_S3/ATOR.EXE` | `cd6b83ab485dc33f0b6de4bbc8df2423` |
-| `IK3J_S4/ATOR.EXE` | `c70c6e623faa00cce0509e4c527b757d` |
+| `IK3J_PAR/ATOR.EXE` | `cd6b83ab485dc33f0b6de4bbc8df2423` |
 | `IK_PLUS.TOS` | `0a89bb68ba0b62e122cc9d63670fe7fa` |
 | `IK3J_STE/ATOR.EXE` | `b13f02f89dcebf935af8a1a5f6c4cc83` |
 | `IK3J_STE/IK_PLUS.TOS` | `ac65346a23401c7e02d1402a39b3dc96` |

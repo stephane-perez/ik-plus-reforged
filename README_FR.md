@@ -49,18 +49,20 @@ Le jeu a été conçu autour de trois combattants, et ses données avaient déj�
 - Le joueur 3 participe aussi aux deux **épreuves bonus** (balles à renvoyer avec le bouclier, bombes à écarter), à tour de rôle avec les autres joueurs humains. Dans l'épreuve des bombes, la couleur de la veste du bleu sert aussi aux explosions : pendant son tour, elles sont bleues au lieu de rouges.
 - Sans joueur 3, le jeu se comporte exactement comme l'original.
 
-Le joueur 3 utilise un **adaptateur joystick sur le port parallèle**, du type de ceux de *Gauntlet II*, *Leatherneck* ou *Dynabusters+*. Deux versions sont produites, une pour chaque prise de l'adaptateur :
+Le joueur 3 utilise un **adaptateur joystick sur le port parallèle**, du type de ceux de *Gauntlet II*, *Leatherneck* ou *Dynabusters+*. Deux dossiers sont produits :
 
-| Dossier | Prise de l'adaptateur | Directions | Tir |
+| Dossier | Machines | Joueur 3 | En plus |
 |---|---|---|---|
-| `IK3J_S3` | joystick 3 | D4–D7 | BUSY |
-| `IK3J_S4` | joystick 4 | D0–D3 | STROBE |
+| `IK3J_PAR` | STF, STE, Mega STE | adaptateur du port parallèle, prise joystick 3 (directions D4–D7, tir sur BUSY) | — |
+| `IK3J_STE` | STE avec au moins 1 Mo | manette Jaguar sur le port joystick étendu A | son DMA, blitter (voir plus bas) |
+
+La prise joystick 4 de l'adaptateur n'est pas prise en charge.
 
 ### Version STE
 
 Le dossier `IK3J_STE` est réservé au **STE, avec au moins 1 Mo de mémoire**. Sur une autre machine, le chargeur affiche un message et s'arrête. On y retrouve le même mode 3 joueurs, avec trois différences :
 
-- **Le joueur 3 utilise le port joystick étendu A du STE** (la prise à 15 broches) : une manette Jaguar, ou un joystick ordinaire avec un adaptateur DB15. Tir = A, B, C ou Pause. Plus besoin d'adaptateur sur le port parallèle.
+- **Le joueur 3 utilise le port joystick étendu A du STE** (la prise à 15 broches) : une manette Jaguar (testée sur un vrai STE), ou un joystick ordinaire avec un adaptateur DB15 (non testé). Tir = A, B, C ou Pause. Plus besoin d'adaptateur sur le port parallèle.
 - **Les bruitages sont joués par le DMA**, à 12 517 Hz. L'original jouait chaque bruitage par la puce YM, avec une interruption par échantillon, ce qui prenait 13 à 18 % du processeur. Les 18 sons sont convertis au lancement du jeu, soit environ 2 secondes d'écran vert. La musique garde maintenant ses trois voix pendant les cris, et la hauteur des bruitages ne varie plus.
 - **Les combattants sont dessinés et effacés par le blitter.** Le résultat est identique, octet par octet, au dessin d'origine : c'est vérifié dans l'émulateur sur plus de mille appels.
 
@@ -105,12 +107,11 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 
 **Le fichier à fournir** : `ATOR.EXE`, l'image mémoire du jeu (340 224 octets, MD5 `d76da60c6cd7d9f6ce42630b1271d8d7`). Les outils refusent tout autre fichier.
 
-**Le résultat** : `build/IK3J_S3/`, `build/IK3J_S4/` et `build/IK3J_STE/` contiennent chacun `IK_PLUS.TOS` et le `ATOR.EXE` corrigé. Copiez le dossier voulu sur une disquette ou un disque dur, puis lancez `IK_PLUS.TOS` : `IK3J_S3` ou `IK3J_S4` selon la prise de votre adaptateur parallèle, ou `IK3J_STE` pour un STE. Les autres fichiers de l'original ne servent plus. Avec les réglages par défaut, `make check` compare le résultat aux empreintes attendues :
+**Le résultat** : `build/IK3J_PAR/` et `build/IK3J_STE/` contiennent chacun `IK_PLUS.TOS` et le `ATOR.EXE` corrigé. Copiez le dossier voulu sur une disquette ou un disque dur, puis lancez `IK_PLUS.TOS` : `IK3J_PAR` avec un adaptateur parallèle (tout ST), ou `IK3J_STE` avec une manette Jaguar sur un STE. Les autres fichiers de l'original ne servent plus. Avec les réglages par défaut, `make check` compare le résultat aux empreintes attendues :
 
 | Fichier | MD5 |
 |---|---|
-| `IK3J_S3/ATOR.EXE` | `cd6b83ab485dc33f0b6de4bbc8df2423` |
-| `IK3J_S4/ATOR.EXE` | `c70c6e623faa00cce0509e4c527b757d` |
+| `IK3J_PAR/ATOR.EXE` | `cd6b83ab485dc33f0b6de4bbc8df2423` |
 | `IK_PLUS.TOS` | `0a89bb68ba0b62e122cc9d63670fe7fa` |
 | `IK3J_STE/ATOR.EXE` | `b13f02f89dcebf935af8a1a5f6c4cc83` |
 | `IK3J_STE/IK_PLUS.TOS` | `ac65346a23401c7e02d1402a39b3dc96` |

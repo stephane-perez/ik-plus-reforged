@@ -15,11 +15,11 @@ image mémoire du jeu chargée en `$700`, point d'entrée `$1000`).
   simultanés (joueur 3 = bleu, sur un adaptateur joystick du port
   parallèle, type Gauntlet II / Leatherneck) ; F3 donne ou reprend le bleu ;
   pas d'élimination à 3 ; fin de match après 5 min de combat ; le joueur 3
-  joue aussi les épreuves bonus. Deux versions : `IK3J_S3` (prise joystick 3
-  = D4–D7 + BUSY) et `IK3J_S4` (prise 4 = D0–D3 + STROBE).
-- **v6, version STE** (branche `ste`), affichage validé sur STE réel
-  (v6.1, garde du blitter), port étendu pas encore testé sur la machine :
-  `IK3J_STE`, STE avec 1 Mo minimum ; joueur 3 sur le port joystick étendu A ;
+  joue aussi les épreuves bonus. Dossier `IK3J_PAR` (ex-`IK3J_S3` : prise
+  joystick 3 = D4–D7 + BUSY). La prise 4 n'est plus prise en charge (v6).
+- **v6, version STE, validée sur STE réel** (garde du blitter, boutons de la
+  manette lus avant les directions) : `IK3J_STE`, STE avec 1 Mo minimum ;
+  joueur 3 = manette Jaguar sur le port joystick étendu A ;
   bruitages en DMA ; combattants dessinés au blitter ; turbo (F6) à
   25 images/s en permanence.
 - **JOYTEST** : testeur de joysticks (ports ST, port parallèle, ports étendus
@@ -74,7 +74,7 @@ temporaire : tout ce qui n'est pas poussé disparaît avec elle.
 
 ```sh
 make                              # chargeurs, code 3 joueurs, module STE, JOYTEST
-make game ATOR=/chemin/ATOR.EXE   # corrige la copie du jeu : build/IK3J_S3, IK3J_S4, IK3J_STE
+make game ATOR=/chemin/ATOR.EXE   # corrige la copie du jeu : build/IK3J_PAR, IK3J_STE
 make check                        # empreintes attendues
 ```
 
@@ -161,6 +161,9 @@ Tu fournis les ROM TOS (pas dans le dépôt). Scripts dans `hatari/` :
 
 ## Façon de travailler
 
+- Deux dossiers seulement : `IK3J_PAR` (tout ST, adaptateur parallèle) et
+  `IK3J_STE` (STE, manette Jaguar). Un petit menu de choix au démarrage est
+  envisagé plus tard.
 - Une branche par sujet, une demande de fusion (PR) décrite en français ;
   on ne fusionne dans `master` qu'après le retour de la machine réelle.
 - Mettre à jour `docs/fr/VERSIONS.md` (nouvelle section numérotée) et, si
