@@ -3,7 +3,7 @@
 #   make                 builds everything that does not need the game:
 #                        loaders, 3-player code, STE module, JOYTEST (French
 #                        and English)
-#   make game ATOR=path/to/ATOR.EXE
+#   make game PRG=path/to/IK+.PRG
 #                        also patches YOUR copy of the game and assembles the
 #                        two ready-to-copy folders build/IK3J_PAR (any ST,
 #                        parallel-port adapter, joystick 3 socket) and
@@ -16,7 +16,7 @@
 
 PY     ?= python3
 LIMIT  ?= 300
-ATOR   ?= ATOR.EXE
+PRG    ?= IK+.PRG
 VASM   ?= $(shell command -v vasmm68k_mot 2>/dev/null || echo .tools/vasm/vasmm68k_mot)
 B      := build
 VFLAGS := -quiet -m68000
@@ -58,15 +58,15 @@ $(B)/JOYTEST.TOS: src/joytest.s | $(B) $(VASM)
 $(B)/JOYTSTEN.TOS: src/joytest.s | $(B) $(VASM)
 	$(VASM) $(VFLAGS) -Ftos -DENGLISH -o $@ $<
 
-# --- the game: patched from the user's own ATOR.EXE ------------------------
-$(B)/ATOR_STE.EXE: $(ATOR) tools/patch_game.py | $(B)
-	$(PY) tools/patch_game.py $(ATOR) $@
+# --- the game: built from the user's own IK+.PRG ---------------------------
+$(B)/IK_BASE.IMG: $(PRG) tools/patch_game.py tools/ikimg.py | $(B)
+	$(PY) tools/patch_game.py "$(PRG)" $@
 
-game: all $(B)/ATOR_STE.EXE
+game: all $(B)/IK_BASE.IMG
 	mkdir -p $(B)/IK3J_PAR $(B)/IK3J_STE
-	$(PY) tools/patch_p3.py $(B)/ATOR_STE.EXE $(B)/p3.bin     $(B)/IK3J_PAR/ATOR.EXE
-	$(PY) tools/patch_p3.py $(B)/ATOR_STE.EXE $(B)/p3_ste.bin $(B)/ATOR_P3STE.EXE
-	$(PY) tools/patch_ste.py $(B)/ATOR_P3STE.EXE $(B)/IK3J_STE/ATOR.EXE
+	$(PY) tools/patch_p3.py $(B)/IK_BASE.IMG $(B)/p3.bin     $(B)/IK3J_PAR/IKPLUS.IMG
+	$(PY) tools/patch_p3.py $(B)/IK_BASE.IMG $(B)/p3_ste.bin $(B)/IK_P3STE.IMG
+	$(PY) tools/patch_ste.py $(B)/IK_P3STE.IMG $(B)/IK3J_STE/IKPLUS.IMG
 	cp $(B)/IK_PLUS.TOS $(B)/IK3J_PAR/
 	cp $(B)/IK_STE.TOS $(B)/IK3J_STE/IK_PLUS.TOS
 	@echo
@@ -76,7 +76,7 @@ game: all $(B)/ATOR_STE.EXE
 # Expected MD5 with the default LIMIT=300
 check:
 	@$(PY) -c "import hashlib,sys; \
-exp={'$(B)/IK3J_PAR/ATOR.EXE':'cd6b83ab485dc33f0b6de4bbc8df2423','$(B)/IK_PLUS.TOS':'0a89bb68ba0b62e122cc9d63670fe7fa','$(B)/IK3J_STE/ATOR.EXE':'b13f02f89dcebf935af8a1a5f6c4cc83','$(B)/IK_STE.TOS':'ac65346a23401c7e02d1402a39b3dc96'}; \
+exp={'$(B)/IK3J_PAR/IKPLUS.IMG':'15fb38453300c0700f3588928d6d4513','$(B)/IK_PLUS.TOS':'2094db4eb20774ec27957cdff56751ad','$(B)/IK3J_STE/IKPLUS.IMG':'b56480f2eaa42f280ec4682f9cc8dc07','$(B)/IK_STE.TOS':'95fae0ec107d35232150d69da54b0250'}; \
 bad=[f for f,h in exp.items() if hashlib.md5(open(f,'rb').read()).hexdigest()!=h]; \
 print('OK' if not bad else 'MISMATCH: '+' '.join(bad)); sys.exit(1 if bad else 0)"
 

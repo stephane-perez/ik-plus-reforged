@@ -7,18 +7,18 @@
 | Machine | Retour |
 |---|---|
 | STE / TOS 1.62 | Le jeu tourne, plus de « BUM COPY » (correctif `$36D2` confirmé). |
-| Mega STE / TOS 2.06 | Bloqué sur l'écran du crack (`DT1`). Démarrage sans pilote ni accessoires : **2 bombes**. 8 MHz sans cache : **écran figé**. Ça fonctionne avec un TOS 1.04 chargé en RAM. Non reproduit dans Hatari (1, 2 ou 4 Mo, 8 ou 16 MHz). |
+| Mega STE / TOS 2.06 | Bloqué sur l'écran du second chargeur de l'ancienne version. Démarrage sans pilote ni accessoires : **2 bombes**. 8 MHz sans cache : **écran figé**. Ça fonctionne avec un TOS 1.04 chargé en RAM. Non reproduit dans Hatari (1, 2 ou 4 Mo, 8 ou 16 MHz). |
 
-**Hypothèse retenue (non prouvée) : la puce série SCC du Mega STE.** Elle est absente des STF/STE, et le TOS 2.06 active ses interruptions (niveau 5, vecteurs `$180`–`$1BC`). `DT1` ne redirige les vecteurs que jusqu'à `$1A4`, vers un `rte` en `$7F000`, qui se trouve au milieu du 2ᵉ écran du jeu (`$78000`–`$7FD00`). Dès que le jeu abaisse l'IPL (`$236C`, `SR=$2300`), une interruption SCC saute soit dans le TOS déjà écrasé (bombes), soit dans un `rte` sans acquitter la puce, qui se redéclenche sans fin (blocage).
+**Hypothèse retenue (non prouvée) : la puce série SCC du Mega STE.** Elle est absente des STF/STE, et le TOS 2.06 active ses interruptions (niveau 5, vecteurs `$180`–`$1BC`). Ce second chargeur ne redirige les vecteurs que jusqu'à `$1A4`, vers un `rte` en `$7F000`, qui se trouve au milieu du 2ᵉ écran du jeu (`$78000`–`$7FD00`). Dès que le jeu abaisse l'IPL (`$236C`, `SR=$2300`), une interruption SCC saute soit dans le TOS déjà écrasé (bombes), soit dans un `rte` sans acquitter la puce, qui se redéclenche sans fin (blocage).
 
 ### Nouveau chargeur (`src/loader.s`, 803 octets)
 
-Il remplace `IK_PLUS.TOS`, `DT0` et `DT1` : il n'y a plus d'intro ni d'écran pirate, et seul `ATOR.EXE` est lu.
+Il remplace les trois fichiers de lancement de l'ancienne version : il n'y a plus d'intro, et seule l'image du jeu est lue.
 - Lecture dans un bloc `Malloc` (aligné sur 4). La routine de recopie est posée juste après les données : bloc > `$700`, donc fin > `$53800`, hors de la source comme de la destination.
-- Attente de 100 VBL avant de prendre la machine (moteur du lecteur), comme `DT1`.
+- Attente de 100 VBL avant de prendre la machine (moteur du lecteur), comme l'ancien second chargeur.
 - Cookie `_MCH` : STE/Mega STE → son DMA arrêté, `$FF820F`/`$FF8265`/`$FF820D` = 0. Mega STE → SCC WR9 = 0 (canal A, `$FF8C81`), puis `$FF8E21` = 0 (8 MHz, sans cache).
 - Vecteurs `$10`–`$3FC` → `rte` en `$6F0` (sous l'image du jeu) ; `$8`/`$C` → arrêt sur fond rouge en `$6E0`.
-- Registres de départ identiques à `DT1` (table en `$EA` de `DT1`), puis `jmp $1000`.
+- Registres de départ identiques à ceux de l'ancien second chargeur, puis `jmp $1000`.
 - **Diagnostic par la couleur du fond** : bleu = chargement, vert = saut dans le jeu, rouge fixe = erreur de bus ou d'adresse avant l'initialisation du jeu.
 - Validé dans Hatari : STF/1.04, STE/1.62, Mega STE/2.06 avec 4 Mo à 16 MHz. Le jeu démarre directement sur le logo IK+.
 
@@ -57,7 +57,7 @@ Il remplace `IK_PLUS.TOS`, `DT0` et `DT1` : il n'y a plus d'intro ni d'écran pi
   - `$DFF8` (`blinka`), `$EF4A` (`blinkb`) : `$14` n'est écrit dans `$1314[joueur]` (clignotement du poing) que pour les joueurs 0 et 1. Pour le joueur 2, l'écriture serait tombée sur `$1316`, un drapeau d'état.
   - `$ED04` (`rdhook`) : `F_0ED04` lit les joysticks pendant les épreuves sans passer par `F_07732`. On y lit donc aussi l'adaptateur (routine commune `readjoy3`).
 - **Couleurs dans l'épreuve B** : `$1022` est la couleur 1 (`$FF8242`), posée par le raster (`$1AF2`, routines Timer B en `$1934`). Elle vaut normalement `$007` (veste du bleu). L'épreuve B la met à `$700` (`$EEEC`) et la remet à `$007` à la fin (`$F0AE`). `blinkb` la met à `$007` pendant le tour du joueur 3 et à `$700` pour les autres. Effet de bord accepté : explosions et bulle de l'arbitre en bleu pendant ce tour.
-- Validé dans Hatari (STF/1.04, 3 humains) : épreuve A au round 3 et épreuve B au round 6, avec le joueur 3 en premier, puis les joueurs 2 et 1 ; `$1316` reste à 0 ; le bleu est bien affiché. Empreintes : `IK3J_S3/ATOR.EXE` = `cd6b83ab485dc33f0b6de4bbc8df2423`, `IK3J_S4/ATOR.EXE` = `c70c6e623faa00cce0509e4c527b757d`.
+- Validé dans Hatari (STF/1.04, 3 humains) : épreuve A au round 3 et épreuve B au round 6, avec le joueur 3 en premier, puis les joueurs 2 et 1 ; `$1316` reste à 0 ; le bleu est bien affiché. Empreintes : image `IK3J_S3` = `cd6b83ab485dc33f0b6de4bbc8df2423`, image `IK3J_S4` = `c70c6e623faa00cce0509e4c527b757d`.
 
 ## 10. Version 6 : version STE (port étendu, son DMA, blitter)
 
@@ -93,7 +93,7 @@ Ligne 0 (`$FF9202` = `$FFFE`) : directions en bits 8–11, actives à 0 ; `$FF92
   1. **Raster** : les couleurs changent parfois toutes les 2 lignes (table `$199C`). Le gestionnaire du Timer B (`$1934`) doit donc écrire le compteur suivant en moins de 2 lignes. Si le blitter partage le bus, il n'y arrive plus, et le bas de l'écran prend les couleurs de la zone d'avant (mer grise, pantalon noir : environ 1 image sur 25). Correctif : `$1934` → `jmp rasterw`, qui met le blitter en pause (bit 7 de `$FF8A3C` à 0), et la boucle d'attente `$194A` perd 3 tours pour compenser les 40 cycles ajoutés. Résultat : 0 défaut sur 186 captures, contre 6 sur 158 avant.
   2. **Fin de travail** : après cette pause, le bit 7 se relit à 0. La boucle d'Atari (`bset #7` / `nop` / `bne`) croyait alors le travail fini et reprogrammait le blitter en pleine copie : il restait des morceaux de combattants dans l'épreuve A. La fin se teste donc maintenant sur le compteur de lignes (`$FF8A38` = 0).
 - Résultat final, sans limite de vitesse : 1,96 VBL par image (87 % en 2 VBL, 4 % en 3). **Turbo (F6) : 25 images/s dans 100 % des images mesurées**, contre 22,5 en moyenne pour l'original.
-- Empreintes : `IK3J_STE/ATOR.EXE` = `000bc16b2c0866b16e001c22b0c8048d`, `IK3J_STE/IK_PLUS.TOS` = `1a711eae25e9a54b95d59478dbc3e1b4`.
+- Empreintes : image `IK3J_STE` = `000bc16b2c0866b16e001c22b0c8048d`, `IK3J_STE/IK_PLUS.TOS` = `1a711eae25e9a54b95d59478dbc3e1b4`.
 
 ## 11. Version 6.1 : clignotements sur STE réel (garde du blitter)
 
@@ -108,7 +108,7 @@ Ligne 0 (`$FF9202` = `$FFFE`) : directions en bits 8–11, actives à 0 ; `$FF92
   - vitesse : turbo (F6) à 2 VBL par image dans 100 % des images de combat, comme avant ; sans limite (`unlock.py`) : 25,3 images/s avec ou sans garde ;
   - contrôle octet par octet (`-DCHECK`, 3 humains) : 420 appels, aucune différence.
 - **Retour de la machine réelle** (STE 4 Mo / TOS 1.62, `IKPLUS_STE_v3`) : **affichage parfait**, plus aucun clignotement du reflet ni de l'image entière. L'hypothèse du retard dû au blitter est donc confirmée par le correctif. Reste à tester : la manette Jaguar sur le port étendu A.
-- Empreintes : `IK3J_STE/ATOR.EXE` = `000bc16b2c0866b16e001c22b0c8048d` (inchangé), `IK3J_STE/IK_PLUS.TOS` = `ac65346a23401c7e02d1402a39b3dc96`.
+- Empreintes : image `IK3J_STE` = `000bc16b2c0866b16e001c22b0c8048d` (inchangé), `IK3J_STE/IK_PLUS.TOS` = `ac65346a23401c7e02d1402a39b3dc96`.
 
 ## 12. Manette Jaguar sur STE réel : A et Option muets
 
@@ -119,13 +119,22 @@ Ligne 0 (`$FF9202` = `$FFFE`) : directions en bits 8–11, actives à 0 ; `$FF92
 - **Piste** : ce JOYTEST lit `$FF9202` avant `$FF9200` sur chaque ligne ; le premier ne le faisait que sur la ligne 0 (A muet), et lisait `$FF9200` aussitôt sur les lignes 1 et 2 (B et C corrects). Le jeu lit aussi `$FF9202` avant `$FF9200` sur la ligne 0. Lire `$FF9202` perturberait donc la lecture suivante de `$FF9200` sur la machine (Option, lu aussitôt, reste inexpliqué).
 - **JOYTEST, 3ᵉ version** : pour chaque ligne, `$FF9200` est lu de trois façons : (1) juste après la sélection, (2) après ~64 cycles d'attente, (3) après une lecture de `$FF9202`. La ligne « Port étendu » utilise la lecture (1). Vérifié dans Hatari (sans manette : `FFFF` partout).
 - **Troisième essai** (JOYTEST 3ᵉ version, photos sur STE réel) : avec les lectures (1) et (2), les cinq boutons répondent (A et Pause sur la ligne 0, B sur la ligne 1, Option sur la ligne 3 : `FFFD` ou `FFFE`) ; avec la lecture (3), `$FF9200` relit toujours `FFFF`. Même résultat sur le port B. **Sur la machine, une lecture de `$FF9202` masque les boutons dans la lecture suivante de `$FF9200`** ; une nouvelle sélection remet tout en ordre. Hatari ne reproduit pas ce comportement.
-- **Correctif** (`p3.s -DSTEPAD`) : sur la ligne 0, `$FF9200` est lu avant `$FF9202`. A redevient un tir, comme B, C et Pause (Stéphane : A, B et C suffisent ; Option n'est pas utilisé). Vérifié dans Hatari (manette émulée : tir → `$126E` = `$1F`, droite → `$07`, haut → `$0E`). Empreinte : `IK3J_STE/ATOR.EXE` = `b13f02f89dcebf935af8a1a5f6c4cc83` (`IK3J_STE/IK_PLUS.TOS` inchangé : `ac65346a23401c7e02d1402a39b3dc96`).
+- **Correctif** (`p3.s -DSTEPAD`) : sur la ligne 0, `$FF9200` est lu avant `$FF9202`. A redevient un tir, comme B, C et Pause (Stéphane : A, B et C suffisent ; Option n'est pas utilisé). Vérifié dans Hatari (manette émulée : tir → `$126E` = `$1F`, droite → `$07`, haut → `$0E`). Empreinte : image `IK3J_STE` = `b13f02f89dcebf935af8a1a5f6c4cc83` (`IK3J_STE/IK_PLUS.TOS` inchangé : `ac65346a23401c7e02d1402a39b3dc96`).
 
 ## 13. Deux dossiers : IK3J_PAR et IK3J_STE
 
 - **Retour de la machine réelle** (STE, `IKPLUS_STE_v4`) : tout est validé : manette Jaguar (directions, tir A, B et C, F3 dans les deux sens), épreuves bonus à 3, affichage, bruitages, turbo.
 - **Décision de Stéphane** : deux versions seulement.
-  - `IK3J_PAR` (ex-`IK3J_S3`) : STF, STE, Mega STE ; joueur 3 sur la prise joystick 3 de l'adaptateur parallèle (D4–D7 + BUSY). Même fichier qu'avant : `IK3J_PAR/ATOR.EXE` = `cd6b83ab485dc33f0b6de4bbc8df2423`.
+  - `IK3J_PAR` (ex-`IK3J_S3`) : STF, STE, Mega STE ; joueur 3 sur la prise joystick 3 de l'adaptateur parallèle (D4–D7 + BUSY). Même fichier qu'avant : image `IK3J_PAR` = `cd6b83ab485dc33f0b6de4bbc8df2423`.
   - `IK3J_STE` : STE uniquement ; manette Jaguar sur le port étendu A ; son DMA et blitter.
 - **Abandon de la prise joystick 4** (`IK3J_S4`, `p3.s -DPORT4`, D0–D3 + STROBE) : code retiré de `p3.s` (`p3.bin` et `p3_ste.bin` inchangés à l'octet) et du `Makefile`. Les faux tirs de BUSY sur la prise 3 (§9) venaient de l'ancien STE de Stéphane ; sa machine actuelle n'a pas ce défaut. JOYTEST affiche toujours les deux prises.
 - Le chargeur n'impose rien selon la machine : c'est le dossier choisi qui décide du périphérique du joueur 3 (on ne peut pas détecter une manette Jaguar : au repos, elle lit comme un port vide). Un petit menu au démarrage est envisagé plus tard.
+
+## 14. Version 7 : à partir de IK+.PRG
+
+- **Nouvelle version de départ** : `IK+.PRG`, un seul programme (344 516 octets, MD5 `4107c876be9d49deb2a3cf5b390f70be`), fourni par Stéphane. Sa provenance est inconnue et ce n'est pas le fichier de la disquette d'origine : sa vérification de la disquette est déjà neutralisée (METHODOLOGIE.md §1). Choix de Stéphane : une version d'un seul fichier, sans message de cracker dans le jeu. Le crédit affiché redevient « IK+ (C) 1988 ARCHER MACLEAN ».
+- **Même code de jeu** : 62 octets diffèrent de l'image utilisée jusqu'à la v6, aucun dans les zones corrigées. Toutes les accroches (`patch_p3.py`, `patch_ste.py`) s'appliquent telles quelles.
+- **Outils** : `tools/ikimg.py` tire l'image du jeu (`$700`–`$537FF`) de `IK+.PRG` ; `tools/patch_game.py` y ajoute le correctif STE (`$36D2`) et saute la vérification de la disquette (`$6A44` : `bra.w $6AF8`, qui garde la sauvegarde et la restauration des registres de `F_06A40`, et la valeur posée en `$1030`). Sans ce saut, le jeu attend l'arrêt du moteur du lecteur et se bloque s'il n'y a pas de disquette (vérifié dans Hatari).
+- **Fichiers sur l'Atari** : `IK_PLUS.TOS` (notre chargeur) et `IKPLUS.IMG` (l'image corrigée). `make game PRG=…/IK+.PRG`.
+- Vérifié dans Hatari : `IK3J_PAR` sur STF/1.04, STE/1.62 et Mega STE/2.06, `IK3J_STE` sur STE/1.62 : démarrage, partie à 3 (F2 puis F3), turbo, mer toujours bleue. Les images ne diffèrent des précédentes que dans les zones attendues (ancien chargeur `$704`–`$7FF`, vérification, crédit, graphismes).
+- Empreintes : image `IK3J_PAR` = `15fb38453300c0700f3588928d6d4513`, `IK_PLUS.TOS` = `2094db4eb20774ec27957cdff56751ad`, image `IK3J_STE` = `b56480f2eaa42f280ec4682f9cc8dc07`, `IK3J_STE/IK_PLUS.TOS` = `95fae0ec107d35232150d69da54b0250`.

@@ -1,4 +1,4 @@
-"""patch_ste.py <ATOR.EXE avec le mode 3 joueurs> <sortie>
+"""patch_ste.py <image du jeu avec le mode 3 joueurs> <sortie>
 
 Version STE : relie le jeu au module src/ste.s, chargé en $C0000 par le
 chargeur STE (IK_PLUS.TOS assemblé avec -DSTE).

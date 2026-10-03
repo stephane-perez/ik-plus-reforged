@@ -14,7 +14,7 @@ Correctifs et outils pour **International Karate +** (IK+) sur Atari ST :
 >
 > *International Karate +* (IK+) © 1987–1988 System 3 / Archer Maclean. Ce projet **n'est ni affilié, ni approuvé, ni lié** à System 3 ou à un autre ayant droit.
 >
-> **Ce dépôt ne contient aucune partie du jeu** : ni programme, ni graphismes, ni musique, ni données, qu'ils soient d'origine ou modifiés. Il ne contient que du code source original et des outils. Ceux-ci modifient, **sur votre propre ordinateur**, une copie du jeu que **vous** fournissez. Vous seul êtes responsable de vous assurer que vous avez le droit d'utiliser cette copie, par exemple en possédant un original. Même en possédant l'original, vous **devez** fournir la version du jeu cracké par Ator des Blade Runners, aucune autre version ne fonctionnera.
+> **Ce dépôt ne contient aucune partie du jeu** : ni programme, ni graphismes, ni musique, ni données, qu'ils soient d'origine ou modifiés. Il ne contient que du code source original et des outils. Ceux-ci modifient, **sur votre propre ordinateur**, une copie du jeu que **vous** fournissez. Vous seul êtes responsable de vous assurer que vous avez le droit d'utiliser cette copie, par exemple en possédant un original. Les outils n'acceptent qu'une version précise du jeu : `IK+.PRG`, un programme d'un seul fichier de 344 516 octets (MD5 `4107c876be9d49deb2a3cf5b390f70be`). Ce n'est **pas** le fichier de la disquette originale : sa protection anti-copie est déjà neutralisée, et Reforged saute entièrement la vérification. Aucune autre version ne fonctionnera.
 >
 > Les noms et marques cités appartiennent à leurs propriétaires respectifs. L'ensemble est fourni « tel quel », sans aucune garantie. Vous l'utilisez à vos risques, y compris sur une vraie machine.
 
@@ -22,17 +22,19 @@ Correctifs et outils pour **International Karate +** (IK+) sur Atari ST :
 
 ### Compatibilité
 
-| Machine / TOS | Original | Reforged |
+| Machine / TOS | `IK+.PRG` | Reforged |
 |---|---|---|
-| STF / TOS 1.04 | fonctionne | fonctionne |
-| STF / TOS 2.06 | l'intro plante | fonctionne |
-| STE / TOS 1.62 | la démo redémarre sans fin, « BUM COPY » | fonctionne (testé sur machine réelle) |
+| STF / TOS 1.04 | fonctionne, avec une disquette dans le lecteur A | fonctionne |
+| STF / TOS 2.06 | plante au démarrage | fonctionne |
+| STE / TOS 1.62 | plante au démarrage | fonctionne (testé sur machine réelle) |
 | Mega STE / TOS 2.06 | plante au démarrage | fonctionne (testé sur machine réelle) |
+
+La colonne `IK+.PRG` a été vérifiée dans l'émulateur Hatari.
 
 Ce qui a été corrigé :
 
-- **Le générateur de nombres aléatoires du jeu** lisait la ROM du TOS 1.x en `$FC0000`. Cette adresse n'existe pas sur STE et Mega STE : chaque lecture provoquait une erreur de bus, et le jeu redémarrait en boucle. Il lit maintenant des données graphiques en RAM. La modification tient en un octet.
-- **L'intro** plaçait son lecteur de musique à une adresse fixe, sans réserver cette mémoire. Sous TOS 2.06, la mémoire était réutilisée et l'intro plantait. L'intro est supprimée.
+- **Le générateur de nombres aléatoires du jeu** lisait la ROM du TOS 1.x en `$FC0000`. Cette adresse n'existe ni sur STE et Mega STE, ni avec le TOS 2.06 : chaque lecture provoquait une erreur de bus, et le jeu plantait ou redémarrait en boucle. Il lit maintenant des données graphiques en RAM. La modification tient en un octet.
+- **La vérification de la disquette** : `IK+.PRG` la lance toujours au démarrage, puis attend l'arrêt du moteur du lecteur, qui n'arrive jamais sans disquette dans le lecteur. Reforged la saute.
 - **Le nouveau chargeur** lit le jeu dans une zone mémoire réservée et le met en place sans risque. Sur Mega STE, il coupe les interruptions de la puce série (SCC) et passe en 8 MHz sans cache. Tous les vecteurs d'exception inutilisés pointent vers un endroit sûr.
 
 ### Mode 3 joueurs
@@ -99,24 +101,24 @@ Prérequis : `make`, un compilateur C (pour construire l'assembleur vasm), `pyth
 git clone https://github.com/stephane-perez/ik-plus-reforged
 cd ik-plus-reforged
 make                                  # chargeurs, code 3 joueurs, module STE, JOYTEST
-make game ATOR=/chemin/vers/ATOR.EXE  # corrige VOTRE copie du jeu
+make game PRG=/chemin/vers/IK+.PRG    # corrige VOTRE copie du jeu
 make check                            # vérifie le résultat
 ```
 
 Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbraten.de/vasm/) dans `.tools/`, sauf si `vasmm68k_mot` est déjà installé.
 
-**Le fichier à fournir** : `ATOR.EXE`, l'image mémoire du jeu (340 224 octets, MD5 `d76da60c6cd7d9f6ce42630b1271d8d7`). Les outils refusent tout autre fichier.
+**Le fichier à fournir** : `IK+.PRG`, le jeu en un seul programme (344 516 octets, MD5 `4107c876be9d49deb2a3cf5b390f70be`). Les outils refusent tout autre fichier.
 
-**Le résultat** : `build/IK3J_PAR/` et `build/IK3J_STE/` contiennent chacun `IK_PLUS.TOS` et le `ATOR.EXE` corrigé. Copiez le dossier voulu sur une disquette ou un disque dur, puis lancez `IK_PLUS.TOS` : `IK3J_PAR` avec un adaptateur parallèle (tout ST), ou `IK3J_STE` avec une manette Jaguar sur un STE. Les autres fichiers de l'original ne servent plus. Avec les réglages par défaut, `make check` compare le résultat aux empreintes attendues :
+**Le résultat** : `build/IK3J_PAR/` et `build/IK3J_STE/` contiennent chacun `IK_PLUS.TOS` (le chargeur) et `IKPLUS.IMG` (le jeu corrigé). Copiez le dossier voulu sur une disquette ou un disque dur, puis lancez `IK_PLUS.TOS` : `IK3J_PAR` avec un adaptateur parallèle (tout ST), ou `IK3J_STE` avec une manette Jaguar sur un STE. Avec les réglages par défaut, `make check` compare le résultat aux empreintes attendues :
 
 | Fichier | MD5 |
 |---|---|
-| `IK3J_PAR/ATOR.EXE` | `cd6b83ab485dc33f0b6de4bbc8df2423` |
-| `IK_PLUS.TOS` | `0a89bb68ba0b62e122cc9d63670fe7fa` |
-| `IK3J_STE/ATOR.EXE` | `b13f02f89dcebf935af8a1a5f6c4cc83` |
-| `IK3J_STE/IK_PLUS.TOS` | `ac65346a23401c7e02d1402a39b3dc96` |
+| `IK3J_PAR/IKPLUS.IMG` | `15fb38453300c0700f3588928d6d4513` |
+| `IK3J_PAR/IK_PLUS.TOS` | `2094db4eb20774ec27957cdff56751ad` |
+| `IK3J_STE/IKPLUS.IMG` | `b56480f2eaa42f280ec4682f9cc8dc07` |
+| `IK3J_STE/IK_PLUS.TOS` | `95fae0ec107d35232150d69da54b0250` |
 
-**Option** : `make game LIMIT=180 ATOR=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.
+**Option** : `make game LIMIT=180 PRG=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.
 
 ## Tester dans Hatari (facultatif)
 
@@ -129,9 +131,10 @@ Attention : Hatari 2.4.1 est plus permissif que la vraie machine sur le port par
 
 ## Fonctionnement
 
-- `src/loader.s` : le chargeur, qui remplace l'intro et les anciens programmes de démarrage. Assemblé avec `-DSTE`, il charge aussi le module STE.
+- `src/loader.s` : le chargeur, qui lit `IKPLUS.IMG` et lance le jeu. Assemblé avec `-DSTE`, il charge aussi le module STE.
 - `src/p3.s` : le code du mode 3 joueurs, placé en `$800` dans une zone mémoire inutilisée.
 - `src/ste.s` : le module STE (son DMA, blitter), placé en `$C0000`, au-dessus des 512 Ko prévus par le jeu.
+- `tools/ikimg.py` : tire l'image mémoire du jeu de `IK+.PRG`.
 - `tools/patch_game.py`, `tools/patch_p3.py` et `tools/patch_ste.py` : appliquent les correctifs. Avant de modifier le moindre octet, ils vérifient l'empreinte et les octets d'origine.
 - `src/joytest.s` : JOYTEST.
 - `tools/trace_ik.py` et `tools/show.py` : un désassembleur récursif et un visualiseur de listing, pour l'étude. Ils nécessitent `pip install capstone`.

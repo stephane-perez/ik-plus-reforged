@@ -1,4 +1,4 @@
-"""patch_p3.py <ATOR.EXE corrigé STE> <build/p3.bin> <sortie>
+"""patch_p3.py <image du jeu corrigée (patch_game.py)> <build/p3.bin> <sortie>
 
 Pose le code du mode 3 joueurs (src/p3.s, assemblé en $800) dans l'image
 du jeu et le relie par 21 accroches. Chaque accroche vérifie les octets
@@ -14,8 +14,8 @@ BASE = 0x700
 
 def main(src, binf, dst):
     d = bytearray(open(src, 'rb').read())
-    assert hashlib.md5(d).hexdigest() == '60f5c7dfcabb12d5c53a7284d8908ad4', \
-        'il faut ATOR.EXE avec le correctif STE (patch_game.py)'
+    assert hashlib.md5(d).hexdigest() == 'a22b79cf08f33762e9013a997895442d', \
+        'il faut l\'image du jeu produite par patch_game.py'
     code = open(binf, 'rb').read()
     assert len(code) <= 0xC00 - 0x800
 

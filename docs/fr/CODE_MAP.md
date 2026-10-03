@@ -2,7 +2,7 @@
 
 *Notes de travail, en français. Le tableau « Mode 3 joueurs » en fin de document décrit la première version (10 accroches, arrivée par le tir). La version actuelle (14 accroches, touche F3, port parallèle forcé en entrée) est décrite dans [VERSIONS.md](VERSIONS.md) et dans les commentaires de `src/p3.s` et `tools/patch_p3.py`.*
 
-Image `ATOR.EXE` chargée en `$700`. Adresses absolues. Listing : `python3 tools/trace_ik.py ATOR.EXE` → `work/ik.lst` (tracé récursif : 43,6 Ko de code, 11 020 instructions, zone de code `$14E6`–`$12D40`). Extraits : `python3 tools/show.py <début> <fin>`.
+Image du jeu chargée en `$700` (tirée de `IK+.PRG` par `tools/ikimg.py`). Adresses absolues. Listing : `python3 tools/trace_ik.py IK+.PRG` → `work/ik.lst` (tracé récursif : 43,8 Ko de code, 11 072 instructions, zone de code `$14E6`–`$12D40`). Extraits : `python3 tools/show.py <début> <fin>`.
 
 Le vidage de la RAM pendant la démo, comparé à l'image, montre que **le code n'est ni décompressé ni modifié** à l'exécution. Ce qui change : les variables `$E64`–`$14E5` (dont la pile, qui part de `$F28`), des buffers et la fin de mémoire. `$704`–`$9xx` est l'ancien chargeur de boot, jamais exécuté (`$1000` : `jmp $14E6`). **`$800`–`$BFF` sert à loger le code du mode 3 joueurs.**
 

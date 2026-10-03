@@ -2,7 +2,7 @@
 
 ## Source and method
 
-Everything comes from the game's code: the texts, the keys and the **21 secret words** (plus 5 separate codes) were read in `ATOR.EXE`, The Blade Runners version (MD5 `d76da60c6cd7d9f6ce42630b1271d8d7`). Addresses (`$xxxx`) refer to the image loaded at `$700`.
+Everything comes from the game's code: the texts, the keys and the **21 secret words** (plus 5 separate codes) were read in the game's code, the same in every version supported by the project (now `IK+.PRG`, MD5 `4107c876be9d49deb2a3cf5b390f70be`). Addresses (`$xxxx`) refer to the game image loaded at `$700`.
 
 - **Texts**: the game has its own font. `@` = space, `<` = full stop, `:` = comma, `=` = +, `]` = apostrophe, `;` = exclamation mark. The texts below are converted.
 - **Keys**: the keyboard handler (`$2492`) keeps the last 5 keys at `$13AC`. The game's keys are tested in `F_0708C` (`$708C`–`$73CC`).
@@ -57,7 +57,7 @@ Each word shows a message for 250 frames and sets the speed back to normal (F8).
 
 | Word | AZERTY | Message shown |
 | --- | --- | --- |
-| ARCH | QRCH | IK+ C. 1988 ATOR |
+| ARCH | QRCH | IK+ C. 1988 ARCHER MACLEAN |
 | EDHK | EDHK | WHY HAVE DAN AND MIKE BEEN LAZY RECENTLY |
 | FOOK | FOOK | NEVER MIND FOO, GOLFS ARNT SO BAD... |
 | ANGL | QNGL | WHY DIDNT I BUY PDS EARLIER... |
@@ -122,7 +122,7 @@ The referee speaks in a speech bubble, on 1 to 3 lines (separated here by `/`). 
 - PLAYERS ARE / NEEDED....
 - WHERES EVERYBODY / GONE.....
 - WELL, DONT JUST SIT / THERE HAVE A GO!
-- IK+ / COPYRIGHT 1987/8 / ATOR
+- IK+ / COPYRIGHT 1987/8 / ARCHER MACLEAN
 - PRESS F3 FOR / MUSIC ON OR OFF / F4 FOR SOUND FX
 - F6 TO F10 CHANGE / THE GAMES SPEED. / F8 IS NORMAL
 - PRESS SPACE BAR / WHILST FIGHTING / TO PAUSE GAME
@@ -133,7 +133,7 @@ The referee speaks in a speech bubble, on 1 to 3 lines (separated here by `/`). 
 - HAVE YOU TRIED THE / P KEY DURING / PAUSE MODE.
 - DO YOU FEEL LIKE / A LOST NINJA.... / TRY IK+ FOR ACTION
 
-ATOR is the nickname of the cracker of this version (The Blade Runners): this credit, like "IK+ C. 1988 ATOR" (word ARCH), therefore comes from the crack and not from the original game.
+This credit, like "IK+ C. 1988 ARCHER MACLEAN" (word ARCH), is the one in `IK+.PRG`.
 
 ## Other on-screen texts
 
