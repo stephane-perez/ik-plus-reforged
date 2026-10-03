@@ -17,9 +17,9 @@
 ;    termine après LIMIT secondes de combat cumulées (chronomètre du jeu).
 ;
 ; Adaptateur (câblage vérifié sur machine réelle avec JOYTEST) :
-;  prise « joystick 3 » : directions D4-D7 (0 = appuyé), tir sur BUSY (GPIP bit 0) ;
-;  prise « joystick 4 » (-DPORT4) : directions D0-D3, tir sur STROBE (PSG port A
-;  bit 5). Hatari : « parport stick 1 » / « 2 ».
+;  prise « joystick 3 » : directions D4-D7 (0 = appuyé), tir sur BUSY (GPIP bit 0).
+;  Hatari : « parport stick 1 ». (La prise « joystick 4 », D0-D3 + STROBE, n'est
+;  plus prise en charge depuis la v6 : voir docs/fr/VERSIONS.md, section 13.)
 ; ============================================================================
 
             ifnd LIMIT
@@ -91,6 +91,30 @@ pre         movem.l d0-d2/a0,-(a7)
 ; le temps des accès au PSG.
 ; ----------------------------------------------------------------------------
 readjoy3
+            ifd STEPAD
+            ; Version STE : port joystick étendu A (manette Jaguar, ou joystick
+            ; avec adaptateur DB15). $FF9202 en écriture = lignes de sélection
+            ; (bits 0-3 pour le port A, actives à 0) ; en lecture, bits 8-11 =
+            ; haut, bas, gauche, droite du port A, actifs à 0. $FF9200 (accès
+            ; en mot obligatoire) : bit 0 = Pause, bit 1 = A, B, C ou Option
+            ; selon la ligne sélectionnée, actifs à 0. Tir = A, B, C ou Pause.
+            ; Sur la machine réelle, une lecture de $FF9202 masque les boutons
+            ; dans la lecture suivante de $FF9200 (qui relit alors $FFFF) :
+            ; on lit donc $FF9200 d'abord (JOYTEST, VERSIONS.md section 12).
+            move.w  #$fffe,$ffff9202.w      ; ligne 0 : directions, A, Pause
+            move.w  $ffff9200.w,d1          ; boutons d'abord
+            move.w  $ffff9202.w,d0          ; puis directions
+            move.w  #$fffd,$ffff9202.w      ; ligne 1 : B
+            and.w   $ffff9200.w,d1
+            move.w  #$fffb,$ffff9202.w      ; ligne 2 : C
+            and.w   $ffff9200.w,d1
+            move.w  #$ffff,$ffff9202.w      ; plus aucune ligne sélectionnée
+            lsr.w   #8,d0
+            andi.b  #$0f,d0                 ; directions, actives à 0
+            not.b   d1
+            andi.b  #3,d1                   ; <> 0 : un bouton est appuyé
+            beq.s   .nofire
+            else
             move.w  sr,-(a7)
             or.w    #$0700,sr
             ; Port B du PSG (données du port parallèle) en ENTRÉE : la routine
@@ -101,25 +125,6 @@ readjoy3
             move.b  $ffff8800.w,d1
             bclr    #7,d1
             move.b  d1,$ffff8802.w
-            ifd PORT4
-            ; prise « joystick 4 » : directions sur D0-D3, tir sur STROBE
-            ; (bit 5 du port A du PSG). Le jeu met STROBE à 0 : on le remet
-            ; à 1, sinon le bouton serait toujours vu appuyé.
-            ; Sélection + lecture deux fois : sous Hatari la valeur lue est
-            ; figée à la sélection ; sur la machine, on lit l'état des broches.
-            move.b  #14,$ffff8800.w
-            move.b  $ffff8800.w,d1
-            move.b  #14,$ffff8800.w
-            move.b  $ffff8800.w,d1          ; bit 5 = tir, 0 = appuyé
-            move.b  d1,d2
-            bset    #5,d2                   ; STROBE remis à 1
-            move.b  d2,$ffff8802.w
-            move.b  #15,$ffff8800.w
-            move.b  $ffff8800.w,d0          ; D0-D3 : directions, actives à 0
-            move.w  (a7)+,sr
-            andi.b  #$0f,d0
-            btst    #5,d1
-            else
             ; prise « joystick 3 » : directions sur D4-D7, tir sur BUSY
             move.b  #15,$ffff8800.w         ; PSG registre 15 = données du port parallèle
             move.b  $ffff8800.w,d0
@@ -127,8 +132,8 @@ readjoy3
             move.w  (a7)+,sr
             lsr.b   #4,d0                   ; D4-D7 -> bits 0-3, actifs à 0
             btst    #0,d1
-            endif
             bne.s   .nofire
+            endif
             bset    #4,d0                   ; tir appuyé
 .nofire     move.b  d0,JOY3.w
             rts

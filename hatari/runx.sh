@@ -5,12 +5,12 @@
 # Joystick keys (see joy3.cfg / joy4.cfg / joyall.cfg):
 #   port 1 = I J K L + U (player 1), port 0 = W A S D + Q (player 2),
 #   parallel port = T F G H + R (player 3), second parallel socket = 1 2 3 4 + 5.
-# Environment: HD (drive C:, default ../build/IK3J_S3), PRG (default IK_PLUS.TOS),
+# Environment: HD (drive C:, default ../build/IK3J_PAR), PRG (default IK_PLUS.TOS),
 #              CFG (Hatari config, default joy3.cfg).
 # Needs: hatari, Xvfb, xdotool.
 N=$1; M=$2; T=$3; D=$4; S=$5; shift 5
 R=$(cd "$(dirname "$0")" && pwd)
-HD=${HD:-$R/../build/IK3J_S3}; PRG=${PRG:-IK_PLUS.TOS}; CFG=${CFG:-$R/joy3.cfg}
+HD=${HD:-$R/../build/IK3J_PAR}; PRG=${PRG:-IK_PLUS.TOS}; CFG=${CFG:-$R/joy3.cfg}
 O=$R/out/$N; rm -rf "$O"; mkdir -p "$O"; F=$O/fifo
 export DISPLAY=:77 SDL_AUDIODRIVER=dummy
 pgrep -f "Xvfb :77" >/dev/null || { Xvfb :77 -screen 0 1024x768x24 >/dev/null 2>&1 & sleep 1; }

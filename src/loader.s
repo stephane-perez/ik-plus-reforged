@@ -19,6 +19,12 @@
 
 SIZE        equ $53100              ; taille de ATOR.EXE
 DEST        equ $700
+            ifd STE
+; Version STE (-DSTE) : le module src/ste.s (son DMA, blitter) est inclus
+; ici et recopié en STEBASE ; il faut un STE (cookie _MCH = $00010000) avec
+; au moins 1 Mo, et un bloc Malloc sous STEBASE.
+STEBASE     equ $C0000
+            endif
 
             section text
 start       move.l  4(a7),a5                ; basepage
@@ -34,6 +40,15 @@ start       move.l  4(a7),a5                ; basepage
             trap    #1
             lea     12(a7),a7
 
+            ifd STE
+            pea     checkm(pc)              ; Supexec : STE avec 1 Mo ?
+            move.w  #$26,-(a7)
+            trap    #14
+            addq.l  #6,a7
+            tst.l   d0
+            bne     steerr
+            endif
+
             move.l  #SIZE+$200,-(a7)        ; Malloc : image + routine de recopie
             move.w  #$48,-(a7)
             trap    #1
@@ -43,6 +58,11 @@ start       move.l  4(a7),a5                ; basepage
             addq.l  #3,d0                   ; aligné sur 4
             and.b   #$fc,d0
             move.l  d0,buf
+            ifd STE
+            add.l   #SIZE+$200,d0           ; le bloc doit finir sous STEBASE
+            cmp.l   #STEBASE,d0
+            bhi     lderr
+            endif
 
             pea     setblue(pc)             ; fond bleu pendant le chargement
             move.w  #$26,-(a7)
@@ -94,6 +114,35 @@ lderr        pea     errmsg(pc)
 setblue     move.w  #$007,$ffff8240.w
             rts
 
+            ifd STE
+steerr      pea     stemsg(pc)
+            move.w  #9,-(a7)
+            trap    #1
+            addq.l  #6,a7
+            move.w  #7,-(a7)                ; Crawcin
+            trap    #1
+            addq.l  #2,a7
+            clr.w   -(a7)
+            trap    #1
+
+; checkm (superviseur) : d0 = 0 si STE (_MCH = $00010000) et phystop >= 1 Mo
+checkm      moveq   #-1,d0
+            cmp.l   #$100000,$42e.w
+            blo.s   .x
+            move.l  $5a0.w,d1
+            beq.s   .x
+            move.l  d1,a0
+.cj         move.l  (a0)+,d1
+            beq.s   .x
+            move.l  (a0)+,d2
+            cmp.l   #'_MCH',d1
+            bne.s   .cj
+            cmp.l   #$00010000,d2
+            bne.s   .x
+            moveq   #0,d0
+.x          rts
+            endif
+
 ; ----------------------------------------------------------------------------
 ; go (superviseur) : le TOS est encore là tant qu'on n'a pas recopié.
 ; ----------------------------------------------------------------------------
@@ -144,6 +193,13 @@ go          move.w  #$2700,sr
 .vec        move.l  #$6f0,(a0)+
             dbra    d0,.vec
             move.w  #$070,$ffff8240.w       ; vert : on saute dans le jeu
+            ifd STE
+            lea     steblob,a0              ; module STE en STEBASE
+            lea     STEBASE,a1
+            move.w  #(steend-steblob)/2-1,d0
+.cs         move.w  (a0)+,(a1)+
+            dbra    d0,.cs
+            endif
 
             ; routine de recopie posée après les données
             move.l  buf,a0
@@ -162,6 +218,10 @@ stub        lea     DEST.w,a1
 .l          move.l  (a0)+,(a1)+
             subq.l  #1,d0
             bpl.s   .l
+            ifd STE
+            lea     STEBASE+$10000,a7       ; pile hors de l'image du jeu
+            jsr     STEBASE                 ; init : sons rééchantillonnés
+            endif
             movem.l regs(pc),d0-d7/a0-a7    ; état laissé par BLADERUN.DT1
             jmp     $1000.w
 regs        dc.l    $ffff,$ffff,$123400fb,0,0,$1f33a,$ffff,$ffff
@@ -170,7 +230,18 @@ stubend
 
 fname       dc.b    'ATOR.EXE',0
 errmsg      dc.b    13,10,'IK+ : ATOR.EXE introuvable ou memoire insuffisante.',13,10,0
+            ifd STE
+stemsg      dc.b    13,10,'IK+ STE : il faut un STE avec 1 Mo.',13,10
+            dc.b    'IK+ STE: an STE with 1 MB is required.',13,10,0
+            endif
             even
+            ifd STE
+            section data
+            even
+steblob     incbin  "build/ste.bin"
+            even
+steend
+            endif
 
             section bss
 buf         ds.l    1

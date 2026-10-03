@@ -1,7 +1,7 @@
 name: build
 
-# Builds everything that does not need the game: the loader, the 3-player
-# code and JOYTEST. No game file is ever downloaded, stored or produced here.
+# Builds everything that does not need the game: the loaders, the 3-player
+# code, the STE module and JOYTEST. No game file is ever downloaded, stored or produced here.
 # Pushing a v* tag also publishes a GitHub release with the built files.
 
 on:
@@ -39,7 +39,9 @@ jobs:
           path: |
             build/IK_PLUS.TOS
             build/p3.bin
-            build/p3_s4.bin
+            build/p3_ste.bin
+            build/ste.bin
+            build/IK_STE.TOS
             build/JOYTEST.TOS
             build/JOYTSTEN.TOS
 
@@ -52,6 +54,8 @@ jobs:
           files: |
             build/IK_PLUS.TOS
             build/p3.bin
-            build/p3_s4.bin
+            build/p3_ste.bin
+            build/ste.bin
+            build/IK_STE.TOS
             build/JOYTEST.TOS
             build/JOYTSTEN.TOS
