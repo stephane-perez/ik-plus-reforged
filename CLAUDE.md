@@ -71,8 +71,10 @@ temporaire : tout ce qui n'est pas poussé disparaît avec elle.
    qui fait `make game` et `make check`.
 3. **Où on en est** : la section « Le projet » ci-dessus, `docs/ROADMAP.md`
    et les tickets GitHub ouverts ; l'historique dans `docs/fr/VERSIONS.md`.
-4. **Étiquettes** : le proxy git des sessions refuse de pousser les
-   étiquettes (`git push origin v6` → 403). Donner la commande à Stéphane.
+4. **Étiquettes** : format `v1.0.N` (`v1.0.0`, `v1.0.5`, `v1.0.6`…), la
+   suivante incrémente le dernier nombre ; jamais `vN`. Le proxy git des
+   sessions refuse de pousser les étiquettes (`git push origin v1.0.7` →
+   403) : donner la commande à Stéphane.
 
 ## Construire
 
