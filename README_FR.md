@@ -41,15 +41,17 @@ Ce qui a été corrigé :
 
 Le jeu a été conçu autour de trois combattants, et ses données avaient déjà une place pour un troisième joueur humain, jamais activée. Ce mode l'active.
 
-- Lancez une partie comme d'habitude : **F1** ou **F2**, ou le bouton de tir du joystick 1 ou 2.
-- Pendant la partie, **F3** donne le combattant **bleu** au joueur 3, et un poing apparaît à côté du score bleu. Un nouvel appui sur **F3** rend le bleu à l'ordinateur.
+- **F1**, **F2** et **F3** lancent une partie à 1, 2 ou 3 joueurs (ou le bouton de tir du joystick 1 ou 2, comme dans le jeu d'origine). Comme F1 et F2, F3 lance une nouvelle partie : les trois poings clignotent, et le joueur 3 prend le combattant **bleu**.
 - **Tant que le joueur 3 est en jeu :**
   - personne n'est éliminé ;
   - l'arbitre annonce des résultats neutres (« X IS BEST / Y IS SECOND / Z IS WORST »…) ;
   - le match dure **5 minutes de combat**, puis l'arbitre annonce « MATCH OVER » et le jeu revient au menu.
-- F3 ne gère plus la musique, qui reste toujours active. L'écran d'aide affiche encore « F3 MUSIC ON/OFF », car c'est une image.
+- La musique se coupe et se remet avec **F5** (F3 dans le jeu d'origine). L'écran d'aide et les conseils de l'arbitre indiquent les nouvelles touches.
 - Le joueur 3 participe aussi aux deux **épreuves bonus** (balles à renvoyer avec le bouclier, bombes à écarter), à tour de rôle avec les autres joueurs humains. Dans l'épreuve des bombes, la couleur de la veste du bleu sert aussi aux explosions : pendant son tour, elles sont bleues au lieu de rouges.
-- Sans joueur 3, le jeu se comporte exactement comme l'original.
+- Sans joueur 3, le jeu se joue comme l'original, à quelques changements près :
+  - la vitesse choisie avec F6–F10 est gardée au début d'une nouvelle partie (l'original revenait à « normal ») ;
+  - le bouton **reset** redémarre la machine au lieu de relancer le jeu ;
+  - dans la barre du haut, les scores, barres de vie et poings du rouge et du bleu sont un peu décalés vers la gauche : le poing bleu ne touche plus « LV ».
 
 Le joueur 3 utilise un **adaptateur joystick sur le port parallèle**, du type de ceux de *Gauntlet II*, *Leatherneck* ou *Dynabusters+*. Deux dossiers sont produits :
 
@@ -113,9 +115,9 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 
 | Fichier | MD5 |
 |---|---|
-| `IK3J_PAR/IKPLUS.IMG` | `15fb38453300c0700f3588928d6d4513` |
+| `IK3J_PAR/IKPLUS.IMG` | `ea71bbcd3b431a860122de6ca25754f3` |
 | `IK3J_PAR/IK_PLUS.TOS` | `2094db4eb20774ec27957cdff56751ad` |
-| `IK3J_STE/IKPLUS.IMG` | `b56480f2eaa42f280ec4682f9cc8dc07` |
+| `IK3J_STE/IKPLUS.IMG` | `7c964b140aa63d7f7c00c4eb2abbc248` |
 | `IK3J_STE/IK_PLUS.TOS` | `95fae0ec107d35232150d69da54b0250` |
 
 **Option** : `make game LIMIT=180 PRG=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.

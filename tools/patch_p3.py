@@ -1,13 +1,16 @@
 """patch_p3.py <image du jeu corrigée (patch_game.py)> <build/p3.bin> <sortie>
 
 Pose le code du mode 3 joueurs (src/p3.s, assemblé en $800) dans l'image
-du jeu et le relie par 21 accroches. Chaque accroche vérifie les octets
-d'origine avant de les remplacer.
+du jeu et le relie par 26 accroches. Chaque accroche vérifie les octets
+d'origine avant de les remplacer. Corrige aussi quelques réglages du jeu
+(vitesse gardée, bouton reset, barre du haut, textes, écran d'aide).
 Entrées fixes de p3.s : $800 pre, $804 looptail, $808 other, $80C elim,
 $810 tick, $814 erasehook, $818 drawhook, $81C roundend, $820 roundmsg, $824 f3key,
-$828 rdhook, $82C blinka, $830 blinkb.
+$828 rdhook, $82C blinka, $830 blinkb, $834 f5key, $838 setp12, $83C blinkset,
+$840 blinkvbl.
 """
 import sys, hashlib
+import helpscreen
 
 BASE = 0x700
 
@@ -59,14 +62,19 @@ def main(src, binf, dst):
     # 10. move.b d0,$1092.w / move.w #2,d2 ($662C, cible de branchement)  ->  jsr roundmsg + NOP
     put(0x662C, '11c01092' '343c0002', jsr(0x820) + nops(1))
 
-    # 11. action de F3 (musique) $731E-$733B  ->  jsr f3key / bra.w L_073A8 + NOP
-    disp = (0x73A8 - (0x7324 + 2)) & 0xFFFF
-    put(0x731E, '4a38100e' '6700000a' '4eb81706' '6000007c' '11fc0001100e' '4eb81734' '6000006e',
-        jsr(0x824) + bytes.fromhex('6000') + disp.to_bytes(2, 'big') + nops(10))
-    # 12. message $0B de l'arbitre : « MUSIC ON OR OFF » -> « PLAYER 3 ON OFF »
-    o = d.find(b'MUSIC@ON@OR@OFF')
-    assert o > 0 and d.find(b'MUSIC@ON@OR@OFF', o + 1) < 0
-    d[o:o + 15] = b'PLAYER@3@ON@OFF'
+    # 11. touche F3 (musique, $7316-$733B)  ->  F3 : jmp f3key (partie à
+    #     3 joueurs) ; F5 (code $3F, inutilisé par le jeu) : jmp f5key (musique)
+    put(0x7316, '0c11003d' '66000020'
+        '4a38100e' '6700000a' '4eb81706' '6000007c' '11fc0001100e' '4eb81734' '6000006e',
+        bytes.fromhex('0c11003d' '6606') + jmp(0x824)
+        + bytes.fromhex('0c11003f' '6614') + jmp(0x834) + nops(7))
+    # 12. message $0B de l'arbitre : « PRESS F3 FOR MUSIC » -> « PRESS F5 FOR MUSIC »
+    #     et message des démos : « OR F1 AND F2 KEYS » -> « OR F1 F2 F3 KEYS »
+    for old, new in ((b'@PRESS@F3@FOR@', b'@PRESS@F5@FOR@'),
+                     (b'OR@@F1@AND@F2@KEYS', b'@OR@F1@F2@F3@KEYS@')):
+        o = d.find(old)
+        assert o > 0 and d.find(old, o + 1) < 0 and len(old) == len(new)
+        d[o:o + len(old)] = new
 
     # 13. routine son : registre 7 du PSG = $DC (port B en sortie)  ->  $5C
     #     (même mixage, port B du port parallèle en entrée)
@@ -87,9 +95,33 @@ def main(src, binf, dst):
     put(0xDFF8, '103c0014' '41f81314' '11802000', jsr(0x82C) + nops(3))
     # 21. épreuve B : idem -> jsr blinkb + NOP
     put(0xEF4A, '41f81314' '11bc00142000', jsr(0x830) + nops(2))
+    # 22. F1, F2 (L_07388) : move.b d1,$1007.w / move.b d2,$1008.w -> jsr setp12 + NOP
+    put(0x7388, '11c11007' '11c21008', jsr(0x838) + nops(1))
+    # 23. début de partie (F_06CD0) : clignotement des poings 0 et 1 -> jsr blinkset
+    put(0x6CE4, '11fc001e1314' '11fc001e1315', jsr(0x83C) + nops(3))
+    # 24. F_07608 (clignotement, VBL) : moveq #1,d2 / lea $1007.w,a0 -> jsr blinkvbl
+    put(0x7608, '7401' '41f81007', jsr(0x840))
+    # 25. nouvelle partie (P_014FA) : move.b #2,$100d.w (vitesse « normal »)
+    #     -> NOP : la vitesse choisie (F6-F10) est gardée
+    put(0x151E, '11fc0002100d', nops(3))
+    # 26. démarrage (L_02160) : le jeu écrit resvalid ($426) et resvector ($42A)
+    #     pour que le bouton reset le relance. -> clr.l $426.w : le reset rend
+    #     la main au TOS.
+    put(0x21E6, '21fc314159260426' '21fc00002160042a',
+        bytes.fromhex('42b80426') + nops(6))
+
+    # barre du haut : rouge 8 pixels et bleu 16 pixels plus à gauche, pour
+    # laisser de la place entre le poing bleu et « LV ». Points de vie
+    # ($85D4) et scores ($85D7) en cases de 8 pixels, poing rouge ($7648)
+    # en pas de 2 pixels (le bleu : FIST_X dans p3.s).
+    put(0x85D4, '000a14' '28323c', bytes.fromhex('000912' '28313a'))
+    put(0x7648, '00000050', bytes.fromhex('0000004c'))
+
+    # écran d'aide : F3 = partie à 3 joueurs, F5 = musique
+    helpscreen.patch(d, BASE)
 
     open(dst, 'wb').write(d)
-    print('%s : code 3 joueurs %d octets en $800, 21 accroches' % (dst, len(code)))
+    print('%s : code 3 joueurs %d octets en $800, 26 accroches' % (dst, len(code)))
 
 
 if __name__ == '__main__':

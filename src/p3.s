@@ -11,8 +11,9 @@
 ;    $1009 = « combattant 2 humain » existe mais n'est jamais mis à 1 ;
 ;  - joystick du joueur i en $126C+i : on écrit le 3e en $126E, au format du
 ;    jeu (bits 0-3 directions actives à 0, bit 4 = feu) ;
-;  - pendant une partie (au moins un humain), F3 fait passer le bleu
-;    humain <-> ordinateur (F3 ne gère plus la musique, toujours active) ;
+;  - F3 lance une partie à 3 joueurs, comme F1 (1 joueur) et F2 (2 joueurs) :
+;    les poings des 3 joueurs clignotent, puis la partie repart de zéro ;
+;    la musique passe sur F5 ;
 ;  - dès que le joueur 3 est là : plus d'élimination, et la partie se
 ;    termine après LIMIT secondes de combat cumulées (chronomètre du jeu).
 ;
@@ -36,7 +37,8 @@ SCRB        equ $70000
 BLIT        equ $126CC          ; F_126CC : affiche un bloc 16 x d6+1
 FIST_GFX    equ $198C8          ; poing (celui du rouge)
 BLANK_GFX   equ $198D0          ; bloc vide (effacement)
-FIST_X      equ $78             ; blanc $28, rouge $50, bleu $78 (octets)
+FIST_X      equ $70             ; blanc $28, rouge $4C, bleu $70 (pas de 2 pixels ;
+                                ; rouge et bleu décalés vers la gauche, patch_p3.py)
 
             org $800
 
@@ -50,14 +52,19 @@ FIST_X      equ $78             ; blanc $28, rouge $50, bleu $78 (octets)
             bra.w drawhook      ; $818  F_0765C (dessine le poing du combattant d2)
             bra.w roundend      ; $81C  fin de round : masque des humains qui restent
             bra.w roundmsg      ; $820  message de fin de round ($1092)
-            bra.w f3key         ; $824  touche F3 : joueur 3 oui / non
+            bra.w f3key         ; $824  touche F3 : partie à 3 joueurs
             bra.w rdhook        ; $828  début de F_0ED04 (joysticks des épreuves bonus)
             bra.w blinka        ; $82C  épreuve A : clignotement du poing (joueurs 0-1)
             bra.w blinkb        ; $830  épreuve B : idem
+            bra.w f5key         ; $834  touche F5 : musique marche / arrêt
+            bra.w setp12        ; $838  F1 / F2 : humains 0 et 1, plus de joueur 3
+            bra.w blinkset      ; $83C  début de partie : clignotement des poings
+            bra.w blinkvbl      ; $840  F_07608 : clignotement (interruption VBL)
 
 ; --- variables ----------------------------------------------------------------
 gamesec     dc.w 0              ; secondes de combat depuis l'arrivée du joueur 3
 fiston      dc.b 0              ; poing bleu affiché ?
+blink3      dc.b 0              ; clignotement du poing bleu (comme $1314/$1315)
             even
 
 ; ----------------------------------------------------------------------------
@@ -68,8 +75,10 @@ fiston      dc.b 0              ; poing bleu affiché ?
 pre         movem.l d0-d2/a0,-(a7)
             bsr     readjoy3
 
-            ; poing bleu synchronisé avec $1009
-.sync       move.b  P3.w,d0
+            ; poing bleu synchronisé avec $1009 (sauf pendant son clignotement)
+.sync       tst.b   blink3
+            bne.s   .done
+            move.b  P3.w,d0
             cmp.b   fiston(pc),d0
             beq.s   .done
             move.b  d0,fiston
@@ -272,18 +281,73 @@ roundmsg    move.b  d0,$1092.w
             even
 
 ; ----------------------------------------------------------------------------
-; f3key : remplace l'action de F3 (musique marche / arrêt, $731E-$733B).
-; Pendant une partie (état 1, au moins un humain) : le bleu passe
-; humain <-> ordinateur. Ailleurs : rien. La musique reste toujours active.
+; f3key : F3 ($7316 saute ici). Comme F1 et F2 ($7364-$73A6) : partie à
+; 3 joueurs, avec la même condition ($1006 >= $19), puis demande de nouvelle
+; partie ($135F, traitée par l'interruption VBL en $1C56).
 ; ----------------------------------------------------------------------------
-f3key       cmpi.b  #1,STATE.w
-            bne.s   .r
-            move.b  P1.w,d0
-            or.b    P2.w,d0
-            beq.s   .r
-            eori.b  #1,P3.w
+f3key       moveq   #0,d0
+            move.b  $1006.w,d0
+            cmpi.w  #$19,d0
+            blt.s   .r
+            move.b  #1,P1.w
+            move.b  #1,P2.w
+            move.b  #1,P3.w
             clr.w   gamesec
-.r          rts
+            jmp     $7390                   ; $135F = 1, touches effacées
+.r          jmp     $73cc
+
+; ----------------------------------------------------------------------------
+; f5key : F5 ($7322 saute ici) : musique marche / arrêt, l'ancienne action
+; de F3 ($731E-$733B dans le jeu d'origine).
+; ----------------------------------------------------------------------------
+f5key       tst.b   $100e.w
+            beq.s   .on
+            jsr     $1706.w                 ; musique coupée
+            bra.s   .r
+.on         move.b  #1,$100e.w
+            jsr     $1734.w                 ; musique remise
+.r          jmp     $73a8
+
+; ----------------------------------------------------------------------------
+; setp12 : remplace « move.b d1,$1007.w / move.b d2,$1008.w » ($7388),
+; F1, F2 ou tir sur un joystick : le joueur 3 n'est plus de la partie.
+; ----------------------------------------------------------------------------
+setp12      move.b  d1,P1.w
+            move.b  d2,P2.w
+            clr.b   P3.w
+            clr.w   gamesec
+            rts
+
+; ----------------------------------------------------------------------------
+; blinkset : remplace « move.b #$1e,$1314.w / move.b #$1e,$1315.w » ($6CE4),
+; début de partie (F_06CD0). Le poing bleu clignote comme les deux autres.
+; ----------------------------------------------------------------------------
+blinkset    move.b  #$1e,$1314.w
+            move.b  #$1e,$1315.w
+            move.b  #$1e,blink3
+            rts
+
+; ----------------------------------------------------------------------------
+; blinkvbl : remplace « moveq #1,d2 / lea $1007.w,a0 » au début de F_07608
+; (clignotement des poings, interruption VBL, une image sur 4). Même règle
+; que le jeu pour les joueurs 0 et 1 : poing affiché quand le bit 2 du
+; compteur est à 0, et donc affiché à la fin.
+; ----------------------------------------------------------------------------
+blinkvbl    tst.b   blink3
+            beq.s   .r
+            subq.b  #1,blink3
+            tst.b   P3.w
+            beq.s   .r
+            btst    #2,blink3
+            bne.s   .off
+            bsr     drawblue
+            move.b  #1,fiston
+            bra.s   .r
+.off        bsr     eraseblue
+            clr.b   fiston
+.r          moveq   #1,d2
+            lea     P1.w,a0
+            rts
 
 ; ----------------------------------------------------------------------------
 ; tick : remplace « move.b #$32,$125b.w » ($1DCC), exécuté quand le

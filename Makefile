@@ -76,7 +76,7 @@ game: all $(B)/IK_BASE.IMG
 # Expected MD5 with the default LIMIT=300
 check:
 	@$(PY) -c "import hashlib,sys; \
-exp={'$(B)/IK3J_PAR/IKPLUS.IMG':'15fb38453300c0700f3588928d6d4513','$(B)/IK_PLUS.TOS':'2094db4eb20774ec27957cdff56751ad','$(B)/IK3J_STE/IKPLUS.IMG':'b56480f2eaa42f280ec4682f9cc8dc07','$(B)/IK_STE.TOS':'95fae0ec107d35232150d69da54b0250'}; \
+exp={'$(B)/IK3J_PAR/IKPLUS.IMG':'ea71bbcd3b431a860122de6ca25754f3','$(B)/IK_PLUS.TOS':'2094db4eb20774ec27957cdff56751ad','$(B)/IK3J_STE/IKPLUS.IMG':'7c964b140aa63d7f7c00c4eb2abbc248','$(B)/IK_STE.TOS':'95fae0ec107d35232150d69da54b0250'}; \
 bad=[f for f,h in exp.items() if hashlib.md5(open(f,'rb').read()).hexdigest()!=h]; \
 print('OK' if not bad else 'MISMATCH: '+' '.join(bad)); sys.exit(1 if bad else 0)"
 

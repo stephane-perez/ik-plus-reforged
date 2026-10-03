@@ -17,7 +17,7 @@ de crackers dans le projet.
 - **v5, validée sur machine réelle** : tourne sur STF, STE, Mega STE,
   TOS 1.04 à 2.06 ; nouveau chargeur sans intro ; mode 3 joueurs
   simultanés (joueur 3 = bleu, sur un adaptateur joystick du port
-  parallèle, type Gauntlet II / Leatherneck) ; F3 donne ou reprend le bleu ;
+  parallèle, type Gauntlet II / Leatherneck) ; F3 lance une partie à 3 (v8) ;
   pas d'élimination à 3 ; fin de match après 5 min de combat ; le joueur 3
   joue aussi les épreuves bonus. Dossier `IK3J_PAR` (ex-`IK3J_S3` : prise
   joystick 3 = D4–D7 + BUSY). La prise 4 n'est plus prise en charge (v6).
@@ -92,15 +92,15 @@ Listing du jeu pour l'étude : `python3 tools/trace_ik.py IK+.PRG` →
 
 Chaîne des correctifs : `patch_game.py` (image tirée de `IK+.PRG` ;
 RNG lisant la ROM en `$FC0000`, cause du plantage STE ; vérification de la
-disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800` + 21
-accroches) → pour le STE, `patch_ste.py` (9 accroches vers `src/ste.s`).
+disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800` + 26
+accroches, barre du haut, textes, écran d'aide par `tools/helpscreen.py`) → pour le STE, `patch_ste.py` (9 accroches vers `src/ste.s`).
 
 ## Carte mémoire (à respecter)
 
 | Zone | Usage |
 |---|---|
 | `$700`–`$537FF` | image du jeu (`$E64`–`$14E5` variables, pile depuis `$F28`) |
-| `$800`–`$BFF` | code 3 joueurs (`p3.s`) : **1 Ko au total**, ~600 octets utilisés |
+| `$800`–`$BFF` | code 3 joueurs (`p3.s`) : **1 Ko au total**, ~720 octets utilisés |
 | `$70000` / `$78000` | les deux écrans |
 | `$80000`–`$A37FF` | STE : sprites convertis pour le blitter |
 | `$A7000`–`$BFFFF` | STE, mode contrôle (`-DCHECK`) seulement : copies de travail |
