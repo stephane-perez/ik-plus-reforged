@@ -29,6 +29,10 @@ de crackers dans le projet.
 - **JOYTEST** : testeur de joysticks (ports ST, port parallèle, ports étendus
   STE/Falcon), français (`JOYTEST.TOS`) et anglais (`JOYTSTEN.TOS`, `-DENGLISH`).
 
+Machines visées : STF, STE et Mega STE de base. Le blitter est exploité
+dès que `_MCH` indique un STE ou un Mega STE ; pas de prise en charge des
+cartes accélératrices.
+
 Le propriétaire (Stéphane) teste sur **STE 4 Mo / TOS 1.62** et
 **Mega STE / TOS 2.06**. Ce qu'on ne peut valider que sur la machine, on le
 lui demande, avec une liste précise de choses à vérifier.
