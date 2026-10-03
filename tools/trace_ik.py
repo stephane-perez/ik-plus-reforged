@@ -1,4 +1,5 @@
-"""trace_ik.py : désassemblage récursif de l'image IK+ (ATOR.EXE, chargée en $700).
+"""trace_ik.py : désassemblage récursif de l'image IK+ (chargée en $700), à partir de
+IK+.PRG (tools/ikimg.py) ou d'une image déjà extraite ($53100 octets).
 
 Pas de relocations : un pointeur de code n'est reconnu que par l'usage.
 Graines :
@@ -19,8 +20,13 @@ from capstone import m68k as M
 BASE, END = 0x700, 0x53800
 LO = 0x1000
 if len(sys.argv) < 2:
-    sys.exit('usage : python3 tools/trace_ik.py <ATOR.EXE>   (écrit work/ik.lst)')
+    sys.exit('usage : python3 tools/trace_ik.py <IK+.PRG>   (écrit work/ik.lst)')
 data = open(sys.argv[1], 'rb').read()
+if data[:2] == b'\x60\x1a':                     # IK+.PRG : extraire l'image
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from ikimg import load
+    data = bytes(load(sys.argv[1]))
 import os
 os.makedirs('work', exist_ok=True)
 md = capstone.Cs(capstone.CS_ARCH_M68K, capstone.CS_MODE_M68K_000)

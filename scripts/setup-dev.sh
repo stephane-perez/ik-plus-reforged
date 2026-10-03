@@ -8,8 +8,8 @@
 # chaque session Claude Code sur le web (.claude/hooks/session-start.sh).
 #
 # Fichiers du jeu, jamais dans le dépôt : dossier IKPLUS_LOCAL (par défaut
-# ../ikplus-local, à côté du dépôt) avec ATOR.EXE et les ROM TOS
-# (rom/tos104.img, rom/tos162.img, rom/tos206.img). S'il contient ATOR.EXE,
+# ../ikplus-local, à côté du dépôt) avec IK+.PRG et les ROM TOS
+# (rom/tos104.img, rom/tos162.img, rom/tos206.img). S'il contient IK+.PRG,
 # le script corrige aussi le jeu (make game) et vérifie les empreintes
 # (make check).
 set -e
@@ -39,11 +39,11 @@ done
 # construction
 make -s all
 
-if [ -f "$LOCAL/ATOR.EXE" ]; then
-    make -s game ATOR="$LOCAL/ATOR.EXE" >/dev/null
+if [ -f "$LOCAL/IK+.PRG" ]; then
+    make -s game PRG="$LOCAL/IK+.PRG" >/dev/null
     make -s check
 else
-    echo "setup-dev : pas de $LOCAL/ATOR.EXE ; make game et make check non lancés"
+    echo "setup-dev : pas de $LOCAL/IK+.PRG ; make game et make check non lancés"
 fi
 for t in tos104 tos162 tos206; do
     [ -f "$LOCAL/rom/$t.img" ] || echo "setup-dev : ROM absente : $LOCAL/rom/$t.img"

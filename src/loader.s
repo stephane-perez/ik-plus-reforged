@@ -1,15 +1,15 @@
 ; ============================================================================
-; IK_PLUS.TOS - chargeur d'IK+ sans intro ni écran pirate.
-; Remplace IK_PLUS.TOS + BLADERUN.DT0 + BLADERUN.DT1 : seul ATOR.EXE est lu.
+; IK_PLUS.TOS - chargeur d'IK+.
 ;
-; ATOR.EXE est l'image mémoire du jeu ($53100 octets) à placer en $700,
-; point d'entrée $1000. Comme BLADERUN.DT1, on écrase le TOS, mais :
+; IKPLUS.IMG est l'image mémoire du jeu ($53100 octets) à placer en $700,
+; point d'entrée $1000, produite à partir de IK+.PRG par tools/patch_game.py.
+; Comme le chargeur de IK+.PRG, on écrase le TOS, mais :
 ;  - le fichier est lu dans un bloc Malloc (pas d'adresse fixe) ; la routine
 ;    de recopie est posée juste après les données, donc hors de la source
 ;    et hors de la destination (bloc > $700 => fin > $53800) ;
-;  - le « rte » des vecteurs non utilisés est en $6F0, sous l'image du jeu,
-;    et non en $7F000 (au milieu du 2e écran du jeu) ; tous les vecteurs
-;    $10-$3FC y pointent (DT1 s'arrêtait à $1A4, avant ceux de la SCC) ;
+;  - le « rte » des vecteurs non utilisés est en $6F0, sous l'image du jeu ;
+;    tous les vecteurs $10-$3FC y pointent, y compris
+;    ceux de la SCC du Mega STE ($180-$1BC) ;
 ;  - Mega STE : interruptions de la SCC coupées (WR9 = 0), 8 MHz sans cache ;
 ;  - STE / Mega STE : son DMA arrêté, registres vidéo STE remis à zéro.
 ; Diagnostic (couleur du fond) : bleu = chargement, vert = saut dans le jeu,
@@ -17,7 +17,7 @@
 ; propres vecteurs.
 ; ============================================================================
 
-SIZE        equ $53100              ; taille de ATOR.EXE
+SIZE        equ $53100              ; taille de IKPLUS.IMG
 DEST        equ $700
             ifd STE
 ; Version STE (-DSTE) : le module src/ste.s (son DMA, blitter) est inclus
@@ -69,7 +69,7 @@ start       move.l  4(a7),a5                ; basepage
             trap    #14
             addq.l  #6,a7
 
-            clr.w   -(a7)                   ; Fopen("ATOR.EXE", lecture)
+            clr.w   -(a7)                   ; Fopen("IKPLUS.IMG", lecture)
             pea     fname(pc)
             move.w  #$3d,-(a7)
             trap    #1
@@ -91,7 +91,7 @@ start       move.l  4(a7),a5                ; basepage
             cmp.l   #SIZE,d7
             bne     lderr
 
-            move.w  #99,d7                  ; ~2 s : laisser le lecteur s'arrêter (comme DT1)
+            move.w  #99,d7                  ; ~2 s : laisser le lecteur de disquette s'arrêter
 .vs         move.w  #$25,-(a7)              ; Vsync
             trap    #14
             addq.l  #2,a7
@@ -222,14 +222,14 @@ stub        lea     DEST.w,a1
             lea     STEBASE+$10000,a7       ; pile hors de l'image du jeu
             jsr     STEBASE                 ; init : sons rééchantillonnés
             endif
-            movem.l regs(pc),d0-d7/a0-a7    ; état laissé par BLADERUN.DT1
+            movem.l regs(pc),d0-d7/a0-a7    ; registres au départ du jeu (pile en $F28)
             jmp     $1000.w
 regs        dc.l    $ffff,$ffff,$123400fb,0,0,$1f33a,$ffff,$ffff
             dc.l    $97c,$946,$70000,0,$fffffa01,$ffff8604,$ffff8606,$f28
 stubend
 
-fname       dc.b    'ATOR.EXE',0
-errmsg      dc.b    13,10,'IK+ : ATOR.EXE introuvable ou memoire insuffisante.',13,10,0
+fname       dc.b    'IKPLUS.IMG',0
+errmsg      dc.b    13,10,'IK+ : IKPLUS.IMG introuvable ou memoire insuffisante.',13,10,0
             ifd STE
 stemsg      dc.b    13,10,'IK+ STE : il faut un STE avec 1 Mo.',13,10
             dc.b    'IK+ STE: an STE with 1 MB is required.',13,10,0

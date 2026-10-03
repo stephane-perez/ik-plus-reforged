@@ -14,7 +14,7 @@ Patches and tools for **International Karate +** (IK+) on the Atari ST:
 >
 > *International Karate +* (IK+) © 1987–1988 System 3 / Archer Maclean. This project is **not affiliated with, endorsed by or connected to** System 3 or any other rights holder.
 >
-> **This repository contains no part of the game**: no program, graphics, music or data, whether original or modified. It only contains original source code and tools. They modify, **on your own computer**, a copy of the game that **you** provide. You alone are responsible for making sure you have the right to use that copy, for example by owning an original. Even if you own the original, you **must** provide the game cracked by Ator of The Blade Runners, no other version will work.
+> **This repository contains no part of the game**: no program, graphics, music or data, whether original or modified. It only contains original source code and tools. They modify, **on your own computer**, a copy of the game that **you** provide. You alone are responsible for making sure you have the right to use that copy, for example by owning an original. The tools only accept one specific version of the game: `IK+.PRG`, a single program of 344,516 bytes (MD5 `4107c876be9d49deb2a3cf5b390f70be`). It is **not** the file from the original disk: its copy protection is already disabled, and Reforged skips the protection check entirely. No other version will work.
 >
 > The names and trademarks mentioned belong to their respective owners. Everything is provided "as is", without any warranty. Use it at your own risk, including on real hardware.
 
@@ -22,17 +22,19 @@ Patches and tools for **International Karate +** (IK+) on the Atari ST:
 
 ### Compatibility
 
-| Machine / TOS | Original | Reforged |
+| Machine / TOS | `IK+.PRG` | Reforged |
 |---|---|---|
-| STF / TOS 1.04 | works | works |
-| STF / TOS 2.06 | intro crashes | works |
-| STE / TOS 1.62 | the demo restarts endlessly, "BUM COPY" | works (tested on real hardware) |
+| STF / TOS 1.04 | works, with a floppy disk in drive A | works |
+| STF / TOS 2.06 | crashes at start-up | works |
+| STE / TOS 1.62 | crashes at start-up | works (tested on real hardware) |
 | Mega STE / TOS 2.06 | crashes at start-up | works (tested on real hardware) |
+
+The `IK+.PRG` column was checked in the Hatari emulator.
 
 What was fixed:
 
-- **The game's random number generator** read the TOS 1.x ROM at `$FC0000`. That address does not exist on STE and Mega STE, so each read caused a bus error, and the game restarted in a loop. It now reads graphics data in RAM instead. This is a one-byte change.
-- **The intro** placed its music player at a fixed address without reserving that memory. Under TOS 2.06 the memory was reused and the intro crashed. The intro is gone.
+- **The game's random number generator** read the TOS 1.x ROM at `$FC0000`. That address does not exist on STE and Mega STE, nor with TOS 2.06, so each read caused a bus error, and the game crashed or restarted in a loop. It now reads graphics data in RAM instead. This is a one-byte change.
+- **The floppy disk check**: `IK+.PRG` still runs it at start-up, then waits for the floppy drive motor to stop, which never happens without a disk in the drive. Reforged skips it.
 - **The new loader** reads the game into reserved memory and copies it into place safely. On a Mega STE it switches off the serial chip (SCC) interrupts and selects 8 MHz with the cache off. All unused exception vectors point to a safe place.
 
 ### 3-player mode
@@ -99,24 +101,24 @@ Requirements: `make`, a C compiler (to build the vasm assembler), `python3`, and
 git clone https://github.com/stephane-perez/ik-plus-reforged
 cd ik-plus-reforged
 make                                  # loaders, 3-player code, STE module, JOYTEST
-make game ATOR=/path/to/ATOR.EXE      # patches YOUR copy of the game
+make game PRG=/path/to/IK+.PRG        # patches YOUR copy of the game
 make check                            # checks the result
 ```
 
 On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) assembler in `.tools/`, unless `vasmm68k_mot` is already installed.
 
-**The file to provide**: `ATOR.EXE`, the memory image of the game (340,224 bytes, MD5 `d76da60c6cd7d9f6ce42630b1271d8d7`). The tools refuse any other file.
+**The file to provide**: `IK+.PRG`, the game as a single program (344,516 bytes, MD5 `4107c876be9d49deb2a3cf5b390f70be`). The tools refuse any other file.
 
-**The result**: `build/IK3J_PAR/` and `build/IK3J_STE/` each contain `IK_PLUS.TOS` and the patched `ATOR.EXE`. Copy the folder you need to a floppy disk or a hard disk, then run `IK_PLUS.TOS`: `IK3J_PAR` with a parallel-port adapter (any ST), or `IK3J_STE` with a Jaguar pad on an STE. The original's other files are no longer needed. With the default settings, `make check` compares the result with the expected checksums:
+**The result**: `build/IK3J_PAR/` and `build/IK3J_STE/` each contain `IK_PLUS.TOS` (the loader) and `IKPLUS.IMG` (the patched game). Copy the folder you need to a floppy disk or a hard disk, then run `IK_PLUS.TOS`: `IK3J_PAR` with a parallel-port adapter (any ST), or `IK3J_STE` with a Jaguar pad on an STE. With the default settings, `make check` compares the result with the expected checksums:
 
 | File | MD5 |
 |---|---|
-| `IK3J_PAR/ATOR.EXE` | `cd6b83ab485dc33f0b6de4bbc8df2423` |
-| `IK_PLUS.TOS` | `0a89bb68ba0b62e122cc9d63670fe7fa` |
-| `IK3J_STE/ATOR.EXE` | `b13f02f89dcebf935af8a1a5f6c4cc83` |
-| `IK3J_STE/IK_PLUS.TOS` | `ac65346a23401c7e02d1402a39b3dc96` |
+| `IK3J_PAR/IKPLUS.IMG` | `15fb38453300c0700f3588928d6d4513` |
+| `IK3J_PAR/IK_PLUS.TOS` | `2094db4eb20774ec27957cdff56751ad` |
+| `IK3J_STE/IKPLUS.IMG` | `b56480f2eaa42f280ec4682f9cc8dc07` |
+| `IK3J_STE/IK_PLUS.TOS` | `95fae0ec107d35232150d69da54b0250` |
 
-**Option**: `make game LIMIT=180 ATOR=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
+**Option**: `make game LIMIT=180 PRG=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
 
 ## Testing in Hatari (optional)
 
@@ -129,9 +131,10 @@ Note: Hatari 2.4.1 is more permissive than real hardware on the parallel port. I
 
 ## How it works
 
-- `src/loader.s`: the loader, which replaces the intro and the old start-up programs. Assembled with `-DSTE`, it also loads the STE module.
+- `src/loader.s`: the loader, which reads `IKPLUS.IMG` and starts the game. Assembled with `-DSTE`, it also loads the STE module.
 - `src/p3.s`: the 3-player code, placed at `$800` in unused memory.
 - `src/ste.s`: the STE module (DMA sound, blitter), placed at `$C0000`, above the 512 KB the game was written for.
+- `tools/ikimg.py`: extracts the game's memory image from `IK+.PRG`.
 - `tools/patch_game.py`, `tools/patch_p3.py` and `tools/patch_ste.py`: apply the patches. Before changing any byte, they check the checksum and the original bytes.
 - `src/joytest.s`: JOYTEST.
 - `tools/trace_ik.py` and `tools/show.py`: a recursive disassembler and a listing viewer, for study. They need `pip install capstone`.

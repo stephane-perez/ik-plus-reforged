@@ -1,4 +1,4 @@
-"""unlock.py <ATOR.EXE in> <ATOR.EXE out> : copy of the game with the speed
+"""unlock.py <IKPLUS.IMG in> <IKPLUS.IMG out> : copy of the game image with the speed
 table at $6EB8 set to 0, so a frame never waits for extra VBLs. Used to
 measure how fast the game can really go. For measurements only."""
 import sys

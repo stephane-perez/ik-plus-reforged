@@ -7,8 +7,12 @@ méthode dans `docs/fr/METHODOLOGIE.md`, la suite prévue dans `docs/ROADMAP.md`
 ## Le projet
 
 Correctifs pour *International Karate +* (Atari ST, System 3 / Archer
-Maclean), à partir de la version crackée par The Blade Runners (`ATOR.EXE`,
-image mémoire du jeu chargée en `$700`, point d'entrée `$1000`).
+Maclean), à partir de `IK+.PRG` : le jeu en un seul programme, protection
+déjà neutralisée, provenance inconnue (pas le fichier de la disquette
+originale). `tools/ikimg.py` en tire l'image mémoire du jeu (`$700`–`$537FF`,
+point d'entrée `$1000`) ; sur l'Atari, notre chargeur `IK_PLUS.TOS` lit
+cette image corrigée, `IKPLUS.IMG`. Ne jamais citer de cracker ni de groupe
+de crackers dans le projet.
 
 - **v5, validée sur machine réelle** : tourne sur STF, STE, Mega STE,
   TOS 1.04 à 2.06 ; nouveau chargeur sans intro ; mode 3 joueurs
@@ -31,7 +35,7 @@ lui demande, avec une liste précise de choses à vérifier.
 
 ## Règles absolues
 
-1. **Aucun contenu sous copyright dans le dépôt** : ni `ATOR.EXE`, ni
+1. **Aucun contenu sous copyright dans le dépôt** : ni `IK+.PRG`, ni
    aucun fichier produit à partir du jeu (image corrigée, sons, captures
    d'écran), ni ROM TOS. Le `.gitignore` les exclut ; vérifie quand même
    avant chaque commit (`git status`, pas de `git add -A` à l'aveugle).
@@ -62,30 +66,33 @@ temporaire : tout ce qui n'est pas poussé disparaît avec elle.
 2. **Fichiers du jeu**, jamais dans le dépôt : Stéphane les envoie dans la
    conversation (ils arrivent dans `/root/.claude/uploads/<session>/`). Les
    ranger dans `../ikplus-local/` (à côté du dépôt, variable `IKPLUS_LOCAL`) :
-   `ATOR.EXE` et `rom/tos104.img` (STF), `rom/tos162.img` (STE),
+   `IK+.PRG` et `rom/tos104.img` (STF), `rom/tos162.img` (STE),
    `rom/tos206.img` (Mega STE). Puis relancer `sh scripts/setup-dev.sh`,
    qui fait `make game` et `make check`.
 3. **Où on en est** : la section « Le projet » ci-dessus, `docs/ROADMAP.md`
    et les tickets GitHub ouverts ; l'historique dans `docs/fr/VERSIONS.md`.
-4. **Étiquettes** : le proxy git des sessions refuse de pousser les
-   étiquettes (`git push origin v6` → 403). Donner la commande à Stéphane.
+4. **Étiquettes** : format `v1.0.N` (`v1.0.0`, `v1.0.5`, `v1.0.6`…), la
+   suivante incrémente le dernier nombre ; jamais `vN`. Le proxy git des
+   sessions refuse de pousser les étiquettes (`git push origin v1.0.7` →
+   403) : donner la commande à Stéphane.
 
 ## Construire
 
 ```sh
 make                              # chargeurs, code 3 joueurs, module STE, JOYTEST
-make game ATOR=/chemin/ATOR.EXE   # corrige la copie du jeu : build/IK3J_PAR, IK3J_STE
+make game PRG=/chemin/IK+.PRG     # corrige la copie du jeu : build/IK3J_PAR, IK3J_STE
 make check                        # empreintes attendues
 ```
 
-`ATOR.EXE` attendu : 340 224 octets, MD5 `d76da60c6cd7d9f6ce42630b1271d8d7`.
+`IK+.PRG` attendu : 344 516 octets, MD5 `4107c876be9d49deb2a3cf5b390f70be`.
 L'assembleur est vasm (`vasmm68k_mot`), construit dans `.tools/` au besoin.
-Listing du jeu pour l'étude : `python3 tools/trace_ik.py ATOR.EXE` →
+Listing du jeu pour l'étude : `python3 tools/trace_ik.py IK+.PRG` →
 `work/ik.lst` (étiquettes `F_xxxxx` / `P_` / `L_`), extraits avec
 `tools/show.py`.
 
-Chaîne des correctifs : `patch_game.py` (RNG lisant la ROM en `$FC0000`,
-cause du plantage STE) → `patch_p3.py` (code `src/p3.s` en `$800` + 21
+Chaîne des correctifs : `patch_game.py` (image tirée de `IK+.PRG` ;
+RNG lisant la ROM en `$FC0000`, cause du plantage STE ; vérification de la
+disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800` + 21
 accroches) → pour le STE, `patch_ste.py` (9 accroches vers `src/ste.s`).
 
 ## Carte mémoire (à respecter)
