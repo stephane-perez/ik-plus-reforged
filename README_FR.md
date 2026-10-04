@@ -6,7 +6,8 @@ Correctifs et outils pour **International Karate +** (IK+) sur Atari ST :
 
 - **compatibilité STE / Mega STE / TOS 2.06** : le jeu tourne désormais sur STF, STE et Mega STE, à 8 et 16 MHz ;
 - un **mode 3 joueurs simultanés** : le troisième joueur utilise un joystick branché sur un adaptateur du port parallèle ;
-- une **version STE** : joueur 3 sur le port joystick étendu du STE, bruitages joués par le DMA, combattants dessinés par le blitter ; la vitesse turbo tient désormais 25 images par seconde ;
+- des **ajouts STE**, posés automatiquement sur un STE avec au moins 1 Mo : bruitages joués par le DMA, combattants dessinés par le blitter, la vitesse turbo tient désormais 25 images par seconde ; manettes Jaguar sur les ports joystick étendus ;
+- **un seul programme pour toutes les machines**, et le choix de la commande de chaque joueur ;
 - un **nouveau chargeur** : une page d'introduction (logo IK+, contrôles), puis l'introduction du jeu ;
 - **JOYTEST**, un petit utilitaire qui affiche l'état de tous les joysticks, y compris ceux du port parallèle et des ports étendus du STE.
 
@@ -53,20 +54,15 @@ Le jeu a été conçu autour de trois combattants, et ses données avaient déj�
   - le bouton **reset** redémarre la machine au lieu de relancer le jeu ;
   - dans la barre du haut, les scores, barres de vie et poings du rouge et du bleu sont un peu décalés vers la gauche : le poing bleu ne touche plus « LV ».
 
-Le joueur 3 utilise un **adaptateur joystick sur le port parallèle**, du type de ceux de *Gauntlet II*, *Leatherneck* ou *Dynabusters+*. Deux dossiers sont produits :
+Le joueur 3 utilise un **adaptateur joystick sur le port parallèle**, du type de ceux de *Gauntlet II*, *Leatherneck* ou *Dynabusters+* (prise joystick 3 : directions D4–D7, tir sur BUSY), ou une **manette Jaguar** sur un port joystick étendu du STE. Un seul dossier, `IK_PLUS`, sert sur toutes les machines.
 
-| Dossier | Machines | Joueur 3 | En plus |
-|---|---|---|---|
-| `IK3J_PAR` | STF, STE, Mega STE | par défaut, adaptateur du port parallèle, prise joystick 3 (directions D4–D7, tir sur BUSY) | — |
-| `IK3J_STE` | STE avec au moins 1 Mo | manette Jaguar sur le port joystick étendu A | son DMA, blitter (voir plus bas) |
+**Choix des joysticks** : sur la page d'introduction, **F1**, **F2** et **F3** changent la commande des joueurs 1, 2 et 3. Choix possibles : JOYSTICK 0 (prise de la souris), JOYSTICK 1, JOYSTICK 2 et JOYSTICK 3 (prises 3 et 4 de l'adaptateur du port parallèle), JOYPAD A et JOYPAD B (manettes Jaguar sur les ports étendus du STE, proposées sur STE seulement), et NONE pour le joueur 3 (F3 ne peut alors pas lancer de partie à 3). Une commande ne sert jamais à deux joueurs. Le choix est mémorisé dans `IKPLUS.CFG`, à côté du jeu ; sur un disque protégé en écriture ou plein, rien n'est écrit et le jeu démarre quand même. Par défaut, le joueur 3 est sur JOYSTICK 2, ou JOYPAD A sur un STE.
 
-**Choix des joysticks** : sur la page d'introduction, **F1**, **F2** et **F3** changent la commande des joueurs 1, 2 et 3. Choix possibles : JOYSTICK 0 (prise de la souris), JOYSTICK 1, JOYSTICK 2 et JOYSTICK 3 (prises 3 et 4 de l'adaptateur du port parallèle), JOYPAD A et JOYPAD B (manettes Jaguar sur les ports étendus du STE, proposées sur STE seulement), et NONE pour le joueur 3 (F3 ne peut alors pas lancer de partie à 3). Une commande ne sert jamais à deux joueurs. Le choix est mémorisé dans `IKPLUS.CFG`, à côté du jeu ; sur un disque protégé en écriture ou plein, rien n'est écrit et le jeu démarre quand même. Le dossier ne change que le choix par défaut du joueur 3 : JOYSTICK 2 dans `IK3J_PAR`, JOYPAD A dans `IK3J_STE`.
+### Ajouts STE
 
-### Version STE
+Sur un **STE avec au moins 1 Mo de mémoire**, le chargeur ajoute de lui-même ce qui suit (sur une autre machine, le jeu tourne sans) :
 
-Le dossier `IK3J_STE` est réservé au **STE, avec au moins 1 Mo de mémoire**. Sur une autre machine, le chargeur affiche un message et s'arrête. On y retrouve le même mode 3 joueurs, avec trois différences :
-
-- **Le joueur 3 utilise le port joystick étendu A du STE** (la prise à 15 broches) : une manette Jaguar (testée sur un vrai STE), ou un joystick ordinaire avec un adaptateur DB15 (non testé). Tir = A, B, C ou Pause. Plus besoin d'adaptateur sur le port parallèle.
+- **Manettes Jaguar** sur les ports joystick étendus A et B du STE (les prises à 15 broches ; testées sur un vrai STE), ou joysticks ordinaires avec un adaptateur DB15 (non testé). Tir = A, B, C ou Pause. Plus besoin d'adaptateur sur le port parallèle. Les manettes sont proposées sur tout STE, même avec 512 Ko.
 - **Les bruitages sont joués par le DMA**, à 12 517 Hz. L'original jouait chaque bruitage par la puce YM, avec une interruption par échantillon, ce qui prenait 13 à 18 % du processeur. Les 18 sons sont convertis au lancement du jeu, soit environ 2 secondes d'écran vert. La musique garde maintenant ses trois voix pendant les cris, et la hauteur des bruitages ne varie plus.
 - **Les combattants sont dessinés et effacés par le blitter.** Le résultat est identique, octet par octet, au dessin d'origine : c'est vérifié dans l'émulateur sur plus de mille appels.
 
@@ -111,14 +107,13 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 
 **Le fichier à fournir** : `IK+.PRG`, le jeu en un seul programme (344 516 octets, MD5 `4107c876be9d49deb2a3cf5b390f70be`). Les outils refusent tout autre fichier.
 
-**Le résultat** : `build/IK3J_PAR/` et `build/IK3J_STE/` contiennent chacun `IK_PLUS.TOS` (le chargeur) et `IKPLUS.IMG` (le jeu corrigé). Copiez le dossier voulu sur une disquette ou un disque dur, puis lancez `IK_PLUS.TOS` : `IK3J_PAR` avec un adaptateur parallèle (tout ST), ou `IK3J_STE` avec une manette Jaguar sur un STE. Avec les réglages par défaut, `make check` compare le résultat aux empreintes attendues :
+**Le résultat** : `build/IK_PLUS/` contient `IK_PLUS.TOS` (le chargeur), `IKPLUS.IMG` (le jeu corrigé), et `README.TXT` / `LISEZMOI.TXT`, qui listent toutes les différences avec le jeu d'origine (tirés de `dist/`, convertis pour l'Atari par `tools/textfile.py`). Copiez le dossier sur une disquette ou un disque dur, puis lancez `IK_PLUS.TOS`. Sur un STE avec au moins 1 Mo, le chargeur pose les 9 accroches STE (table `build/stehooks.i`, tirée de `tools/patch_ste.py`) après avoir vérifié leurs octets d'origine. Avec les réglages par défaut, `make check` compare le résultat aux empreintes attendues (`IK_STE_CHECK.IMG` est l'image telle que le chargeur la corrige sur un STE : elle est identique à la version STE validée sur machine réelle) :
 
 | Fichier | MD5 |
 |---|---|
-| `IK3J_PAR/IKPLUS.IMG` | `47c4470c565aed31afed2fdafc2fa5ae` |
-| `IK3J_PAR/IK_PLUS.TOS` | `2ee9920d4f637526efc272e407d280d2` |
-| `IK3J_STE/IKPLUS.IMG` | `1f8287f1eabad2373a98013a6f8e76af` |
-| `IK3J_STE/IK_PLUS.TOS` | `53ba614726a0e7c85fa0b59313a27917` |
+| `IK_PLUS/IKPLUS.IMG` | `47c4470c565aed31afed2fdafc2fa5ae` |
+| `IK_PLUS/IK_PLUS.TOS` | `467fd398b98d0594f39fc1a8764893ca` |
+| `IK_STE_CHECK.IMG` (contrôle) | `1f8287f1eabad2373a98013a6f8e76af` |
 
 **Option** : `make game LIMIT=180 PRG=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.
 

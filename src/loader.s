@@ -12,6 +12,11 @@
 ;    ceux de la SCC du Mega STE ($180-$1BC) ;
 ;  - Mega STE : interruptions de la SCC coupées (WR9 = 0), 8 MHz sans cache ;
 ;  - STE / Mega STE : son DMA arrêté, registres vidéo STE remis à zéro ;
+;  - un seul programme pour toutes les machines : sur un STE (cookie _MCH =
+;    $00010000) avec au moins 1 Mo, le module src/ste.s (son DMA, blitter)
+;    est recopié en STEBASE et ses 9 accroches sont posées dans l'image lue,
+;    après vérification des octets d'origine (table build/stehooks.i, tirée
+;    de tools/patch_ste.py) ; sinon, le jeu tourne sans elles ;
 ;  - page d'introduction (logo IK+ et police du jeu, pris dans l'image lue :
 ;    rien du jeu dans ce programme) : F1, F2, F3 choisissent le joystick de
 ;    chaque joueur, mémorisé dans IKPLUS.CFG ; Espace pour continuer.
@@ -22,12 +27,7 @@
 
 SIZE        equ $53100              ; taille de IKPLUS.IMG
 DEST        equ $700
-            ifd STE
-; Version STE (-DSTE) : le module src/ste.s (son DMA, blitter) est inclus
-; ici et recopié en STEBASE ; il faut un STE (cookie _MCH = $00010000) avec
-; au moins 1 Mo, et un bloc Malloc sous STEBASE.
-STEBASE     equ $C0000
-            endif
+STEBASE     equ $C0000              ; module STE : il faut un bloc Malloc qui finit dessous
 
             section text
 start       move.l  4(a7),a5                ; basepage
@@ -43,14 +43,10 @@ start       move.l  4(a7),a5                ; basepage
             trap    #1
             lea     12(a7),a7
 
-            ifd STE
-            pea     checkm(pc)              ; Supexec : STE avec 1 Mo ?
+            pea     prep(pc)                ; Supexec : machine, mémoire, clic clavier
             move.w  #$26,-(a7)
             trap    #14
             addq.l  #6,a7
-            tst.l   d0
-            bne     steerr
-            endif
 
             move.l  #SIZE+$200,-(a7)        ; Malloc : image + routine de recopie
             move.w  #$48,-(a7)
@@ -61,11 +57,11 @@ start       move.l  4(a7),a5                ; basepage
             addq.l  #3,d0                   ; aligné sur 4
             and.b   #$fc,d0
             move.l  d0,buf
-            ifd STE
-            add.l   #SIZE+$200,d0           ; le bloc doit finir sous STEBASE
+            add.l   #SIZE+$200,d0           ; mode STE : le bloc doit finir sous STEBASE
             cmp.l   #STEBASE,d0
-            bhi     lderr
-            endif
+            bls.s   .blk
+            clr.b   stecan
+.blk
 
             pea     setblue(pc)             ; fond bleu pendant le chargement
             move.w  #$26,-(a7)
@@ -93,7 +89,10 @@ start       move.l  4(a7),a5                ; basepage
             addq.l  #4,a7
             cmp.l   #SIZE,d7
             bne     lderr
-
+            tst.b   stecan                  ; STE, 1 Mo : accroches du module STE
+            beq.s   .nost
+            bsr     stehook
+.nost
             bsr     intro                   ; page d'introduction, Espace
             move.l  buf,a0                  ; choix des joysticks -> jeu (CTL de p3.s)
             add.l   #CTLADR-DEST,a0
@@ -129,34 +128,36 @@ lderr        pea     errmsg(pc)
 setblue     move.w  #$007,$ffff8240.w
             rts
 
-            ifd STE
-steerr      pea     stemsg(pc)
-            move.w  #9,-(a7)
-            trap    #1
-            addq.l  #6,a7
-            move.w  #7,-(a7)                ; Crawcin
-            trap    #1
-            addq.l  #2,a7
-            clr.w   -(a7)
-            trap    #1
-
-; checkm (superviseur) : d0 = 0 si STE (_MCH = $00010000) et phystop >= 1 Mo
-checkm      moveq   #-1,d0
-            cmp.l   #$100000,$42e.w
-            blo.s   .x
-            move.l  $5a0.w,d1
-            beq.s   .x
-            move.l  d1,a0
-.cj         move.l  (a0)+,d1
-            beq.s   .x
-            move.l  (a0)+,d2
-            cmp.l   #'_MCH',d1
-            bne.s   .cj
-            cmp.l   #$00010000,d2
-            bne.s   .x
-            moveq   #0,d0
-.x          rts
-            endif
+; stehook : pose les accroches du module STE (table stehooks) dans l'image
+; lue, si les octets d'origine de toutes sont bien là ; stemode = 1 alors.
+stehook     lea     stehooks,a0             ; 1. vérification
+.ck         move.l  (a0)+,d0
+            beq.s   .ok
+            move.w  (a0)+,d1
+            move.l  buf,a1
+            add.l   d0,a1
+            sub.l   #DEST,a1
+            subq.w  #1,d1
+            move.w  d1,d2
+.cb         cmpm.b  (a0)+,(a1)+
+            bne.s   .no
+            dbra    d1,.cb
+            lea     1(a0,d2.w),a0           ; nouveaux octets sautés
+            bra.s   .ck
+.ok         lea     stehooks,a0             ; 2. pose
+.pt         move.l  (a0)+,d0
+            beq.s   .done
+            move.w  (a0)+,d1
+            move.l  buf,a1
+            add.l   d0,a1
+            sub.l   #DEST,a1
+            add.w   d1,a0                   ; octets d'origine sautés
+            subq.w  #1,d1
+.pb         move.b  (a0)+,(a1)+
+            dbra    d1,.pb
+            bra.s   .pt
+.done       move.b  #1,stemode
+.no         rts
 
 ; ----------------------------------------------------------------------------
 ; intro : page d'introduction, sous le TOS (mode utilisateur).
@@ -171,11 +172,7 @@ CTLADR      equ $848                        ; CTL dans src/p3.s : sources des jo
 NSRC        equ 7                           ; sources 0 à 6 (6 = aucune)
 NAMECOL     equ 26                          ; colonne du nom de la source
 
-intro       pea     prep(pc)                ; Supexec : machine, clic clavier
-            move.w  #$26,-(a7)
-            trap    #14
-            addq.l  #6,a7
-            bsr     loadcfg
+intro       bsr     loadcfg
             dc.w    $a00a                   ; Line-A : souris cachée
             clr.w   -(a7)                   ; Cursconf(0) : curseur caché
             move.w  #21,-(a7)
@@ -273,9 +270,16 @@ intro       pea     prep(pc)                ; Supexec : machine, clic clavier
 .r          rts
 
 ; prep (superviseur) : STE ? (cookie _MCH = $00010000 : ports étendus) ;
-; clic clavier coupé (conterm, bit 0).
+; STE avec au moins 1 Mo (phystop) : mode STE possible ; clic clavier coupé
+; (conterm, bit 0).
 prep        bclr    #0,$484.w
-            move.l  $5a0.w,d0
+            bsr.s   .mch
+            tst.b   isste
+            beq.s   .r
+            cmp.l   #$100000,$42e.w
+            shs     stecan
+.r          rts
+.mch        move.l  $5a0.w,d0
             beq.s   .x
             move.l  d0,a0
 .cj         move.l  (a0)+,d0
@@ -387,7 +391,10 @@ loadcfg     clr.w   -(a7)                   ; Fopen(lecture)
             move.l  ctl,cfgold
             rts
 .def        move.l  defctl(pc),ctl
-            move.l  #-1,cfgold              ; rien de lu : à écrire
+            tst.b   isste                   ; STE : joueur 3 sur la manette A
+            beq.s   .dp
+            move.b  #4,ctl+2
+.dp            move.l  #-1,cfgold              ; rien de lu : à écrire
             rts
 
 ; savecfg : écrit IKPLUS.CFG si le choix a changé. Disquette protégée en
@@ -533,12 +540,8 @@ names       dc.b    'JOYSTICK 0',0,'JOYSTICK 1',0,'JOYSTICK 2',0,'JOYSTICK 3',0
 cfgname     dc.b    'IKPLUS.CFG',0
             even
 ; choix par défaut : joueur 1 = joystick 1, joueur 2 = joystick 0 (comme le
-; jeu d'origine), joueur 3 = manette A (dossier STE) ou prise 3 (sinon)
-            ifd STE
-defctl      dc.b    1,0,4,0
-            else
+; jeu d'origine), joueur 3 = prise 3 (manette A sur STE, voir loadcfg)
 defctl      dc.b    1,0,2,0
-            endif
 
 ; ----------------------------------------------------------------------------
 ; go (superviseur) : le TOS est encore là tant qu'on n'a pas recopié.
@@ -590,13 +593,14 @@ go          move.w  #$2700,sr
 .vec        move.l  #$6f0,(a0)+
             dbra    d0,.vec
             move.w  #$070,$ffff8240.w       ; vert : on saute dans le jeu
-            ifd STE
+            move.b  stemode,stubste         ; pour la routine de recopie
+            beq.s   .nste
             lea     steblob,a0              ; module STE en STEBASE
             lea     STEBASE,a1
             move.w  #(steend-steblob)/2-1,d0
 .cs         move.w  (a0)+,(a1)+
             dbra    d0,.cs
-            endif
+.nste
 
             ; routine de recopie posée après les données
             move.l  buf,a0
@@ -615,30 +619,28 @@ stub        lea     DEST.w,a1
 .l          move.l  (a0)+,(a1)+
             subq.l  #1,d0
             bpl.s   .l
-            ifd STE
+            move.b  stubste(pc),d0
+            beq.s   .go
             lea     STEBASE+$10000,a7       ; pile hors de l'image du jeu
             jsr     STEBASE                 ; init : sons rééchantillonnés
-            endif
+.go
             movem.l regs(pc),d0-d7/a0-a7    ; registres au départ du jeu (pile en $F28)
             jmp     $1000.w
 regs        dc.l    $ffff,$ffff,$123400fb,0,0,$1f33a,$ffff,$ffff
             dc.l    $97c,$946,$70000,0,$fffffa01,$ffff8604,$ffff8606,$f28
+stubste     dc.w    0                       ; 1 : module STE en place
 stubend
 
 fname       dc.b    'IKPLUS.IMG',0
 errmsg      dc.b    13,10,'IK+ : IKPLUS.IMG introuvable ou memoire insuffisante.',13,10,0
-            ifd STE
-stemsg      dc.b    13,10,'IK+ STE : il faut un STE avec 1 Mo.',13,10
-            dc.b    'IK+ STE: an STE with 1 MB is required.',13,10,0
-            endif
             even
-            ifd STE
             section data
             even
 steblob     incbin  "build/ste.bin"
             even
 steend
-            endif
+            include "build/stehooks.i"
+            even
 
             section bss
 buf         ds.l    1
@@ -646,7 +648,9 @@ ctl         ds.l    1                       ; sources des joueurs 1 à 3 (+ 1 oc
 cfgold      ds.l    1                       ; ce qui a été lu dans IKPLUS.CFG
 cfgbuf      ds.l    1
 oldcrit     ds.l    1
-isste       ds.b    1
+isste       ds.b    1                       ; STE : ports étendus (manettes)
+stecan      ds.b    1                       ; STE avec 1 Mo : mode STE possible
+stemode     ds.b    1                       ; accroches STE posées
             even
 fh          ds.w    1
             ds.b    1024

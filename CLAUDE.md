@@ -85,7 +85,7 @@ temporaire : tout ce qui n'est pas poussé disparaît avec elle.
 
 ```sh
 make                              # chargeurs, code 3 joueurs, module STE, JOYTEST
-make game PRG=/chemin/IK+.PRG     # corrige la copie du jeu : build/IK3J_PAR, IK3J_STE
+make game PRG=/chemin/IK+.PRG     # corrige la copie du jeu : build/IK_PLUS
 make check                        # empreintes attendues
 ```
 
@@ -98,7 +98,10 @@ Listing du jeu pour l'étude : `python3 tools/trace_ik.py IK+.PRG` →
 Chaîne des correctifs : `patch_game.py` (image tirée de `IK+.PRG` ;
 RNG lisant la ROM en `$FC0000`, cause du plantage STE ; vérification de la
 disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800` + 27
-accroches, barre du haut, textes, écran d'aide par `tools/helpscreen.py`) → pour le STE, `patch_ste.py` (9 accroches vers `src/ste.s`).
+accroches, barre du haut, textes, écran d'aide par `tools/helpscreen.py`) → pour le STE, `patch_ste.py` (9 accroches vers `src/ste.s`), posées au
+lancement par le chargeur (table `build/stehooks.i`) sur un STE avec 1 Mo ;
+`make check` vérifie que le résultat (`IK_STE_CHECK.IMG`) est l'image STE
+validée sur machine réelle.
 
 ## Carte mémoire (à respecter)
 
@@ -173,13 +176,15 @@ Tu fournis les ROM TOS (pas dans le dépôt). Scripts dans `hatari/` :
 
 ## Façon de travailler
 
-- Deux dossiers seulement : `IK3J_PAR` (tout ST, adaptateur parallèle) et
-  `IK3J_STE` (STE, manette Jaguar). Un petit menu de choix au démarrage est
-  envisagé plus tard.
+- Un seul dossier, `IK_PLUS` (depuis la v9) : `IK_PLUS.TOS`, `IKPLUS.IMG`,
+  `README.TXT` et `LISEZMOI.TXT` (différences avec le jeu d'origine, tirés de
+  `dist/` ; à tenir à jour à chaque version). Le chargeur choisit seul le
+  mode STE ; la page d'introduction choisit les joysticks.
 - Une branche par sujet, une demande de fusion (PR) décrite en français ;
   on ne fusionne dans `master` qu'après le retour de la machine réelle.
 - Mettre à jour `docs/fr/VERSIONS.md` (nouvelle section numérotée) et, si
   besoin, `CODE_MAP.md` à chaque version.
 - Livrer à Stéphane un zip avec le dossier prêt à copier sur l'Atari et un
-  `LISEZMOI.TXT` qui dit quoi vérifier. Ce zip contient le jeu corrigé :
+  `A_TESTER.TXT` qui dit quoi vérifier (`LISEZMOI.TXT` est déjà pris par la
+  distribution). Ce zip contient le jeu corrigé :
   il se donne à lui seul, jamais dans le dépôt ni dans une release GitHub.

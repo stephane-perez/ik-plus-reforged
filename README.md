@@ -6,7 +6,8 @@ Patches and tools for **International Karate +** (IK+) on the Atari ST:
 
 - **STE / Mega STE / TOS 2.06 compatibility**: the game now runs on STF, STE and Mega STE, at 8 and 16 MHz;
 - a **simultaneous 3-player mode**: the third player uses a joystick on a parallel-port adapter;
-- an **STE version**: player 3 on the STE's enhanced joystick port, sound effects played by DMA, fighters drawn by the blitter; the turbo speed now holds 25 frames per second;
+- **STE extras**, added automatically on an STE with 1 MB or more: sound effects played by DMA, fighters drawn by the blitter, the turbo speed now holds 25 frames per second; Jaguar pads on the enhanced joystick ports;
+- **one program for every machine**, and a choice of controller for each player;
 - a **new loader**: an intro page (IK+ logo, controls), then the game's own intro;
 - **JOYTEST**, a small utility that shows the state of every joystick, including those on the parallel port and the STE's enhanced ports.
 
@@ -53,20 +54,15 @@ The game was designed around three fighters, and its data already had room for a
   - the **reset** button resets the machine instead of restarting the game;
   - the red and blue scores, energy bars and fists in the top bar are moved a little to the left, so that the blue fist no longer touches "LV".
 
-Player 3 uses a **parallel-port joystick adapter**, the kind used by *Gauntlet II*, *Leatherneck* or *Dynabusters+*. Two folders are produced:
+Player 3 uses a **parallel-port joystick adapter**, the kind used by *Gauntlet II*, *Leatherneck* or *Dynabusters+* (joystick 3 socket: directions D4–D7, fire on BUSY), or a **Jaguar pad** on an STE's enhanced joystick port. A single folder, `IK_PLUS`, works on every machine.
 
-| Folder | Machines | Player 3 | Extras |
-|---|---|---|---|
-| `IK3J_PAR` | STF, STE, Mega STE | parallel-port adapter, joystick 3 socket (directions D4–D7, fire on BUSY) by default | — |
-| `IK3J_STE` | STE with 1 MB or more | Jaguar pad on enhanced joystick port A | DMA sound, blitter (see below) |
+**Choosing the joysticks**: on the intro page, **F1**, **F2** and **F3** change the controller of players 1, 2 and 3. The choices are JOYSTICK 0 (mouse port), JOYSTICK 1, JOYSTICK 2 and JOYSTICK 3 (sockets 3 and 4 of the parallel-port adapter), JOYPAD A and JOYPAD B (Jaguar pads on the STE's enhanced ports, offered on an STE only), and NONE for player 3 (F3 then cannot start a 3-player game). A controller is never given to two players. The choice is saved in `IKPLUS.CFG`, next to the game; on a write-protected or full disk, nothing is written and the game starts anyway. By default, player 3 is on JOYSTICK 2, or JOYPAD A on an STE.
 
-**Choosing the joysticks**: on the intro page, **F1**, **F2** and **F3** change the controller of players 1, 2 and 3. The choices are JOYSTICK 0 (mouse port), JOYSTICK 1, JOYSTICK 2 and JOYSTICK 3 (sockets 3 and 4 of the parallel-port adapter), JOYPAD A and JOYPAD B (Jaguar pads on the STE's enhanced ports, offered on an STE only), and NONE for player 3 (F3 then cannot start a 3-player game). A controller is never given to two players. The choice is saved in `IKPLUS.CFG`, next to the game; on a write-protected or full disk, nothing is written and the game starts anyway. The folder only changes the default for player 3: JOYSTICK 2 in `IK3J_PAR`, JOYPAD A in `IK3J_STE`.
+### STE extras
 
-### STE version
+On an **STE with 1 MB of memory or more**, the loader adds the following by itself (on any other machine, the game runs without them):
 
-The `IK3J_STE` folder is for the **STE only, with 1 MB of memory or more**. On any other machine, the loader shows a message and stops. It has the same 3-player mode, with three differences:
-
-- **Player 3 uses the STE's enhanced joystick port A** (the 15-pin socket): a Jaguar pad (tested on a real STE), or an ordinary joystick with a DB15 adapter (not tested). Fire = A, B, C or Pause. No parallel-port adapter is needed.
+- **Jaguar pads** on the STE's enhanced joystick ports A and B (the 15-pin sockets; tested on a real STE), or ordinary joysticks with a DB15 adapter (not tested). Fire = A, B, C or Pause. No parallel-port adapter is needed. The pads are offered on any STE, even with 512 KB.
 - **Sound effects are played by DMA**, at 12,517 Hz. The original played each effect through the YM chip, with one interrupt per sample, which used 13 to 18% of the processor. The 18 sounds are converted when the game starts, which takes about 2 seconds of green screen. The music now keeps its three voices during the shouts, and the effects no longer vary in pitch.
 - **The fighters are drawn and erased by the blitter.** The result is identical, byte for byte, to the original drawing: this was checked in the emulator over more than a thousand calls.
 
@@ -111,14 +107,13 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 
 **The file to provide**: `IK+.PRG`, the game as a single program (344,516 bytes, MD5 `4107c876be9d49deb2a3cf5b390f70be`). The tools refuse any other file.
 
-**The result**: `build/IK3J_PAR/` and `build/IK3J_STE/` each contain `IK_PLUS.TOS` (the loader) and `IKPLUS.IMG` (the patched game). Copy the folder you need to a floppy disk or a hard disk, then run `IK_PLUS.TOS`: `IK3J_PAR` with a parallel-port adapter (any ST), or `IK3J_STE` with a Jaguar pad on an STE. With the default settings, `make check` compares the result with the expected checksums:
+**The result**: `build/IK_PLUS/` contains `IK_PLUS.TOS` (the loader), `IKPLUS.IMG` (the patched game), and `README.TXT` / `LISEZMOI.TXT`, which list every difference from the original game (from `dist/`, converted for the Atari by `tools/textfile.py`). Copy the folder to a floppy disk or a hard disk, then run `IK_PLUS.TOS`. On an STE with 1 MB or more, the loader applies the 9 STE hooks (table `build/stehooks.i`, from `tools/patch_ste.py`) after checking their original bytes. With the default settings, `make check` compares the result with the expected checksums (`IK_STE_CHECK.IMG` is the image as the loader patches it on an STE: it is identical to the STE version validated on real hardware):
 
 | File | MD5 |
 |---|---|
-| `IK3J_PAR/IKPLUS.IMG` | `47c4470c565aed31afed2fdafc2fa5ae` |
-| `IK3J_PAR/IK_PLUS.TOS` | `2ee9920d4f637526efc272e407d280d2` |
-| `IK3J_STE/IKPLUS.IMG` | `1f8287f1eabad2373a98013a6f8e76af` |
-| `IK3J_STE/IK_PLUS.TOS` | `53ba614726a0e7c85fa0b59313a27917` |
+| `IK_PLUS/IKPLUS.IMG` | `47c4470c565aed31afed2fdafc2fa5ae` |
+| `IK_PLUS/IK_PLUS.TOS` | `467fd398b98d0594f39fc1a8764893ca` |
+| `IK_STE_CHECK.IMG` (control) | `1f8287f1eabad2373a98013a6f8e76af` |
 
 **Option**: `make game LIMIT=180 PRG=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
 
