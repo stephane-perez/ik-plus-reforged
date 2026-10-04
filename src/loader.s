@@ -11,7 +11,9 @@
 ;    tous les vecteurs $10-$3FC y pointent, y compris
 ;    ceux de la SCC du Mega STE ($180-$1BC) ;
 ;  - Mega STE : interruptions de la SCC coupées (WR9 = 0), 8 MHz sans cache ;
-;  - STE / Mega STE : son DMA arrêté, registres vidéo STE remis à zéro.
+;  - STE / Mega STE : son DMA arrêté, registres vidéo STE remis à zéro ;
+;  - page d'introduction (logo IK+ et police du jeu, pris dans l'image lue :
+;    rien du jeu dans ce programme), Espace pour continuer.
 ; Diagnostic (couleur du fond) : bleu = chargement, vert = saut dans le jeu,
 ; rouge figé = erreur de bus / d'adresse avant que le jeu ait installé ses
 ; propres vecteurs.
@@ -91,11 +93,18 @@ start       move.l  4(a7),a5                ; basepage
             cmp.l   #SIZE,d7
             bne     lderr
 
-            move.w  #99,d7                  ; ~2 s : laisser le lecteur de disquette s'arrêter
-.vs         move.w  #$25,-(a7)              ; Vsync
+            bsr     intro                   ; page d'introduction, Espace
+
+            ; au moins ~2 s depuis la fin de la lecture : laisser le lecteur
+            ; de disquette s'arrêter (d7 = images déjà passées sur la page)
+.vs         cmp.w   #100,d7
+            bhs.s   .vsok
+            move.w  #$25,-(a7)              ; Vsync
             trap    #14
             addq.l  #2,a7
-            dbra    d7,.vs
+            addq.w  #1,d7
+            bra.s   .vs
+.vsok
 
             pea     go(pc)                  ; Supexec : ne revient pas
             move.w  #$26,-(a7)
@@ -142,6 +151,188 @@ checkm      moveq   #-1,d0
             moveq   #0,d0
 .x          rts
             endif
+
+; ----------------------------------------------------------------------------
+; intro : page d'introduction, sous le TOS (mode utilisateur).
+; Logo IK+ : image 160 x 121 en 16 couleurs, rangée dans le jeu en LOGO
+; (lignes 5 à 111 utiles, couleurs 9 à 15) ; police 8 x 8 du jeu en FONT
+; (un plan, 8 octets par lettre, index = code - '0', comme F_084C0).
+; Sortie : d7 = nombre d'images passées à attendre Espace.
+; ----------------------------------------------------------------------------
+LOGO        equ $1b678
+FONT        equ $9736
+
+intro       dc.w    $a00a                   ; Line-A : souris cachée
+            clr.w   -(a7)                   ; Cursconf(0) : curseur caché
+            move.w  #21,-(a7)
+            trap    #14
+            addq.l  #4,a7
+            move.w  #4,-(a7)                ; Getrez
+            trap    #14
+            addq.l  #2,a7
+            tst.w   d0
+            beq.s   .low
+            clr.w   -(a7)                   ; Setscreen(-1, -1, 0) : basse résolution
+            moveq   #-1,d0
+            move.l  d0,-(a7)
+            move.l  d0,-(a7)
+            move.w  #5,-(a7)
+            trap    #14
+            lea     12(a7),a7
+.low        move.w  #2,-(a7)                ; Physbase
+            trap    #14
+            addq.l  #2,a7
+            move.l  d0,a6                   ; a6 = écran
+            move.l  a6,a0
+            move.w  #32000/4-1,d0
+.cls        clr.l   (a0)+
+            dbra    d0,.cls
+            pea     pal(pc)                 ; Setpalette
+            move.w  #6,-(a7)
+            trap    #14
+            addq.l  #6,a7
+
+            ; logo : lignes 5 à 111 de l'image, en y = 4, centré (x = 80)
+            move.l  buf,a0
+            add.l   #LOGO-DEST+5*160,a0
+            lea     4*160+40(a6),a1
+            move.w  #111-5,d0
+.lg         moveq   #80/4-1,d1
+.lgw        move.l  (a0)+,(a1)+
+            dbra    d1,.lgw
+            lea     80(a0),a0
+            lea     80(a1),a1
+            dbra    d0,.lg
+
+            lea     texts(pc),a5
+.tx         move.b  (a5)+,d2                ; couleur (0 = fin)
+            beq.s   .txe
+            moveq   #0,d0
+            move.b  (a5)+,d0                ; ligne de l'écran
+            moveq   #0,d1
+            move.b  (a5)+,d1                ; colonne (255 = centré)
+            bsr     dtext
+            bra.s   .tx
+.txe
+            ; clavier : touches en attente vidées, puis attente d'Espace
+.fl         move.w  #2,-(a7)                ; Bconstat(clavier)
+            move.w  #1,-(a7)
+            trap    #13
+            addq.l  #4,a7
+            tst.w   d0
+            beq.s   .wait
+            bsr.s   getkey
+            bra.s   .fl
+.wait       moveq   #0,d7
+.wk         move.w  #2,-(a7)
+            move.w  #1,-(a7)
+            trap    #13
+            addq.l  #4,a7
+            tst.w   d0
+            bne.s   .key
+            move.w  #$25,-(a7)              ; Vsync
+            trap    #14
+            addq.l  #2,a7
+            cmp.w   #$7fff,d7
+            beq.s   .wk
+            addq.w  #1,d7
+            bra.s   .wk
+.key        bsr.s   getkey
+            cmp.b   #' ',d0
+            bne.s   .wk
+            rts
+
+getkey      move.w  #2,-(a7)                ; Bconin(clavier)
+            move.w  #2,-(a7)
+            trap    #13
+            addq.l  #4,a7
+            rts
+
+; dtext : a5 = texte (terminé par 0, avancé après), d0 = ligne de l'écran,
+; d1 = colonne de 8 pixels (255 = centré), d2 = couleur (1 à 15), a6 = écran.
+dtext       move.l  a5,a0
+.len        tst.b   (a0)+
+            bne.s   .len
+            move.l  a0,d3
+            sub.l   a5,d3
+            subq.w  #1,d3                   ; d3 = longueur
+            cmp.b   #255,d1
+            bne.s   .col
+            moveq   #40,d1
+            sub.w   d3,d1
+            lsr.w   #1,d1
+.col        mulu    #160,d0
+            lea     (a6,d0.l),a1            ; a1 = début de la ligne
+.ch         moveq   #0,d0
+            move.b  (a5)+,d0
+            beq.s   .end
+            move.l  buf,a2                  ; police du jeu
+            add.l   #FONT-DEST,a2
+            cmp.b   #' ',d0
+            bne.s   .nsp
+            moveq   #'@',d0                 ; espace du jeu (lettre vide)
+.nsp        cmp.b   #':',d0
+            bne.s   .ncl
+            moveq   #'=',d0                 ; le « = » du jeu a la forme de « : »
+.ncl        cmp.b   #'(',d0
+            bne.s   .npo
+            lea     gparen(pc),a2
+            moveq   #'0',d0
+.npo        cmp.b   #')',d0
+            bne.s   .npf
+            lea     gparen+8(pc),a2
+            moveq   #'0',d0
+.npf        sub.w   #'0',d0
+            lsl.w   #3,d0
+            add.w   d0,a2                   ; a2 = 8 octets de la lettre
+            move.w  d1,d0                   ; octet de la case : (col/2)*8 + col&1
+            lsr.w   #1,d0
+            lsl.w   #3,d0
+            btst    #0,d1
+            beq.s   .ev
+            addq.w  #1,d0
+.ev         lea     (a1,d0.w),a3
+            moveq   #7,d4
+.row        move.b  (a2)+,d5
+            move.l  a3,a4
+            moveq   #0,d6                   ; plan 0 à 3
+.pl         btst    d6,d2
+            beq.s   .p0
+            move.b  d5,(a4)
+            bra.s   .pn
+.p0         clr.b   (a4)
+.pn         addq.l  #2,a4
+            addq.w  #1,d6
+            cmp.w   #4,d6
+            blo.s   .pl
+            lea     160(a3),a3
+            dbra    d4,.row
+            addq.w  #1,d1
+            bra.s   .ch
+.end        rts
+
+; « ( » et « ) », absents de la police du jeu
+gparen      dc.b    $0c,$18,$30,$30,$30,$18,$0c,$00
+            dc.b    $30,$18,$0c,$0c,$0c,$18,$30,$00
+
+; couleurs : 0 noir, 1 blanc, 2 jaune, 3 gris ; 9 à 15 : celles du logo dans
+; l'introduction du jeu (rouges, noir, gris clair)
+pal         dc.w    $000,$777,$750,$444,$000,$000,$000,$000
+            dc.w    $000,$300,$400,$500,$600,$700,$000,$666
+
+; textes : couleur, ligne, colonne (255 = centré), texte, 0
+texts       dc.b    13,116,255,'REFORGED',0
+            dc.b    1,132,3,'F1  PLAYER 1 (WHITE) : JOYSTICK 1',0
+            dc.b    1,144,3,'F2  PLAYER 2 (RED)   : JOYSTICK 0',0
+            ifd STE
+            dc.b    1,156,3,'F3  PLAYER 3 (BLUE)  : JOYPAD A',0
+            else
+            dc.b    1,156,3,'F3  PLAYER 3 (BLUE)  : JOYSTICK 2',0
+            endif
+            dc.b    2,172,255,'SPACE TO START',0
+            dc.b    3,188,255,'CLAUDE AI 2026',0
+            dc.b    0
+            even
 
 ; ----------------------------------------------------------------------------
 ; go (superviseur) : le TOS est encore là tant qu'on n'a pas recopié.

@@ -7,7 +7,7 @@ Correctifs et outils pour **International Karate +** (IK+) sur Atari ST :
 - **compatibilité STE / Mega STE / TOS 2.06** : le jeu tourne désormais sur STF, STE et Mega STE, à 8 et 16 MHz ;
 - un **mode 3 joueurs simultanés** : le troisième joueur utilise un joystick branché sur un adaptateur du port parallèle ;
 - une **version STE** : joueur 3 sur le port joystick étendu du STE, bruitages joués par le DMA, combattants dessinés par le blitter ; la vitesse turbo tient désormais 25 images par seconde ;
-- un **nouveau chargeur**, sans intro, qui lance directement le jeu ;
+- un **nouveau chargeur** : une page d'introduction (logo IK+, contrôles), puis l'introduction du jeu ;
 - **JOYTEST**, un petit utilitaire qui affiche l'état de tous les joysticks, y compris ceux du port parallèle et des ports étendus du STE.
 
 > ## ⚠️ Avertissement
@@ -35,7 +35,7 @@ Ce qui a été corrigé :
 
 - **Le générateur de nombres aléatoires du jeu** lisait la ROM du TOS 1.x en `$FC0000`. Cette adresse n'existe ni sur STE et Mega STE, ni avec le TOS 2.06 : chaque lecture provoquait une erreur de bus, et le jeu plantait ou redémarrait en boucle. Il lit maintenant des données graphiques en RAM. La modification tient en un octet.
 - **La vérification de la disquette** : `IK+.PRG` la lance toujours au démarrage, puis attend l'arrêt du moteur du lecteur, qui n'arrive jamais sans disquette dans le lecteur. Reforged la saute.
-- **Le nouveau chargeur** lit le jeu dans une zone mémoire réservée et le met en place sans risque. Sur Mega STE, il coupe les interruptions de la puce série (SCC) et passe en 8 MHz sans cache. Tous les vecteurs d'exception inutilisés pointent vers un endroit sûr.
+- **Le nouveau chargeur** lit le jeu dans une zone mémoire réservée et le met en place sans risque. Sur Mega STE, il coupe les interruptions de la puce série (SCC) et passe en 8 MHz sans cache. Tous les vecteurs d'exception inutilisés pointent vers un endroit sûr. Avant le jeu, il affiche une page d'introduction : le logo IK+ et la police du jeu, tous deux pris dans votre copie du jeu, « REFORGED », le joystick de chaque joueur et « SPACE TO START ».
 
 ### Mode 3 joueurs
 
@@ -116,9 +116,9 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 | Fichier | MD5 |
 |---|---|
 | `IK3J_PAR/IKPLUS.IMG` | `ea71bbcd3b431a860122de6ca25754f3` |
-| `IK3J_PAR/IK_PLUS.TOS` | `2094db4eb20774ec27957cdff56751ad` |
+| `IK3J_PAR/IK_PLUS.TOS` | `4f67ca0554f029764d53ba04f9c87a19` |
 | `IK3J_STE/IKPLUS.IMG` | `7c964b140aa63d7f7c00c4eb2abbc248` |
-| `IK3J_STE/IK_PLUS.TOS` | `95fae0ec107d35232150d69da54b0250` |
+| `IK3J_STE/IK_PLUS.TOS` | `8c0b785577cd5619217416bd4c4b11f1` |
 
 **Option** : `make game LIMIT=180 PRG=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.
 

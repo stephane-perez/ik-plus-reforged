@@ -154,3 +154,19 @@ Tickets #7, #9, #10, #11 et #14. Les deux dossiers changent (`patch_p3.py`, 26 a
 - **Retour de la machine réelle** (`IKPLUS_V8`, STE 4 Mo / TOS 1.62) : tout est validé, selon la liste du `LISEZMOI.TXT` : F3 et clignotement des trois poings, F1/F2, F5 (musique), écran d'aide et messages, vitesse gardée, bouton reset, barre du haut.
   Mega STE / TOS 2.06 avec `IK3J_PAR` (le seul dossier qui y tourne) : tests validés, bouton reset compris. Étiquette `v1.0.8`.
 - Empreintes : image `IK3J_PAR` = `ea71bbcd3b431a860122de6ca25754f3`, image `IK3J_STE` = `7c964b140aa63d7f7c00c4eb2abbc248` (chargeurs inchangés).
+
+## 16. Version 9 (étape 1 du ticket #16) : page d'introduction
+
+Ticket #16 : un seul programme pour toutes les machines, une page d'introduction et le choix des contrôles. Il reprend le ticket #4 (Mega STE). Décisions de Stéphane :
+- page : logo IK+, « REFORGED », une ligne par joueur (F1, F2, F3 changent la source), « SPACE TO START », « CLAUDE AI 2026 » ; textes en anglais, comme le jeu ;
+- sources : JOYSTICK 0, JOYSTICK 1, JOYSTICK 2 (prise 3 du port parallèle : D4–D7 + BUSY), JOYSTICK 3 (prise 4 : D0–D3 + STROBE, remise en service), JOYPAD A et JOYPAD B (STE seulement), NONE (joueur 3 seulement ; F3 ne peut alors pas rendre le joueur 3 jouable) ; une même source ne sert jamais à deux joueurs ;
+- choix mémorisé dans un fichier ; disquette protégée ou disque plein : rien n'est écrit, sans erreur ;
+- Mega STE : « / » bascule entre 8 MHz sans cache et 16 MHz avec cache (pour les essais, pas affiché sur la page).
+Étapes prévues : 1. la page ; 2. le choix des contrôles et la lecture paramétrable ; 3. le programme unique ; 4. le Mega STE (son DMA, blitter, « / »).
+
+**Étape 1** (cette version) : la page, dans le chargeur `src/loader.s` (`intro`), sous le TOS, après la lecture de `IKPLUS.IMG`. Le logo et la police sont pris dans l'image lue : rien du jeu dans `IK_PLUS.TOS`.
+- Logo : image 160 x 121 non compressée en `$1B678` (format écran, 160 octets par ligne, couleurs 9 à 15), copiée par `F_061A2` dans l'introduction du jeu ; lignes 5 à 111 recopiées en y = 4. Couleurs 9 à 15 = celles de l'introduction du jeu (`$300` à `$700`, `$000`, `$666`).
+- Police : 8 x 8 en `$9736` (celle de `F_084C0`), index = code − `'0'` ; espace = `'@'` ; `:` dessiné avec le `=` du jeu (même forme) ; `(` et `)` dessinés dans le chargeur.
+- Pour l'instant, les lignes des joueurs ne font qu'afficher les commandes du dossier (joueur 3 : JOYSTICK 2 dans `IK3J_PAR`, JOYPAD A dans `IK3J_STE`). Espace lance la suite ; l'attente de ~2 s pour le lecteur de disquette compte le temps passé sur la page.
+- Vérifié dans Hatari : STF/1.04 et Mega STE/2.06 (`IK3J_PAR`), STE/1.62 (`IK3J_STE`) : page, puis introduction du jeu après Espace. Images du jeu inchangées.
+- Empreintes : `IK3J_PAR/IK_PLUS.TOS` = `4f67ca0554f029764d53ba04f9c87a19`, `IK3J_STE/IK_PLUS.TOS` = `8c0b785577cd5619217416bd4c4b11f1`.

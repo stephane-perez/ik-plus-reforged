@@ -7,7 +7,7 @@ Patches and tools for **International Karate +** (IK+) on the Atari ST:
 - **STE / Mega STE / TOS 2.06 compatibility**: the game now runs on STF, STE and Mega STE, at 8 and 16 MHz;
 - a **simultaneous 3-player mode**: the third player uses a joystick on a parallel-port adapter;
 - an **STE version**: player 3 on the STE's enhanced joystick port, sound effects played by DMA, fighters drawn by the blitter; the turbo speed now holds 25 frames per second;
-- a **new loader** with no intro, which starts the game directly;
+- a **new loader**: an intro page (IK+ logo, controls), then the game's own intro;
 - **JOYTEST**, a small utility that shows the state of every joystick, including those on the parallel port and the STE's enhanced ports.
 
 > ## ⚠️ Disclaimer
@@ -35,7 +35,7 @@ What was fixed:
 
 - **The game's random number generator** read the TOS 1.x ROM at `$FC0000`. That address does not exist on STE and Mega STE, nor with TOS 2.06, so each read caused a bus error, and the game crashed or restarted in a loop. It now reads graphics data in RAM instead. This is a one-byte change.
 - **The floppy disk check**: `IK+.PRG` still runs it at start-up, then waits for the floppy drive motor to stop, which never happens without a disk in the drive. Reforged skips it.
-- **The new loader** reads the game into reserved memory and copies it into place safely. On a Mega STE it switches off the serial chip (SCC) interrupts and selects 8 MHz with the cache off. All unused exception vectors point to a safe place.
+- **The new loader** reads the game into reserved memory and copies it into place safely. On a Mega STE it switches off the serial chip (SCC) interrupts and selects 8 MHz with the cache off. All unused exception vectors point to a safe place. Before the game starts, it shows an intro page: the IK+ logo and the game's font, both taken from your copy of the game, "REFORGED", the joystick of each player, and "SPACE TO START".
 
 ### 3-player mode
 
@@ -116,9 +116,9 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 | File | MD5 |
 |---|---|
 | `IK3J_PAR/IKPLUS.IMG` | `ea71bbcd3b431a860122de6ca25754f3` |
-| `IK3J_PAR/IK_PLUS.TOS` | `2094db4eb20774ec27957cdff56751ad` |
+| `IK3J_PAR/IK_PLUS.TOS` | `4f67ca0554f029764d53ba04f9c87a19` |
 | `IK3J_STE/IKPLUS.IMG` | `7c964b140aa63d7f7c00c4eb2abbc248` |
-| `IK3J_STE/IK_PLUS.TOS` | `95fae0ec107d35232150d69da54b0250` |
+| `IK3J_STE/IK_PLUS.TOS` | `8c0b785577cd5619217416bd4c4b11f1` |
 
 **Option**: `make game LIMIT=180 PRG=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
 
