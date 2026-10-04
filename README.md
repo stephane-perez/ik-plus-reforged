@@ -57,10 +57,10 @@ Player 3 uses a **parallel-port joystick adapter**, the kind used by *Gauntlet I
 
 | Folder | Machines | Player 3 | Extras |
 |---|---|---|---|
-| `IK3J_PAR` | STF, STE, Mega STE | parallel-port adapter, joystick 3 socket (directions D4–D7, fire on BUSY) | — |
+| `IK3J_PAR` | STF, STE, Mega STE | parallel-port adapter, joystick 3 socket (directions D4–D7, fire on BUSY) by default | — |
 | `IK3J_STE` | STE with 1 MB or more | Jaguar pad on enhanced joystick port A | DMA sound, blitter (see below) |
 
-The adapter's joystick 4 socket is not supported.
+**Choosing the joysticks**: on the intro page, **F1**, **F2** and **F3** change the controller of players 1, 2 and 3. The choices are JOYSTICK 0 (mouse port), JOYSTICK 1, JOYSTICK 2 and JOYSTICK 3 (sockets 3 and 4 of the parallel-port adapter), JOYPAD A and JOYPAD B (Jaguar pads on the STE's enhanced ports, offered on an STE only), and NONE for player 3 (F3 then cannot start a 3-player game). A controller is never given to two players. The choice is saved in `IKPLUS.CFG`, next to the game; on a write-protected or full disk, nothing is written and the game starts anyway. The folder only changes the default for player 3: JOYSTICK 2 in `IK3J_PAR`, JOYPAD A in `IK3J_STE`.
 
 ### STE version
 
@@ -115,10 +115,10 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 
 | File | MD5 |
 |---|---|
-| `IK3J_PAR/IKPLUS.IMG` | `ea71bbcd3b431a860122de6ca25754f3` |
-| `IK3J_PAR/IK_PLUS.TOS` | `4f67ca0554f029764d53ba04f9c87a19` |
-| `IK3J_STE/IKPLUS.IMG` | `7c964b140aa63d7f7c00c4eb2abbc248` |
-| `IK3J_STE/IK_PLUS.TOS` | `8c0b785577cd5619217416bd4c4b11f1` |
+| `IK3J_PAR/IKPLUS.IMG` | `47c4470c565aed31afed2fdafc2fa5ae` |
+| `IK3J_PAR/IK_PLUS.TOS` | `2ee9920d4f637526efc272e407d280d2` |
+| `IK3J_STE/IKPLUS.IMG` | `1f8287f1eabad2373a98013a6f8e76af` |
+| `IK3J_STE/IK_PLUS.TOS` | `53ba614726a0e7c85fa0b59313a27917` |
 
 **Option**: `make game LIMIT=180 PRG=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
 

@@ -57,10 +57,10 @@ Le joueur 3 utilise un **adaptateur joystick sur le port parallèle**, du type d
 
 | Dossier | Machines | Joueur 3 | En plus |
 |---|---|---|---|
-| `IK3J_PAR` | STF, STE, Mega STE | adaptateur du port parallèle, prise joystick 3 (directions D4–D7, tir sur BUSY) | — |
+| `IK3J_PAR` | STF, STE, Mega STE | par défaut, adaptateur du port parallèle, prise joystick 3 (directions D4–D7, tir sur BUSY) | — |
 | `IK3J_STE` | STE avec au moins 1 Mo | manette Jaguar sur le port joystick étendu A | son DMA, blitter (voir plus bas) |
 
-La prise joystick 4 de l'adaptateur n'est pas prise en charge.
+**Choix des joysticks** : sur la page d'introduction, **F1**, **F2** et **F3** changent la commande des joueurs 1, 2 et 3. Choix possibles : JOYSTICK 0 (prise de la souris), JOYSTICK 1, JOYSTICK 2 et JOYSTICK 3 (prises 3 et 4 de l'adaptateur du port parallèle), JOYPAD A et JOYPAD B (manettes Jaguar sur les ports étendus du STE, proposées sur STE seulement), et NONE pour le joueur 3 (F3 ne peut alors pas lancer de partie à 3). Une commande ne sert jamais à deux joueurs. Le choix est mémorisé dans `IKPLUS.CFG`, à côté du jeu ; sur un disque protégé en écriture ou plein, rien n'est écrit et le jeu démarre quand même. Le dossier ne change que le choix par défaut du joueur 3 : JOYSTICK 2 dans `IK3J_PAR`, JOYPAD A dans `IK3J_STE`.
 
 ### Version STE
 
@@ -115,10 +115,10 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 
 | Fichier | MD5 |
 |---|---|
-| `IK3J_PAR/IKPLUS.IMG` | `ea71bbcd3b431a860122de6ca25754f3` |
-| `IK3J_PAR/IK_PLUS.TOS` | `4f67ca0554f029764d53ba04f9c87a19` |
-| `IK3J_STE/IKPLUS.IMG` | `7c964b140aa63d7f7c00c4eb2abbc248` |
-| `IK3J_STE/IK_PLUS.TOS` | `8c0b785577cd5619217416bd4c4b11f1` |
+| `IK3J_PAR/IKPLUS.IMG` | `47c4470c565aed31afed2fdafc2fa5ae` |
+| `IK3J_PAR/IK_PLUS.TOS` | `2ee9920d4f637526efc272e407d280d2` |
+| `IK3J_STE/IKPLUS.IMG` | `1f8287f1eabad2373a98013a6f8e76af` |
+| `IK3J_STE/IK_PLUS.TOS` | `53ba614726a0e7c85fa0b59313a27917` |
 
 **Option** : `make game LIMIT=180 PRG=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.
 

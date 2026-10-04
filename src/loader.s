@@ -13,7 +13,8 @@
 ;  - Mega STE : interruptions de la SCC coupées (WR9 = 0), 8 MHz sans cache ;
 ;  - STE / Mega STE : son DMA arrêté, registres vidéo STE remis à zéro ;
 ;  - page d'introduction (logo IK+ et police du jeu, pris dans l'image lue :
-;    rien du jeu dans ce programme), Espace pour continuer.
+;    rien du jeu dans ce programme) : F1, F2, F3 choisissent le joystick de
+;    chaque joueur, mémorisé dans IKPLUS.CFG ; Espace pour continuer.
 ; Diagnostic (couleur du fond) : bleu = chargement, vert = saut dans le jeu,
 ; rouge figé = erreur de bus / d'adresse avant que le jeu ait installé ses
 ; propres vecteurs.
@@ -94,6 +95,11 @@ start       move.l  4(a7),a5                ; basepage
             bne     lderr
 
             bsr     intro                   ; page d'introduction, Espace
+            move.l  buf,a0                  ; choix des joysticks -> jeu (CTL de p3.s)
+            add.l   #CTLADR-DEST,a0
+            move.b  ctl,(a0)+
+            move.b  ctl+1,(a0)+
+            move.b  ctl+2,(a0)+
 
             ; au moins ~2 s depuis la fin de la lecture : laisser le lecteur
             ; de disquette s'arrêter (d7 = images déjà passées sur la page)
@@ -161,8 +167,16 @@ checkm      moveq   #-1,d0
 ; ----------------------------------------------------------------------------
 LOGO        equ $1b678
 FONT        equ $9736
+CTLADR      equ $848                        ; CTL dans src/p3.s : sources des joueurs
+NSRC        equ 7                           ; sources 0 à 6 (6 = aucune)
+NAMECOL     equ 26                          ; colonne du nom de la source
 
-intro       dc.w    $a00a                   ; Line-A : souris cachée
+intro       pea     prep(pc)                ; Supexec : machine, clic clavier
+            move.w  #$26,-(a7)
+            trap    #14
+            addq.l  #6,a7
+            bsr     loadcfg
+            dc.w    $a00a                   ; Line-A : souris cachée
             clr.w   -(a7)                   ; Cursconf(0) : curseur caché
             move.w  #21,-(a7)
             trap    #14
@@ -213,7 +227,11 @@ intro       dc.w    $a00a                   ; Line-A : souris cachée
             move.b  (a5)+,d1                ; colonne (255 = centré)
             bsr     dtext
             bra.s   .tx
-.txe
+.txe        moveq   #0,d5                   ; noms des sources des 3 joueurs
+.nm         bsr     dname
+            addq.w  #1,d5
+            cmp.w   #3,d5
+            blo.s   .nm
             ; clavier : touches en attente vidées, puis attente d'Espace
 .fl         move.w  #2,-(a7)                ; Bconstat(clavier)
             move.w  #1,-(a7)
@@ -221,7 +239,7 @@ intro       dc.w    $a00a                   ; Line-A : souris cachée
             addq.l  #4,a7
             tst.w   d0
             beq.s   .wait
-            bsr.s   getkey
+            bsr     getkey
             bra.s   .fl
 .wait       moveq   #0,d7
 .wk         move.w  #2,-(a7)
@@ -237,9 +255,190 @@ intro       dc.w    $a00a                   ; Line-A : souris cachée
             beq.s   .wk
             addq.w  #1,d7
             bra.s   .wk
-.key        bsr.s   getkey
+.key        bsr     getkey
             cmp.b   #' ',d0
-            bne.s   .wk
+            beq.s   .go
+            swap    d0                      ; code de la touche
+            sub.b   #$3b,d0                 ; F1, F2, F3 -> 0, 1, 2
+            cmp.b   #3,d0
+            bhs.s   .wk
+            moveq   #0,d5
+            move.b  d0,d5
+            bsr     nextsrc
+            bsr     dname
+            bra.s   .wk
+.go         bsr     savecfg
+            beq.s   .r
+            moveq   #0,d7                   ; fichier écrit : ~2 s pour le lecteur
+.r          rts
+
+; prep (superviseur) : STE ? (cookie _MCH = $00010000 : ports étendus) ;
+; clic clavier coupé (conterm, bit 0).
+prep        bclr    #0,$484.w
+            move.l  $5a0.w,d0
+            beq.s   .x
+            move.l  d0,a0
+.cj         move.l  (a0)+,d0
+            beq.s   .x
+            move.l  (a0)+,d1
+            cmp.l   #'_MCH',d0
+            bne.s   .cj
+            cmp.l   #$00010000,d1
+            seq     isste
+.x          rts
+
+; ok : d0 = 0 si la source d0 est permise pour le joueur d5 (0 à 2),
+; compte tenu des deux autres joueurs. Détruit d1, a0.
+ok          cmp.b   #6,d0                   ; « aucun » : joueur 3 seulement
+            bne.s   .n6
+            cmp.w   #2,d5
+            bne.s   .no
+            bra.s   .yes
+.n6         cmp.b   #4,d0                   ; manettes : STE seulement
+            blo.s   .np
+            tst.b   isste
+            beq.s   .no
+.np         lea     ctl,a0                  ; pas déjà prise par un autre joueur
+            moveq   #2,d1
+.ot         cmp.w   d1,d5
+            beq.s   .nx
+            cmp.b   (a0,d1.w),d0
+            beq.s   .no
+.nx         dbra    d1,.ot
+.yes        moveq   #0,d1
+            rts
+.no         moveq   #-1,d1
+            rts
+
+; nextsrc : source suivante permise pour le joueur d5.
+nextsrc     lea     ctl,a1
+            move.b  (a1,d5.w),d0
+            moveq   #NSRC-1,d2
+.nx         addq.b  #1,d0
+            cmp.b   #NSRC,d0
+            blo.s   .in
+            moveq   #0,d0
+.in         bsr.s   ok
+            tst.w   d1
+            beq.s   .set
+            dbra    d2,.nx
+            rts
+.set        lea     ctl,a1
+            move.b  d0,(a1,d5.w)
+            rts
+
+; dname : affiche le nom de la source du joueur d5.
+dname       movem.l d0-d7/a0-a6,-(a7)
+            lea     ctl,a0
+            moveq   #0,d0
+            move.b  (a0,d5.w),d0
+            mulu    #11,d0
+            lea     names(pc),a5
+            add.w   d0,a5
+            moveq   #12,d0                  ; ligne 132 + 12 x joueur
+            mulu    d5,d0
+            add.w   #132,d0
+            moveq   #NAMECOL,d1
+            moveq   #1,d2
+            bsr     dtext
+            movem.l (a7)+,d0-d7/a0-a6
+            rts
+
+; loadcfg : IKPLUS.CFG (4 octets : 'I', puis les sources des joueurs 1 à 3).
+; Fichier absent ou incohérent : choix par défaut.
+loadcfg     clr.w   -(a7)                   ; Fopen(lecture)
+            pea     cfgname(pc)
+            move.w  #$3d,-(a7)
+            trap    #1
+            addq.l  #8,a7
+            tst.l   d0
+            bmi.s   .def
+            move.w  d0,d3
+            pea     cfgbuf
+            move.l  #4,-(a7)
+            move.w  d3,-(a7)
+            move.w  #$3f,-(a7)              ; Fread
+            trap    #1
+            lea     12(a7),a7
+            move.l  d0,d4
+            move.w  d3,-(a7)                ; Fclose
+            move.w  #$3e,-(a7)
+            trap    #1
+            addq.l  #4,a7
+            cmp.l   #4,d4
+            bne.s   .def
+            lea     cfgbuf,a1
+            cmp.b   #'I',(a1)+
+            bne.s   .def
+            lea     ctl,a2                  ; vérifié joueur par joueur
+            move.l  #$ffffffff,(a2)
+            moveq   #0,d5
+.ck         move.b  (a1)+,d0
+            cmp.b   #NSRC,d0
+            bhs.s   .def
+            bsr     ok
+            tst.w   d1
+            bne.s   .def
+            lea     ctl,a2
+            move.b  d0,(a2,d5.w)
+            addq.w  #1,d5
+            cmp.w   #3,d5
+            blo.s   .ck
+            move.l  ctl,cfgold
+            rts
+.def        move.l  defctl(pc),ctl
+            move.l  #-1,cfgold              ; rien de lu : à écrire
+            rts
+
+; savecfg : écrit IKPLUS.CFG si le choix a changé. Disquette protégée en
+; écriture, disque plein ou autre erreur : rien, sans message (le
+; gestionnaire d'erreurs critiques du TOS est remplacé le temps de l'écriture).
+; Sortie : Z = 1 si rien n'a été écrit.
+savecfg     move.l  ctl,d0
+            cmp.l   cfgold,d0
+            beq     .none
+            pea     critic(pc)              ; Setexc($101) : etv_critic
+            move.w  #$101,-(a7)
+            move.w  #5,-(a7)
+            trap    #13
+            addq.l  #8,a7
+            move.l  d0,oldcrit
+            clr.w   -(a7)                   ; Fcreate
+            pea     cfgname(pc)
+            move.w  #$3c,-(a7)
+            trap    #1
+            addq.l  #8,a7
+            tst.l   d0
+            bmi.s   .rest
+            move.w  d0,d3
+            lea     cfgbuf,a0
+            move.b  #'I',(a0)+
+            move.b  ctl,(a0)+
+            move.b  ctl+1,(a0)+
+            move.b  ctl+2,(a0)+
+            pea     cfgbuf
+            move.l  #4,-(a7)
+            move.w  d3,-(a7)
+            move.w  #$40,-(a7)              ; Fwrite
+            trap    #1
+            lea     12(a7),a7
+            move.w  d3,-(a7)                ; Fclose
+            move.w  #$3e,-(a7)
+            trap    #1
+            addq.l  #4,a7
+.rest       move.l  oldcrit,-(a7)           ; ancien etv_critic
+            move.w  #$101,-(a7)
+            move.w  #5,-(a7)
+            trap    #13
+            addq.l  #8,a7
+            moveq   #1,d0                   ; Z = 0 : le lecteur a pu tourner
+            rts
+.none       moveq   #0,d0
+            rts
+
+; etv_critic : renvoie l'erreur telle quelle (pas de boîte d'alerte).
+critic      move.w  4(a7),d0
+            ext.l   d0
             rts
 
 getkey      move.w  #2,-(a7)                ; Bconin(clavier)
@@ -322,17 +521,24 @@ pal         dc.w    $000,$777,$750,$444,$000,$000,$000,$000
 
 ; textes : couleur, ligne, colonne (255 = centré), texte, 0
 texts       dc.b    13,116,255,'REFORGED',0
-            dc.b    1,132,3,'F1  PLAYER 1 (WHITE) : JOYSTICK 1',0
-            dc.b    1,144,3,'F2  PLAYER 2 (RED)   : JOYSTICK 0',0
-            ifd STE
-            dc.b    1,156,3,'F3  PLAYER 3 (BLUE)  : JOYPAD A',0
-            else
-            dc.b    1,156,3,'F3  PLAYER 3 (BLUE)  : JOYSTICK 2',0
-            endif
+            dc.b    1,132,3,'F1  PLAYER 1 (WHITE) :',0
+            dc.b    1,144,3,'F2  PLAYER 2 (RED)   :',0
+            dc.b    1,156,3,'F3  PLAYER 3 (BLUE)  :',0
             dc.b    2,172,255,'SPACE TO START',0
             dc.b    3,188,255,'CLAUDE AI 2026',0
             dc.b    0
+; noms des sources (10 lettres + 0), dans l'ordre de vblmap (src/p3.s)
+names       dc.b    'JOYSTICK 0',0,'JOYSTICK 1',0,'JOYSTICK 2',0,'JOYSTICK 3',0
+            dc.b    'JOYPAD A  ',0,'JOYPAD B  ',0,'NONE      ',0
+cfgname     dc.b    'IKPLUS.CFG',0
             even
+; choix par défaut : joueur 1 = joystick 1, joueur 2 = joystick 0 (comme le
+; jeu d'origine), joueur 3 = manette A (dossier STE) ou prise 3 (sinon)
+            ifd STE
+defctl      dc.b    1,0,4,0
+            else
+defctl      dc.b    1,0,2,0
+            endif
 
 ; ----------------------------------------------------------------------------
 ; go (superviseur) : le TOS est encore là tant qu'on n'a pas recopié.
@@ -436,6 +642,12 @@ steend
 
             section bss
 buf         ds.l    1
+ctl         ds.l    1                       ; sources des joueurs 1 à 3 (+ 1 octet)
+cfgold      ds.l    1                       ; ce qui a été lu dans IKPLUS.CFG
+cfgbuf      ds.l    1
+oldcrit     ds.l    1
+isste       ds.b    1
+            even
 fh          ds.w    1
             ds.b    1024
 mystack

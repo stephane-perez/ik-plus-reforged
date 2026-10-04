@@ -1,13 +1,13 @@
 """patch_p3.py <image du jeu corrigée (patch_game.py)> <build/p3.bin> <sortie>
 
 Pose le code du mode 3 joueurs (src/p3.s, assemblé en $800) dans l'image
-du jeu et le relie par 26 accroches. Chaque accroche vérifie les octets
+du jeu et le relie par 27 accroches. Chaque accroche vérifie les octets
 d'origine avant de les remplacer. Corrige aussi quelques réglages du jeu
 (vitesse gardée, bouton reset, barre du haut, textes, écran d'aide).
 Entrées fixes de p3.s : $800 pre, $804 looptail, $808 other, $80C elim,
 $810 tick, $814 erasehook, $818 drawhook, $81C roundend, $820 roundmsg, $824 f3key,
-$828 rdhook, $82C blinka, $830 blinkb, $834 f5key, $838 setp12, $83C blinkset,
-$840 blinkvbl.
+$828 ikbdhook, $82C blinka, $830 blinkb, $834 f5key, $838 setp12, $83C blinkset,
+$840 blinkvbl, $844 vblmap ; choix des joysticks (CTL) en $848.
 """
 import sys, hashlib
 import helpscreen
@@ -89,12 +89,16 @@ def main(src, binf, dst):
         put(a, '11fc00011077', bytes.fromhex('11fc00021077'))
     for a in (0xDFD4, 0xEF08):
         put(a, '11fc00011078', bytes.fromhex('11fc00021078'))
-    # 19. début de F_0ED04 (joysticks des épreuves) : clr d0/d1/d2 -> jsr rdhook
-    put(0xED04, '424042414242', jsr(0x828))
+    # 19. P_02516 (paquet joysticks de l'IKBD) : move.b d0,$126c.w / lsr.w #8,d0 /
+    #     move.b d0,$126d.w -> jmp ikbdhook + NOP (joysticks du clavier gardés à
+    #     part ; $126C-$126E sont remplis à chaque VBL selon le choix des joueurs)
+    put(0x2532, '11c0126c' 'e048' '11c0126d', jmp(0x828) + nops(2))
     # 20. épreuve A : clignotement du poing $1314[joueur] -> jsr blinka + NOP
     put(0xDFF8, '103c0014' '41f81314' '11802000', jsr(0x82C) + nops(3))
     # 21. épreuve B : idem -> jsr blinkb + NOP
     put(0xEF4A, '41f81314' '11bc00142000', jsr(0x830) + nops(2))
+    # 27. VBL (P_01BA6) : move.b #1,$1016.w -> jsr vblmap
+    put(0x1BAA, '11fc00011016', jsr(0x844))
     # 22. F1, F2 (L_07388) : move.b d1,$1007.w / move.b d2,$1008.w -> jsr setp12 + NOP
     put(0x7388, '11c11007' '11c21008', jsr(0x838) + nops(1))
     # 23. début de partie (F_06CD0) : clignotement des poings 0 et 1 -> jsr blinkset
@@ -121,7 +125,7 @@ def main(src, binf, dst):
     helpscreen.patch(d, BASE)
 
     open(dst, 'wb').write(d)
-    print('%s : code 3 joueurs %d octets en $800, 26 accroches' % (dst, len(code)))
+    print('%s : code 3 joueurs %d octets en $800, 27 accroches' % (dst, len(code)))
 
 
 if __name__ == '__main__':
