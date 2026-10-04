@@ -42,7 +42,10 @@ Tout est indexé par combattant, **i = 0 (blanc), 1 (rouge), 2 (bleu)**, et joue
 | `$1309` | Catégorie d'égalité (0, 7, 14, 21) + `$1091` |
 | `$1092` / `$108F` | Message de fin de round / message affiché |
 
-- **Menu (`$7316`–`$73CC`)** : F1 ou feu du port 1 → partie à 1 joueur ; F2 ou feu du port 0 → partie à 2 joueurs ; F3 = musique (remplacé par le joueur 3), F4 = bruitages.
+- **Menu (`$7316`–`$73CC`)** : F1 ou feu du port 1 → partie à 1 joueur ; F2 ou feu du port 0 → partie à 2 joueurs ; F3 = musique (devenu « partie à 3 joueurs », la musique passe sur F5, code `$3F`), F4 = bruitages. F1/F2 posent `$1007`/`$1008` puis `$135F` = 1 : l'interruption VBL (`$1C56`) relance le jeu en `P_014FA`, qui remet la vitesse à « normal » (`$151E`, supprimé en v8).
+- **Barre du haut** : cases de 8 pixels (`F_084C0`, d1 = case, 40 par ligne) ; points de vie en `$85D4` (cases 0, 10, 20), scores en `$85D7` (cases 40, 50, 60), poings par `F_126CC` (abscisse en pas de 2 pixels, table `P_07644`), « LV » en cases 28-29. Clignotement des poings : `$1314`/`$1315` = $1E au début de partie (`F_06CD0`), décomptés par `F_07608` (VBL, une image sur 4).
+- **Écran d'aide** : image 320 x 200 non compressée en `$19DA0`.
+- **Reset** : au démarrage (`L_02160`), le jeu écrit `resvalid`/`resvector` (`$426`/`$42A` → `L_02160`) ; supprimé en v8.
 - **`F_07732`** : lecture des humains, joueurs 0 puis 1 seulement dans l'original. « L'autre humain » vient de `eori.w #1,d2` (`$7772`) ; le combattant de l'ordinateur de la table `$786F` = [2,2,1].
 - **`F_079FE`** : si `$1007[i]` est non nul → commande humaine ; sinon **IA**.
 - **Poing « humain »** : `F_0765C(d2)` / `F_07680(d2)`, table `P_07644` à deux entrées seulement (positions `$28`, `$50` ; graphismes `$198C0`/`$198C8`, vide `$198D0`).
@@ -63,7 +66,7 @@ Tout est indexé par combattant, **i = 0 (blanc), 1 (rouge), 2 (bleu)**, et joue
 | `$08` | X AND Y ARE EQUAL FIRST / Z MUST IMPROVE |
 | `$09` | YOU ARE ALL OF EQUAL ABILITY: SO PLAY ON |
 | `$0A` | X IS BEST / Y IS SECOND / Z IS WORST |
-| `$0B` | PRESS F3 FOR MUSIC ON OR OFF… |
+| `$0B` | PRESS F3 FOR MUSIC ON OR OFF… (F5 en v8) |
 | `$11` | MATCH OVER |
 | `$23` | IT SEEMS THAT WE HAVE A LIFELESS CROWD IN TODAY |
 

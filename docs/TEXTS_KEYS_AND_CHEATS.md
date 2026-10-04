@@ -156,18 +156,23 @@ This credit, like "IK+ C. 1988 ARCHER MACLEAN" (word ARCH), is the one in `IK+.P
 
 **BUM COPY.....** (hidden message no. 25): this is not a code to type. Every 32 frames, the game checks the position of its stack (`F_06C98`); if it is not the expected one, it shows this message. It is a protection against modifications, and it is what appeared on the STE before the random number generator fix.
 
-The help screen ("F3 MUSIC ON/OFF"…) and the IK+ logo are images, not included in this list.
+The help screen ("F3 MUSIC ON/OFF"…) and the IK+ logo are images, not included in this list. The help screen is stored uncompressed at `$19DA0`.
 
 ## What IK+ Reforged changes
 
-Reforged changes only one key and one text; everything else in this document also applies to the patched versions.
+Reforged changes a few keys and texts; everything else in this document also applies to the patched versions.
 
-| | Original game | Reforged v5 and v6 (STE) |
+| | Original game | Reforged (v1.0.8 and later) |
 | --- | --- | --- |
-| F3 | music on / off | gives the blue fighter to player 3 or takes it back; the music always stays on |
-| Referee message `$0B` | PRESS F3 FOR MUSIC ON OR OFF | PRESS F3 FOR PLAYER 3 ON OFF (same length, `patch_p3.py` hook 12) |
-| Help screen | F3 MUSIC ON/OFF | unchanged (it is an image) |
+| F3 | music on / off | starts a 3-player game, like F1 and F2 (the three fists flash, player 3 gets the blue fighter) |
+| F5 | unused | music on / off |
+| F6 to F10 | the speed goes back to normal when a game starts | the chosen speed is kept |
+| Reset button | restarts the game (`$426`/`$42A` set at `$21E6`) | resets the machine (back to the TOS) |
+| Referee message `$0B` | PRESS F3 FOR MUSIC ON OR OFF | PRESS F5 FOR MUSIC ON OR OFF |
+| Demo message | USE FIRE BUTTONS OR F1 AND F2 KEYS TO START A GAME | USE FIRE BUTTONS OR F1 F2 F3 KEYS TO START A GAME |
+| Help screen | F3 ..... MUSIC ON/OFF / F4 ..... SOUND FX ON/OFF | F3 ..... 3 PLAYER GAME / F4/F5 .. FX/MUSIC ON/OFF (picture retouched by `tools/helpscreen.py`) |
+| Top bar | red and blue 80 pixels apart | red moved 8 pixels and blue 16 pixels to the left |
 | End of a 3-player match | — | neutral messages (X IS BEST…) then MATCH OVER after 5 minutes of fighting |
 | Intro and crack screen | present | removed by the new loader |
 
-The secret words, F4, F6–F10, `+`/`−` (music volume), the gag keys and BUM COPY are unchanged, including in the STE version.
+The secret words, F4, `+`/`−` (music volume), the gag keys and BUM COPY are unchanged, including in the STE version.

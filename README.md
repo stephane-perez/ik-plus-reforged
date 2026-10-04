@@ -41,15 +41,17 @@ What was fixed:
 
 The game was designed around three fighters, and its data already had room for a third human player that was never enabled. This mode enables it.
 
-- Start a game as usual: **F1** or **F2**, or the fire button of joystick 1 or 2.
-- During the game, **F3** gives the **blue** fighter to player 3, and a fist appears next to the blue score. Press **F3** again to hand the blue fighter back to the computer.
+- **F1**, **F2** and **F3** start a game for 1, 2 or 3 players (or the fire button of joystick 1 or 2, as in the original game). Like F1 and F2, F3 starts a new game: the three fists flash, and player 3 gets the **blue** fighter.
 - **While player 3 is in the game:**
   - nobody is eliminated;
   - the referee announces neutral results ("X IS BEST / Y IS SECOND / Z IS WORST"…);
   - the match lasts **5 minutes of fighting**, then the referee says "MATCH OVER" and the game returns to the menu.
-- F3 no longer controls the music, which is always on. The help screen still shows "F3 MUSIC ON/OFF", because it is a picture.
+- The music is switched on and off with **F5** (F3 in the original game). The help screen and the referee's tips show the new keys.
 - Player 3 also takes part in the two **bonus stages** (deflecting balls with the shield, kicking bombs), taking turns with the other human players. In the bomb stage, the fighter's jacket colour is also used for the explosions: during player 3's turn they are blue instead of red.
-- Without player 3, the game behaves exactly like the original.
+- Without player 3, the game plays like the original, with a few changes:
+  - the speed chosen with F6–F10 is kept when a new game starts (the original went back to "normal");
+  - the **reset** button resets the machine instead of restarting the game;
+  - the red and blue scores, energy bars and fists in the top bar are moved a little to the left, so that the blue fist no longer touches "LV".
 
 Player 3 uses a **parallel-port joystick adapter**, the kind used by *Gauntlet II*, *Leatherneck* or *Dynabusters+*. Two folders are produced:
 
@@ -113,9 +115,9 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 
 | File | MD5 |
 |---|---|
-| `IK3J_PAR/IKPLUS.IMG` | `15fb38453300c0700f3588928d6d4513` |
+| `IK3J_PAR/IKPLUS.IMG` | `ea71bbcd3b431a860122de6ca25754f3` |
 | `IK3J_PAR/IK_PLUS.TOS` | `2094db4eb20774ec27957cdff56751ad` |
-| `IK3J_STE/IKPLUS.IMG` | `b56480f2eaa42f280ec4682f9cc8dc07` |
+| `IK3J_STE/IKPLUS.IMG` | `7c964b140aa63d7f7c00c4eb2abbc248` |
 | `IK3J_STE/IK_PLUS.TOS` | `95fae0ec107d35232150d69da54b0250` |
 
 **Option**: `make game LIMIT=180 PRG=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
