@@ -21,9 +21,9 @@ CE QUI CHANGE PAR RAPPORT AU JEU D'ORIGINE
 ------------------------------------------
 
 Démarrage
-- Un nouveau chargeur remplace le programme d'origine. Il affiche une page
-  d'introduction (logo IK+, choix des joysticks, mode entraînement,
-  PRESS SPACE TO START), puis l'introduction du jeu.
+- Un nouveau chargeur remplace le programme d'origine. Il affiche LOADING,
+  puis une page d'introduction (logo IK+, choix des joysticks, mode
+  entraînement, PRESS SPACE TO START), puis l'introduction du jeu.
 - Plus de vérification de la disquette : le jeu n'a plus besoin d'une
   disquette dans le lecteur A, et il tourne depuis un disque dur.
 - Fonctionne sur STE, Mega STE et TOS 2.06. L'original plantait au
@@ -85,8 +85,8 @@ Affichage
 
 STE ou Mega STE avec au moins 1 Mo
 - Bruitages joués par le DMA, à 12,5 kHz. La musique garde ses trois voix
-  pendant les cris. Environ 2 secondes d'écran vert au démarrage, le temps
-  de convertir les sons.
+  pendant les cris. Après Espace, environ 2 secondes de PLEASE WAIT, le
+  temps de convertir les sons.
 - Combattants dessinés et effacés par le blitter, avec le même résultat
   que le dessin d'origine.
 - Vitesse turbo (F6) régulière, à 25 images par seconde.

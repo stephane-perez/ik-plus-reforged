@@ -36,7 +36,7 @@ What was fixed:
 
 - **The game's random number generator** read the TOS 1.x ROM at `$FC0000`. That address does not exist on STE and Mega STE, nor with TOS 2.06, so each read caused a bus error, and the game crashed or restarted in a loop. It now reads graphics data in RAM instead. This is a one-byte change.
 - **The floppy disk check**: `IK+.PRG` still runs it at start-up, then waits for the floppy drive motor to stop, which never happens without a disk in the drive. Reforged skips it.
-- **The new loader** reads the game into reserved memory and copies it into place safely. On a Mega STE it switches off the serial chip (SCC) interrupts and selects 8 MHz with the cache off. All unused exception vectors point to a safe place. Before the game starts, it shows an intro page: the IK+ logo and the game's font, both taken from your copy of the game, "REFORGED" and "EDITION" on each side of the logo, the joystick of each player, the training mode, "PRESS SPACE TO START" (then "PLEASE WAIT"), "ENHANCED BY CLAUDE AI - 2026" with the version (`make TAG=…`, by default the git tag), and "IN MEMORY OF ARCHER MACLEAN (1962-2022)".
+- **The new loader** shows "LOADING" (white on black) while it reads the game into reserved memory and copies it into place safely. On a Mega STE it switches off the serial chip (SCC) interrupts and selects 8 MHz with the cache off. All unused exception vectors point to a safe place. Before the game starts, it shows an intro page: the IK+ logo and the game's font, both taken from your copy of the game, "REFORGED" and "EDITION" on each side of the logo, the joystick of each player, the training mode, "PRESS SPACE TO START" (then "PLEASE WAIT"), "ENHANCED BY CLAUDE AI - 2026" with the version (`make TAG=…`, by default the git tag), and "IN MEMORY OF ARCHER MACLEAN (1962-2022)".
 - **Training mode**: **F4** on the intro page turns it on (it is never saved). During a game, the round time no longer counts down and shows "TIME: --", and nobody scores round points (the score still goes up): rounds never end, and a 3-player match no longer ends after 5 minutes. The demo and the bonus stages are unchanged.
 
 ### 3-player mode
@@ -64,7 +64,7 @@ Player 3 uses a **parallel-port joystick adapter**, the kind used by *Gauntlet I
 On an **STE or a Mega STE with 1 MB of memory or more**, the loader adds the following by itself (on any other machine, the game runs without them).
 
 - **Jaguar pads** on the STE's enhanced joystick ports A and B (the 15-pin sockets; tested on a real STE), or ordinary joysticks with a DB15 adapter (not tested). Fire = A, B, C or Pause. No parallel-port adapter is needed. The pads are offered on any STE, even with 512 KB.
-- **Sound effects are played by DMA**, at 12,517 Hz. The original played each effect through the YM chip, with one interrupt per sample, which used 13 to 18% of the processor. The 18 sounds are converted when the game starts, which takes about 2 seconds of green screen. The music now keeps its three voices during the shouts, and the effects no longer vary in pitch.
+- **Sound effects are played by DMA**, at 12,517 Hz. The original played each effect through the YM chip, with one interrupt per sample, which used 13 to 18% of the processor. The 18 sounds are converted when the game starts, which takes about 2 seconds (the intro page stays on screen, with "PLEASE WAIT"). The music now keeps its three voices during the shouts, and the effects no longer vary in pitch.
 - **The fighters are drawn and erased by the blitter.** The result is identical, byte for byte, to the original drawing: this was checked in the emulator over more than a thousand calls.
 
 Measured in Hatari during a fight:
@@ -113,7 +113,7 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 | File | MD5 |
 |---|---|
 | `IK_PLUS/IKPLUS.IMG` | `90c05ec22bd45bc9898ed30653b37300` |
-| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `2b13ae7a9cbff22b48d9e2a0fbbafdd3` |
+| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `7ffc0b454eaa4279ae817ccdf21ab081` |
 | `IK_STE_CHECK.IMG` (control) | `368df6c7c8ae7cd4bc9c729f61e6f341` |
 
 **Option**: `make game LIMIT=180 PRG=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
