@@ -41,6 +41,7 @@ jobs:
           path: |
             build/IK_PLUS.TOS
             build/p3.bin
+            build/p3b.bin
             build/ste.bin
             build/JOYTEST.TOS
             build/JOYTSTEN.TOS
@@ -56,6 +57,7 @@ jobs:
           files: |
             build/IK_PLUS.TOS
             build/p3.bin
+            build/p3b.bin
             build/ste.bin
             build/JOYTEST.TOS
             build/JOYTSTEN.TOS

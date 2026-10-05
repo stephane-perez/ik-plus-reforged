@@ -172,7 +172,8 @@ FONT        equ $9736
 CTLADR      equ $850                        ; CTL dans src/p3.s : sources des joueurs, puis TRAIN
 NSRC        equ 7                           ; sources 0 à 6 (6 = aucune)
 NAMECOL     equ 26                          ; colonne du nom de la source
-ROW1        equ 122                         ; ligne du joueur 1 (puis +12)
+ROW1        equ 112                         ; ligne du joueur 1 (puis +RSTEP)
+RSTEP       equ 10                          ; 8 lignes de lettres + 2 d'écart
 
 intro       bsr     loadcfg
             dc.w    $a00a                   ; Line-A : souris cachée
@@ -376,7 +377,7 @@ dname       movem.l d0-d7/a0-a6,-(a7)
             mulu    #11,d0
             lea     names(pc),a5
             add.w   d0,a5
-            moveq   #12,d0                  ; ligne 132 + 12 x joueur
+            moveq   #RSTEP,d0               ; ligne ROW1 + RSTEP x joueur
             mulu    d5,d0
             add.w   #ROW1,d0
             moveq   #NAMECOL,d1
@@ -572,10 +573,11 @@ pal         dc.w    $000,$777,$750,$444,$070,$000,$000,$000
             dc.w    $000,$300,$400,$500,$600,$700,$000,$666
 
 ; textes : couleur, ligne, colonne (255 = centré), texte, 0
-texts       dc.b    13,108,255,'REFORGED EDITION',0
+texts       dc.b    13,49,1,'REFORGED',0     ; à gauche du logo (cases 10 à 29)
+            dc.b    13,49,31,'EDITION',0     ; à droite
             dc.b    1,ROW1,3,'F1  PLAYER 1 (WHITE) :',0
-            dc.b    1,ROW1+12,3,'F2  PLAYER 2 (RED)   :',0
-            dc.b    1,ROW1+24,3,'F3  PLAYER 3 (BLUE)  :',0
+            dc.b    1,ROW1+RSTEP,3,'F2  PLAYER 2 (RED)   :',0
+            dc.b    1,ROW1+2*RSTEP,3,'F3  PLAYER 3 (BLUE)  :',0
             dc.b    2,TROW,255,'PRESS SPACE TO START',0
             dc.b    3,180,255
             ifd     REFTAG
@@ -585,8 +587,10 @@ texts       dc.b    13,108,255,'REFORGED EDITION',0
             endif
             dc.b    11,191,255,'IN MEMORY OF ARCHER MACLEAN (1962-2022)',0
             dc.b    0
-TROW        equ     168                     ; ligne de « PRESS SPACE TO START »
-            dc.b    ROW1+36,3               ; (ligne, colonne de ttrain)
+; « PRESS SPACE TO START » centré entre la fin de la ligne F4 et la ligne
+; « ENHANCED BY CLAUDE AI » (180)
+TROW        equ     (ROW1+3*RSTEP+8+180-8)/2
+            dc.b    ROW1+3*RSTEP,3          ; (ligne, colonne de ttrain)
 ttrain      dc.b    'F4  TRAINING MODE (NO TIME LIMIT)',0
             dc.b    TROW,10
 tblank      dc.b    '                    ',0

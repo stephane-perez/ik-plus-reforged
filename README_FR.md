@@ -36,8 +36,8 @@ Ce qui a été corrigé :
 
 - **Le générateur de nombres aléatoires du jeu** lisait la ROM du TOS 1.x en `$FC0000`. Cette adresse n'existe ni sur STE et Mega STE, ni avec le TOS 2.06 : chaque lecture provoquait une erreur de bus, et le jeu plantait ou redémarrait en boucle. Il lit maintenant des données graphiques en RAM. La modification tient en un octet.
 - **La vérification de la disquette** : `IK+.PRG` la lance toujours au démarrage, puis attend l'arrêt du moteur du lecteur, qui n'arrive jamais sans disquette dans le lecteur. Reforged la saute.
-- **Le nouveau chargeur** lit le jeu dans une zone mémoire réservée et le met en place sans risque. Sur Mega STE, il coupe les interruptions de la puce série (SCC) et passe en 8 MHz sans cache. Tous les vecteurs d'exception inutilisés pointent vers un endroit sûr. Avant le jeu, il affiche une page d'introduction : le logo IK+ et la police du jeu, tous deux pris dans votre copie du jeu, « REFORGED EDITION », le joystick de chaque joueur, le mode entraînement, « PRESS SPACE TO START » (puis « PLEASE WAIT »), « ENHANCED BY CLAUDE AI - 2026 » avec la version (`make TAG=…`, par défaut l'étiquette git), et « IN MEMORY OF ARCHER MACLEAN (1962-2022) ».
-- **Mode entraînement** : **F4** sur la page d'introduction l'active (il n'est jamais mémorisé). Pendant une partie, le temps du round ne baisse plus et s'affiche « TIME: -- » ; une partie à 3 ne s'arrête plus au bout de 5 minutes. La démo et les épreuves bonus ne changent pas.
+- **Le nouveau chargeur** lit le jeu dans une zone mémoire réservée et le met en place sans risque. Sur Mega STE, il coupe les interruptions de la puce série (SCC) et passe en 8 MHz sans cache. Tous les vecteurs d'exception inutilisés pointent vers un endroit sûr. Avant le jeu, il affiche une page d'introduction : le logo IK+ et la police du jeu, tous deux pris dans votre copie du jeu, « REFORGED » et « EDITION » de part et d'autre du logo, le joystick de chaque joueur, le mode entraînement, « PRESS SPACE TO START » (puis « PLEASE WAIT »), « ENHANCED BY CLAUDE AI - 2026 » avec la version (`make TAG=…`, par défaut l'étiquette git), et « IN MEMORY OF ARCHER MACLEAN (1962-2022) ».
+- **Mode entraînement** : **F4** sur la page d'introduction l'active (il n'est jamais mémorisé). Pendant une partie, le temps du round ne baisse plus et s'affiche « TIME: -- », et personne ne marque de points de round (le score, lui, augmente) : les rounds ne finissent jamais, et une partie à 3 ne s'arrête plus au bout de 5 minutes. La démo et les épreuves bonus ne changent pas.
 
 ### Mode 3 joueurs
 
@@ -112,9 +112,9 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 
 | Fichier | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `d4b04662410edecebb08ecd4babaf052` |
-| `IK_PLUS_REF.TOS` (le chargeur avec le texte de version `V0.0.0`) | `579567695ab7465149d96149eed7e7dd` |
-| `IK_STE_CHECK.IMG` (contrôle) | `648aa93950588c2da491ef0b1b912980` |
+| `IK_PLUS/IKPLUS.IMG` | `90c05ec22bd45bc9898ed30653b37300` |
+| `IK_PLUS_REF.TOS` (le chargeur avec le texte de version `V0.0.0`) | `2b13ae7a9cbff22b48d9e2a0fbbafdd3` |
+| `IK_STE_CHECK.IMG` (contrôle) | `368df6c7c8ae7cd4bc9c729f61e6f341` |
 
 **Option** : `make game LIMIT=180 PRG=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.
 

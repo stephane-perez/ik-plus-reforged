@@ -62,8 +62,7 @@ FIST_X      equ $70             ; blanc $28, rouge $4C, bleu $70 (pas de 2 pixel
             bra.w blinkset      ; $83C  début de partie : clignotement des poings
             bra.w blinkvbl      ; $840  F_07608 : clignotement (interruption VBL)
             bra.w vblmap        ; $844  VBL ($1BAA) : joysticks des trois joueurs
-            bra.w timechk       ; $848  VBL ($1DBA) : chronomètre du round
-            bra.w timedisp      ; $84C  F_07536 ($7564) : affichage du temps
+            dc.l  0,0           ; $848, $84C  libres (mode entraînement : src/p3b.s)
 
 ; --- écrit par le chargeur (adresse fixe $850, 4 octets) -------------------
 CTL         dc.b 1,0,2          ; sources des joueurs 1, 2, 3 (voir vblmap)
@@ -378,48 +377,6 @@ f5key       tst.b   $100e.w
 .on         move.b  #1,$100e.w
             jsr     $1734.w                 ; musique remise
 .r          jmp     $73a8
-
-; ----------------------------------------------------------------------------
-; Mode entraînement (choisi sur la page d'introduction, jamais mémorisé) :
-; pendant une partie (au moins un humain), le temps du round ($11FB, en BCD)
-; ne baisse plus et s'affiche « -- ». La démo et les épreuves bonus (qui ont
-; leur propre chronomètre) ne changent pas. Le chronomètre des parties à 3
-; (gamesec, dans tick) s'arrête aussi : la partie ne finit plus au temps.
-; training : Z = 1 si le mode entraînement s'applique. Détruit d0.
-; ----------------------------------------------------------------------------
-training    tst.b   TRAIN
-            beq.s   .no
-            move.b  P1.w,d0
-            or.b    P2.w,d0
-            or.b    P3.w,d0
-            beq.s   .no
-            moveq   #0,d0                   ; Z = 1
-            rts
-.no         moveq   #1,d0                   ; Z = 0
-            rts
-
-; timechk : remplace « move.b $11fb.w,d0 / beq.w L_01DD2 » ($1DBA, VBL, une
-; fois par seconde de combat), suivi de « beq.s L_01DD2 ». Sortie : Z = 1
-; pour ne pas toucher au temps (entraînement, ou temps déjà à 0).
-timechk     bsr.s   training
-            beq.s   .r
-            move.b  $11fb.w,d0
-.r          rts
-
-; timedisp : remplace « move.w #$26,d1 / move.b $11fb.w,d0 » ($7564, F_07536,
-; deux chiffres du temps en cases $26-$27). Entraînement : « -- » (lettre 44
-; de la police du jeu), et retour direct de F_07536.
-timedisp    move.w  #$26,d1
-            bsr.s   training
-            beq.s   .dash
-            move.b  $11fb.w,d0
-            rts
-.dash       moveq   #44,d0
-            jsr     $84c0
-            addq.w  #1,d1
-            jsr     $84c0
-            addq.l  #4,a7                   ; fin de F_07536
-            rts
 
 ; ----------------------------------------------------------------------------
 ; setp12 : remplace « move.b d1,$1007.w / move.b d2,$1008.w » ($7388),

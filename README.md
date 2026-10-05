@@ -36,8 +36,8 @@ What was fixed:
 
 - **The game's random number generator** read the TOS 1.x ROM at `$FC0000`. That address does not exist on STE and Mega STE, nor with TOS 2.06, so each read caused a bus error, and the game crashed or restarted in a loop. It now reads graphics data in RAM instead. This is a one-byte change.
 - **The floppy disk check**: `IK+.PRG` still runs it at start-up, then waits for the floppy drive motor to stop, which never happens without a disk in the drive. Reforged skips it.
-- **The new loader** reads the game into reserved memory and copies it into place safely. On a Mega STE it switches off the serial chip (SCC) interrupts and selects 8 MHz with the cache off. All unused exception vectors point to a safe place. Before the game starts, it shows an intro page: the IK+ logo and the game's font, both taken from your copy of the game, "REFORGED EDITION", the joystick of each player, the training mode, "PRESS SPACE TO START" (then "PLEASE WAIT"), "ENHANCED BY CLAUDE AI - 2026" with the version (`make TAG=…`, by default the git tag), and "IN MEMORY OF ARCHER MACLEAN (1962-2022)".
-- **Training mode**: **F4** on the intro page turns it on (it is never saved). During a game, the round time no longer counts down and shows "TIME: --"; a 3-player match no longer ends after 5 minutes. The demo and the bonus stages are unchanged.
+- **The new loader** reads the game into reserved memory and copies it into place safely. On a Mega STE it switches off the serial chip (SCC) interrupts and selects 8 MHz with the cache off. All unused exception vectors point to a safe place. Before the game starts, it shows an intro page: the IK+ logo and the game's font, both taken from your copy of the game, "REFORGED" and "EDITION" on each side of the logo, the joystick of each player, the training mode, "PRESS SPACE TO START" (then "PLEASE WAIT"), "ENHANCED BY CLAUDE AI - 2026" with the version (`make TAG=…`, by default the git tag), and "IN MEMORY OF ARCHER MACLEAN (1962-2022)".
+- **Training mode**: **F4** on the intro page turns it on (it is never saved). During a game, the round time no longer counts down and shows "TIME: --", and nobody scores round points (the score still goes up): rounds never end, and a 3-player match no longer ends after 5 minutes. The demo and the bonus stages are unchanged.
 
 ### 3-player mode
 
@@ -112,9 +112,9 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 
 | File | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `d4b04662410edecebb08ecd4babaf052` |
-| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `579567695ab7465149d96149eed7e7dd` |
-| `IK_STE_CHECK.IMG` (control) | `648aa93950588c2da491ef0b1b912980` |
+| `IK_PLUS/IKPLUS.IMG` | `90c05ec22bd45bc9898ed30653b37300` |
+| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `2b13ae7a9cbff22b48d9e2a0fbbafdd3` |
+| `IK_STE_CHECK.IMG` (control) | `368df6c7c8ae7cd4bc9c729f61e6f341` |
 
 **Option**: `make game LIMIT=180 PRG=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
 

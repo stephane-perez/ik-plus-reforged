@@ -62,9 +62,10 @@ Mode 3 joueurs
 
 Mode entraînement (F4 sur la page d'introduction)
 - Pendant une partie, le temps du round ne baisse pas et s'affiche
-  « TIME: -- ». Une partie à 3 ne s'arrête plus au bout de 5 minutes. La
+  « TIME: -- », et personne ne marque de points de round (le score, lui,
+  augmente) : les rounds ne finissent jamais, une partie à 3 non plus. La
   démo et les épreuves bonus ne changent pas. Quitter le jeu pour
-  retrouver le chronomètre.
+  retrouver les règles normales.
 
 Touches
 - F3 : partie à 3 joueurs (avant : musique marche / arrêt).

@@ -1,14 +1,16 @@
-"""patch_p3.py <image du jeu corrigée (patch_game.py)> <build/p3.bin> <sortie>
+"""patch_p3.py <image du jeu corrigée (patch_game.py)> <build/p3.bin> <sortie> <build/p3b.bin>
 
 Pose le code du mode 3 joueurs (src/p3.s, assemblé en $800) dans l'image
-du jeu et le relie par 29 accroches. Chaque accroche vérifie les octets
+du jeu et le relie par 30 accroches. Chaque accroche vérifie les octets
 d'origine avant de les remplacer. Corrige aussi quelques réglages du jeu
 (vitesse gardée, bouton reset, barre du haut, textes, écran d'aide).
 Entrées fixes de p3.s : $800 pre, $804 looptail, $808 other, $80C elim,
 $810 tick, $814 erasehook, $818 drawhook, $81C roundend, $820 roundmsg, $824 f3key,
 $828 ikbdhook, $82C blinka, $830 blinkb, $834 f5key, $838 setp12, $83C blinkset,
-$840 blinkvbl, $844 vblmap, $848 timechk, $84C timedisp ; choix des joysticks
-(CTL) et mode entraînement (TRAIN) en $850 (écrits par le chargeur).
+$840 blinkvbl, $844 vblmap ; choix des joysticks (CTL) et mode entraînement
+(TRAIN) en $850 (écrits par le chargeur). Code en plus (src/p3b.s) en $6A4A,
+dans la vérification de la disquette que patch_game.py saute : $6A4A timechk,
+$6A4E timedisp, $6A52 ptschk.
 """
 import sys, hashlib
 import helpscreen
@@ -16,7 +18,10 @@ import helpscreen
 BASE = 0x700
 
 
-def main(src, binf, dst):
+P3B = 0x6A4A           # code en plus, jusqu'à $6AF7
+
+
+def main(src, binf, dst, binb):
     d = bytearray(open(src, 'rb').read())
     assert hashlib.md5(d).hexdigest() == 'a22b79cf08f33762e9013a997895442d', \
         'il faut l\'image du jeu produite par patch_game.py'
@@ -36,6 +41,14 @@ def main(src, binf, dst):
 
     # code en $800 (zone de l'ancien chargeur de boot, jamais exécutée)
     d[0x800 - BASE:0x800 - BASE + len(code)] = code
+    # code en plus en $6A4A : corps de F_06A40, sauté depuis patch_game.py
+    codeb = open(binb, 'rb').read()
+    assert len(codeb) <= 0x6AF8 - P3B
+    o = P3B - BASE
+    assert hashlib.md5(d[o:0x6AF8 - BASE]).hexdigest() == 'fd7d52e984153741ab3e8998c6e655c9', \
+        'octets inattendus en $6A4A-$6AF7'
+    assert d[0x6A44 - BASE:0x6A48 - BASE] == bytes.fromhex('600000b2'), 'saut $6A44 absent'
+    d[o:o + len(codeb)] = codeb
 
     # 1. début de F_07732 : clr.w d0 / clr.w d1 / clr.w d2  ->  jsr pre
     put(0x7732, '424042414242', jsr(0x800))
@@ -102,10 +115,13 @@ def main(src, binf, dst):
     put(0x1BAA, '11fc00011016', jsr(0x844))
     # 28. VBL, chronomètre du round : move.b $11fb.w,d0 / beq.w L_01DD2
     #     -> jsr timechk / beq.s L_01DD2 (mode entraînement : le temps ne baisse plus)
-    put(0x1DBA, '103811fb' '67000012', jsr(0x848) + bytes.fromhex('6710'))
+    put(0x1DBA, '103811fb' '67000012', jsr(P3B) + bytes.fromhex('6710'))
     # 29. F_07536 (affichage du temps) : move.w #$26,d1 / move.b $11fb.w,d0
     #     -> jsr timedisp + NOP (mode entraînement : « -- »)
-    put(0x7564, '323c0026' '103811fb', jsr(0x84C) + nops(1))
+    put(0x7564, '323c0026' '103811fb', jsr(P3B + 4) + nops(1))
+    # 30. F_08564 (points de round) : move.b $125e.w,d0 / add.b d0,(a0,d2.w)
+    #     -> jsr ptschk + NOP (mode entraînement : personne ne marque)
+    put(0x8586, '1038125e' 'd1302000', jsr(P3B + 8) + nops(1))
     # 22. F1, F2 (L_07388) : move.b d1,$1007.w / move.b d2,$1008.w -> jsr setp12 + NOP
     put(0x7388, '11c11007' '11c21008', jsr(0x838) + nops(1))
     # 23. début de partie (F_06CD0) : clignotement des poings 0 et 1 -> jsr blinkset
@@ -132,8 +148,8 @@ def main(src, binf, dst):
     helpscreen.patch(d, BASE)
 
     open(dst, 'wb').write(d)
-    print('%s : code 3 joueurs %d octets en $800, 29 accroches' % (dst, len(code)))
+    print('%s : code 3 joueurs %d octets en $800, 30 accroches' % (dst, len(code)))
 
 
 if __name__ == '__main__':
-    main(*sys.argv[1:4])
+    main(*sys.argv[1:5])

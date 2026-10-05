@@ -24,7 +24,7 @@ TAG    ?= $(shell git describe --tags --exact-match 2>/dev/null || \
             (t=$$(git describe --tags --abbrev=0 2>/dev/null); echo "$${t:-v?}+"))
 VFLAGS := -quiet -m68000
 
-TOOLS_OUT := $(B)/IK_PLUS.TOS $(B)/IK_PLUS_REF.TOS $(B)/p3.bin $(B)/ste.bin $(B)/JOYTEST.TOS $(B)/JOYTSTEN.TOS
+TOOLS_OUT := $(B)/IK_PLUS.TOS $(B)/IK_PLUS_REF.TOS $(B)/p3.bin $(B)/p3b.bin $(B)/ste.bin $(B)/JOYTEST.TOS $(B)/JOYTSTEN.TOS
 
 .PHONY: all game check vasm clean FORCE
 all: $(TOOLS_OUT)
@@ -60,6 +60,9 @@ $(B)/stehooks.i: tools/patch_ste.py | $(B)
 $(B)/p3.bin: src/p3.s | $(B) $(VASM)
 	$(VASM) $(VFLAGS) -Fbin -DLIMIT=$(LIMIT) -o $@ $<
 
+$(B)/p3b.bin: src/p3b.s | $(B) $(VASM)
+	$(VASM) $(VFLAGS) -Fbin -o $@ $<
+
 $(B)/ste.bin: src/ste.s | $(B) $(VASM)
 	$(VASM) $(VFLAGS) -Fbin -o $@ $<
 
@@ -75,7 +78,7 @@ $(B)/IK_BASE.IMG: $(PRG) tools/patch_game.py tools/ikimg.py | $(B)
 
 game: all $(B)/IK_BASE.IMG
 	mkdir -p $(B)/IK_PLUS
-	$(PY) tools/patch_p3.py $(B)/IK_BASE.IMG $(B)/p3.bin $(B)/IK_PLUS/IKPLUS.IMG
+	$(PY) tools/patch_p3.py $(B)/IK_BASE.IMG $(B)/p3.bin $(B)/IK_PLUS/IKPLUS.IMG $(B)/p3b.bin
 	cp $(B)/IK_PLUS.TOS $(B)/IK_PLUS/
 	$(PY) tools/textfile.py dist/README.TXT $(B)/IK_PLUS/README.TXT
 	$(PY) tools/textfile.py dist/LISEZMOI.TXT $(B)/IK_PLUS/LISEZMOI.TXT
@@ -88,7 +91,7 @@ game: all $(B)/IK_BASE.IMG
 # version text: IK_PLUS_REF.TOS)
 check:
 	@$(PY) -c "import hashlib,sys; \
-exp={'$(B)/IK_PLUS/IKPLUS.IMG':'d4b04662410edecebb08ecd4babaf052','$(B)/IK_PLUS_REF.TOS':'579567695ab7465149d96149eed7e7dd','$(B)/IK_STE_CHECK.IMG':'648aa93950588c2da491ef0b1b912980'}; \
+exp={'$(B)/IK_PLUS/IKPLUS.IMG':'90c05ec22bd45bc9898ed30653b37300','$(B)/IK_PLUS_REF.TOS':'2b13ae7a9cbff22b48d9e2a0fbbafdd3','$(B)/IK_STE_CHECK.IMG':'368df6c7c8ae7cd4bc9c729f61e6f341'}; \
 bad=[f for f,h in exp.items() if hashlib.md5(open(f,'rb').read()).hexdigest()!=h]; \
 print('OK' if not bad else 'MISMATCH: '+' '.join(bad)); sys.exit(1 if bad else 0)"
 

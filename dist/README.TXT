@@ -58,8 +58,9 @@ Joysticks (intro page)
 
 Training mode (F4 on the intro page)
 - During a game, the round time does not count down and shows
-  "TIME: --". A 3-player match no longer ends after 5 minutes. The demo
-  and the bonus stages are unchanged. Quit the game to get the timer back.
+  "TIME: --", and nobody scores round points (the score still goes up):
+  rounds never end, nor does a 3-player match. The demo and the bonus
+  stages are unchanged. Quit the game to get the normal rules back.
 
 Keys
 - F3: 3-player game (was: music on/off).
