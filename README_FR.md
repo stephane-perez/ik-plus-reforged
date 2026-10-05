@@ -4,10 +4,11 @@
 
 Correctifs et outils pour **International Karate +** (IK+) sur Atari ST :
 
-- **compatibilité STE / Mega STE / TOS 2.06** : le jeu tourne désormais sur STF, STE et Mega STE, à 8 et 16 MHz ;
+- **compatibilité STE / Mega STE / TOS 2.06** : le jeu tourne désormais sur STF, STE et Mega STE (à 8 MHz) ;
 - un **mode 3 joueurs simultanés** : le troisième joueur utilise un joystick branché sur un adaptateur du port parallèle ;
-- une **version STE** : joueur 3 sur le port joystick étendu du STE, bruitages joués par le DMA, combattants dessinés par le blitter ; la vitesse turbo tient désormais 25 images par seconde ;
-- un **nouveau chargeur**, sans intro, qui lance directement le jeu ;
+- des **ajouts STE**, posés automatiquement sur un STE ou un Mega STE avec au moins 1 Mo : bruitages joués par le DMA, combattants dessinés par le blitter, la vitesse turbo tient désormais 25 images par seconde ; manettes Jaguar sur les ports joystick étendus ;
+- **un seul programme pour toutes les machines**, et le choix de la commande de chaque joueur ;
+- un **nouveau chargeur** : une page d'introduction (logo IK+, contrôles), puis l'introduction du jeu ;
 - **JOYTEST**, un petit utilitaire qui affiche l'état de tous les joysticks, y compris ceux du port parallèle et des ports étendus du STE.
 
 > ## ⚠️ Avertissement
@@ -35,7 +36,8 @@ Ce qui a été corrigé :
 
 - **Le générateur de nombres aléatoires du jeu** lisait la ROM du TOS 1.x en `$FC0000`. Cette adresse n'existe ni sur STE et Mega STE, ni avec le TOS 2.06 : chaque lecture provoquait une erreur de bus, et le jeu plantait ou redémarrait en boucle. Il lit maintenant des données graphiques en RAM. La modification tient en un octet.
 - **La vérification de la disquette** : `IK+.PRG` la lance toujours au démarrage, puis attend l'arrêt du moteur du lecteur, qui n'arrive jamais sans disquette dans le lecteur. Reforged la saute.
-- **Le nouveau chargeur** lit le jeu dans une zone mémoire réservée et le met en place sans risque. Sur Mega STE, il coupe les interruptions de la puce série (SCC) et passe en 8 MHz sans cache. Tous les vecteurs d'exception inutilisés pointent vers un endroit sûr.
+- **Le nouveau chargeur** lit le jeu dans une zone mémoire réservée et le met en place sans risque. Sur Mega STE, il coupe les interruptions de la puce série (SCC) et passe en 8 MHz sans cache. Tous les vecteurs d'exception inutilisés pointent vers un endroit sûr. Avant le jeu, il affiche une page d'introduction : le logo IK+ et la police du jeu, tous deux pris dans votre copie du jeu, « REFORGED » et « EDITION » de part et d'autre du logo, le joystick de chaque joueur, le mode entraînement, « PRESS SPACE TO START » (puis « PLEASE WAIT »), « ENHANCED BY CLAUDE AI - 2026 » avec la version (`make TAG=…`, par défaut l'étiquette git), et « IN MEMORY OF ARCHER MACLEAN (1962-2022) ».
+- **Mode entraînement** : **F4** sur la page d'introduction l'active (il n'est jamais mémorisé). Pendant une partie, le temps du round ne baisse plus et s'affiche « TIME: -- », et personne ne marque de points de round (le score, lui, augmente) : les rounds ne finissent jamais, et une partie à 3 ne s'arrête plus au bout de 5 minutes. La démo et les épreuves bonus ne changent pas.
 
 ### Mode 3 joueurs
 
@@ -53,20 +55,15 @@ Le jeu a été conçu autour de trois combattants, et ses données avaient déj�
   - le bouton **reset** redémarre la machine au lieu de relancer le jeu ;
   - dans la barre du haut, les scores, barres de vie et poings du rouge et du bleu sont un peu décalés vers la gauche : le poing bleu ne touche plus « LV ».
 
-Le joueur 3 utilise un **adaptateur joystick sur le port parallèle**, du type de ceux de *Gauntlet II*, *Leatherneck* ou *Dynabusters+*. Deux dossiers sont produits :
+Le joueur 3 utilise un **adaptateur joystick sur le port parallèle**, du type de ceux de *Gauntlet II*, *Leatherneck* ou *Dynabusters+* (prise joystick 3 : directions D4–D7, tir sur BUSY), ou une **manette Jaguar** sur un port joystick étendu du STE. Un seul dossier, `IK_PLUS`, sert sur toutes les machines.
 
-| Dossier | Machines | Joueur 3 | En plus |
-|---|---|---|---|
-| `IK3J_PAR` | STF, STE, Mega STE | adaptateur du port parallèle, prise joystick 3 (directions D4–D7, tir sur BUSY) | — |
-| `IK3J_STE` | STE avec au moins 1 Mo | manette Jaguar sur le port joystick étendu A | son DMA, blitter (voir plus bas) |
+**Choix des joysticks** : sur la page d'introduction, **F1**, **F2** et **F3** changent la commande des joueurs 1, 2 et 3. Choix possibles : JOYSTICK 0 (prise de la souris), JOYSTICK 1, JOYSTICK 2 et JOYSTICK 3 (prises 3 et 4 de l'adaptateur du port parallèle), JOYPAD A et JOYPAD B (manettes Jaguar sur les ports étendus du STE, proposées sur STE seulement), et NONE pour le joueur 3 (F3 ne peut alors pas lancer de partie à 3). Une commande ne sert jamais à deux joueurs. Le choix est mémorisé dans `IKPLUS.CFG`, à côté du jeu ; sur un disque protégé en écriture ou plein, rien n'est écrit et le jeu démarre quand même. Par défaut, le joueur 3 est sur JOYSTICK 2, ou JOYPAD A sur un STE.
 
-La prise joystick 4 de l'adaptateur n'est pas prise en charge.
+### Ajouts STE
 
-### Version STE
+Sur un **STE ou un Mega STE avec au moins 1 Mo de mémoire**, le chargeur ajoute de lui-même ce qui suit (sur une autre machine, le jeu tourne sans).
 
-Le dossier `IK3J_STE` est réservé au **STE, avec au moins 1 Mo de mémoire**. Sur une autre machine, le chargeur affiche un message et s'arrête. On y retrouve le même mode 3 joueurs, avec trois différences :
-
-- **Le joueur 3 utilise le port joystick étendu A du STE** (la prise à 15 broches) : une manette Jaguar (testée sur un vrai STE), ou un joystick ordinaire avec un adaptateur DB15 (non testé). Tir = A, B, C ou Pause. Plus besoin d'adaptateur sur le port parallèle.
+- **Manettes Jaguar** sur les ports joystick étendus A et B du STE (les prises à 15 broches ; testées sur un vrai STE), ou joysticks ordinaires avec un adaptateur DB15 (non testé). Tir = A, B, C ou Pause. Plus besoin d'adaptateur sur le port parallèle. Les manettes sont proposées sur tout STE, même avec 512 Ko.
 - **Les bruitages sont joués par le DMA**, à 12 517 Hz. L'original jouait chaque bruitage par la puce YM, avec une interruption par échantillon, ce qui prenait 13 à 18 % du processeur. Les 18 sons sont convertis au lancement du jeu, soit environ 2 secondes d'écran vert. La musique garde maintenant ses trois voix pendant les cris, et la hauteur des bruitages ne varie plus.
 - **Les combattants sont dessinés et effacés par le blitter.** Le résultat est identique, octet par octet, au dessin d'origine : c'est vérifié dans l'émulateur sur plus de mille appels.
 
@@ -111,14 +108,13 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 
 **Le fichier à fournir** : `IK+.PRG`, le jeu en un seul programme (344 516 octets, MD5 `4107c876be9d49deb2a3cf5b390f70be`). Les outils refusent tout autre fichier.
 
-**Le résultat** : `build/IK3J_PAR/` et `build/IK3J_STE/` contiennent chacun `IK_PLUS.TOS` (le chargeur) et `IKPLUS.IMG` (le jeu corrigé). Copiez le dossier voulu sur une disquette ou un disque dur, puis lancez `IK_PLUS.TOS` : `IK3J_PAR` avec un adaptateur parallèle (tout ST), ou `IK3J_STE` avec une manette Jaguar sur un STE. Avec les réglages par défaut, `make check` compare le résultat aux empreintes attendues :
+**Le résultat** : `build/IK_PLUS/` contient `IK_PLUS.TOS` (le chargeur), `IKPLUS.IMG` (le jeu corrigé), et `README.TXT` / `LISEZMOI.TXT`, qui listent toutes les différences avec le jeu d'origine (tirés de `dist/`, convertis pour l'Atari par `tools/textfile.py`). Copiez le dossier sur une disquette ou un disque dur, puis lancez `IK_PLUS.TOS`. Sur un STE ou un Mega STE avec au moins 1 Mo, le chargeur pose les 9 accroches STE (table `build/stehooks.i`, tirée de `tools/patch_ste.py`) après avoir vérifié leurs octets d'origine. Avec les réglages par défaut, `make check` compare le résultat aux empreintes attendues (`IK_STE_CHECK.IMG` est l'image telle que le chargeur la corrige sur un STE : ses accroches STE sont celles de la version STE validée sur machine réelle) :
 
 | Fichier | MD5 |
 |---|---|
-| `IK3J_PAR/IKPLUS.IMG` | `ea71bbcd3b431a860122de6ca25754f3` |
-| `IK3J_PAR/IK_PLUS.TOS` | `2094db4eb20774ec27957cdff56751ad` |
-| `IK3J_STE/IKPLUS.IMG` | `7c964b140aa63d7f7c00c4eb2abbc248` |
-| `IK3J_STE/IK_PLUS.TOS` | `95fae0ec107d35232150d69da54b0250` |
+| `IK_PLUS/IKPLUS.IMG` | `90c05ec22bd45bc9898ed30653b37300` |
+| `IK_PLUS_REF.TOS` (le chargeur avec le texte de version `V0.0.0`) | `2b13ae7a9cbff22b48d9e2a0fbbafdd3` |
+| `IK_STE_CHECK.IMG` (contrôle) | `368df6c7c8ae7cd4bc9c729f61e6f341` |
 
 **Option** : `make game LIMIT=180 PRG=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.
 

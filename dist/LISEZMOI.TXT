@@ -1,0 +1,92 @@
+IK+ REFORGED
+============
+
+International Karate + (IK+) (c) 1987-1988 System 3 / Archer Maclean.
+IK+ Reforged est un correctif non officiel, sans lien avec System 3 ni
+aucun autre ayant droit. https://github.com/stephane-perez/ik-plus-reforged
+
+Lancez IK_PLUS.TOS, depuis une disquette ou un disque dur. Le dossier
+contient :
+  IK_PLUS.TOS   le chargeur
+  IKPLUS.IMG    le jeu corrigé
+  IKPLUS.CFG    votre choix de joysticks (écrit par le chargeur)
+  LISEZMOI.TXT  ce fichier (README.TXT : le même en anglais)
+
+Machines : STF, STE et Mega STE, TOS 1.04 à 2.06. Sur un STE ou un Mega
+STE avec au moins 1 Mo, le son DMA et le blitter sont utilisés
+automatiquement.
+
+
+CE QUI CHANGE PAR RAPPORT AU JEU D'ORIGINE
+------------------------------------------
+
+Démarrage
+- Un nouveau chargeur remplace le programme d'origine. Il affiche une page
+  d'introduction (logo IK+, choix des joysticks, mode entraînement,
+  PRESS SPACE TO START), puis l'introduction du jeu.
+- Plus de vérification de la disquette : le jeu n'a plus besoin d'une
+  disquette dans le lecteur A, et il tourne depuis un disque dur.
+- Fonctionne sur STE, Mega STE et TOS 2.06. L'original plantait au
+  démarrage sur ces machines (son générateur de hasard lisait la ROM du
+  TOS 1.x).
+- Mega STE : le jeu tourne à 8 MHz sans cache, comme il l'attend.
+- Le bouton reset redémarre la machine au lieu de relancer le jeu.
+
+Joysticks (page d'introduction)
+- F1, F2 et F3 choisissent la commande des joueurs 1 (blanc), 2 (rouge)
+  et 3 (bleu) :
+    JOYSTICK 0   prise de la souris
+    JOYSTICK 1   prise joystick
+    JOYSTICK 2   port parallèle, prise 3 de l'adaptateur (tir : BUSY)
+    JOYSTICK 3   port parallèle, prise 4 de l'adaptateur (tir : STROBE)
+    JOYPAD A/B   manette Jaguar sur le port étendu A ou B (STE seulement)
+    NONE         joueur 3 seulement : pas de troisième joueur
+  Une commande ne sert jamais à deux joueurs. Par défaut : joueur 1 sur
+  JOYSTICK 1, joueur 2 sur JOYSTICK 0 (comme dans le jeu d'origine),
+  joueur 3 sur JOYSTICK 2 (JOYPAD A sur un STE).
+- Le choix est mémorisé dans IKPLUS.CFG. Sur un disque protégé en écriture
+  ou plein, rien n'est écrit et le jeu démarre quand même.
+- F4 : mode entraînement marche / arrêt (voir plus bas). Jamais mémorisé.
+- Pas de clic clavier sur la page d'introduction.
+
+Mode 3 joueurs
+- F3 lance une partie à 3 joueurs, comme F1 (1 joueur) et F2 (2 joueurs) :
+  les trois poings clignotent, et le joueur 3 prend le combattant bleu.
+  Si le joueur 3 est sur NONE, F3 ne fait rien.
+- À 3 joueurs : personne n'est éliminé, l'arbitre annonce des résultats
+  neutres (X IS BEST / Y IS SECOND / Z IS WORST...), et le match se
+  termine après 5 minutes de combat par « MATCH OVER ».
+- Le joueur 3 joue aussi les deux épreuves bonus, à tour de rôle avec les
+  autres. Dans l'épreuve des bombes, les explosions sont bleues pendant
+  son tour.
+
+Mode entraînement (F4 sur la page d'introduction)
+- Pendant une partie, le temps du round ne baisse pas et s'affiche
+  « TIME: -- », et personne ne marque de points de round (le score, lui,
+  augmente) : les rounds ne finissent jamais, une partie à 3 non plus. La
+  démo et les épreuves bonus ne changent pas. Quitter le jeu pour
+  retrouver les règles normales.
+
+Touches
+- F3 : partie à 3 joueurs (avant : musique marche / arrêt).
+- F5 : musique marche / arrêt (avant : inutilisée).
+- F6 à F10 : la vitesse choisie est gardée au début d'une nouvelle partie
+  (l'original revenait à « normal »).
+- L'écran d'aide (« F3 ..... 3 PLAYER GAME », « F4/F5 .. FX/MUSIC
+  ON/OFF »), le conseil de l'arbitre (« PRESS F5 FOR MUSIC ON OR OFF ») et
+  le message de la démo (« OR F1 F2 F3 KEYS ») indiquent les nouvelles
+  touches.
+- Inchangés : F1, F2, F4, Espace (pause), les mots secrets et toutes les
+  autres touches.
+
+Affichage
+- Barre du haut : les barres de vie, scores et poings du rouge et du bleu
+  sont un peu décalés vers la gauche ; le poing bleu ne touche plus « LV ».
+
+STE ou Mega STE avec au moins 1 Mo
+- Bruitages joués par le DMA, à 12,5 kHz. La musique garde ses trois voix
+  pendant les cris. Environ 2 secondes d'écran vert au démarrage, le temps
+  de convertir les sons.
+- Combattants dessinés et effacés par le blitter, avec le même résultat
+  que le dessin d'origine.
+- Vitesse turbo (F6) régulière, à 25 images par seconde.

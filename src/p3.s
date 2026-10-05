@@ -1,6 +1,7 @@
 ; ============================================================================
-; IK+ (Atari ST) - mode 3 joueurs : joueur 3 sur l'adaptateur joystick
-; du port parallèle (type Gauntlet II / Leatherneck, prise « joystick 3 »).
+; IK+ (Atari ST) - mode 3 joueurs : joueur 3 sur un adaptateur joystick
+; du port parallèle (type Gauntlet II / Leatherneck) ou une manette Jaguar
+; (STE) ; le joystick de chaque joueur est choisi au lancement.
 ;
 ; Assemblé en $800, dans l'ancien chargeur de boot inutilisé ($704-$9xx,
 ; contourné par le crack : $1000 saute directement en $14E6). La pile du jeu
@@ -9,8 +10,9 @@
 ; Principe :
 ;  - le jeu range déjà tout par combattant (0 blanc, 1 rouge, 2 bleu) ;
 ;    $1009 = « combattant 2 humain » existe mais n'est jamais mis à 1 ;
-;  - joystick du joueur i en $126C+i : on écrit le 3e en $126E, au format du
-;    jeu (bits 0-3 directions actives à 0, bit 4 = feu) ;
+;  - joystick du joueur i en $126C+i, au format du jeu (bits 0-3 directions
+;    actives à 0, bit 4 = feu) : les trois sont remplis à chaque VBL depuis
+;    la source choisie pour chaque joueur (vblmap) ;
 ;  - F3 lance une partie à 3 joueurs, comme F1 (1 joueur) et F2 (2 joueurs) :
 ;    les poings des 3 joueurs clignotent, puis la partie repart de zéro ;
 ;    la musique passe sur F5 ;
@@ -18,9 +20,9 @@
 ;    termine après LIMIT secondes de combat cumulées (chronomètre du jeu).
 ;
 ; Adaptateur (câblage vérifié sur machine réelle avec JOYTEST) :
-;  prise « joystick 3 » : directions D4-D7 (0 = appuyé), tir sur BUSY (GPIP bit 0).
-;  Hatari : « parport stick 1 ». (La prise « joystick 4 », D0-D3 + STROBE, n'est
-;  plus prise en charge depuis la v6 : voir docs/fr/VERSIONS.md, section 13.)
+;  prise « joystick 3 » : directions D4-D7 (0 = appuyé), tir sur BUSY (GPIP bit 0) ;
+;  prise « joystick 4 » : directions D0-D3, tir sur STROBE (PSG port A, bit 5).
+;  Hatari : « parport stick 1 » et « parport stick 2 ».
 ; ============================================================================
 
             ifnd LIMIT
@@ -31,7 +33,6 @@ P1          equ $1007           ; drapeaux humain : combattants 0,1,2
 P2          equ $1008
 P3          equ $1009
 STATE       equ $1076           ; état principal (1 = partie en cours)
-JOY3        equ $126E           ; joystick du joueur 3 (après $126C/$126D)
 SCRA        equ $78000          ; les deux écrans du jeu
 SCRB        equ $70000
 BLIT        equ $126CC          ; F_126CC : affiche un bloc 16 x d6+1
@@ -53,13 +54,25 @@ FIST_X      equ $70             ; blanc $28, rouge $4C, bleu $70 (pas de 2 pixel
             bra.w roundend      ; $81C  fin de round : masque des humains qui restent
             bra.w roundmsg      ; $820  message de fin de round ($1092)
             bra.w f3key         ; $824  touche F3 : partie à 3 joueurs
-            bra.w rdhook        ; $828  début de F_0ED04 (joysticks des épreuves bonus)
+            bra.w ikbdhook      ; $828  P_02516 : joysticks du clavier (IKBD)
             bra.w blinka        ; $82C  épreuve A : clignotement du poing (joueurs 0-1)
             bra.w blinkb        ; $830  épreuve B : idem
             bra.w f5key         ; $834  touche F5 : musique marche / arrêt
             bra.w setp12        ; $838  F1 / F2 : humains 0 et 1, plus de joueur 3
             bra.w blinkset      ; $83C  début de partie : clignotement des poings
             bra.w blinkvbl      ; $840  F_07608 : clignotement (interruption VBL)
+            bra.w vblmap        ; $844  VBL ($1BAA) : joysticks des trois joueurs
+            dc.l  0,0           ; $848, $84C  libres (mode entraînement : src/p3b.s)
+
+; --- écrit par le chargeur (adresse fixe $850, 4 octets) -------------------
+CTL         dc.b 1,0,2          ; sources des joueurs 1, 2, 3 (voir vblmap)
+TRAIN       dc.b 0              ; 1 = mode entraînement (pas de limite de temps)
+RAW0        dc.b $0f            ; joystick 0 du clavier, au format du jeu
+RAW1        dc.b $0f            ; joystick 1
+            even
+            if CTL!=$850
+            fail "CTL doit rester en $850 (chargeur)"
+            endif
 
 ; --- variables ----------------------------------------------------------------
 gamesec     dc.w 0              ; secondes de combat depuis l'arrivée du joueur 3
@@ -73,7 +86,6 @@ blink3      dc.b 0              ; clignotement du poing bleu (comme $1314/$1315)
 ; sélectionner un registre du PSG, en masquant les IRQ le temps de la lecture.
 ; ----------------------------------------------------------------------------
 pre         movem.l d0-d2/a0,-(a7)
-            bsr     readjoy3
 
             ; poing bleu synchronisé avec $1009 (sauf pendant son clignotement)
 .sync       tst.b   blink3
@@ -94,71 +106,127 @@ pre         movem.l d0-d2/a0,-(a7)
             rts
 
 ; ----------------------------------------------------------------------------
-; readjoy3 : lit l'adaptateur du port parallèle et écrit $126E au format
-; du jeu (bits 0-3 directions actives à 0, bit 4 = tir). Détruit d0-d2.
-; Contexte : boucle principale (pas une interruption) ; IRQ masquées
-; le temps des accès au PSG.
+; Joysticks : chaque joueur a sa source (choisie sur la page d'introduction
+; du chargeur, qui écrit CTL avant de lancer le jeu). Le jeu lit $126C
+; (joueur 1, blanc), $126D (joueur 2, rouge), $126E (joueur 3, bleu), au
+; format : bits 0-3 = directions, actives à 0 ; bit 4 = tir, 1 = appuyé.
+;  - ikbdhook : le gestionnaire IKBD du jeu (P_02516) ne fait plus que
+;    garder les deux joysticks du clavier (RAW0, RAW1) ;
+;  - vblmap : à chaque VBL (avant la routine son du jeu, même contexte),
+;    les trois octets sont remplis à partir des sources choisies.
+; Sources : 0, 1 = joysticks 0 et 1 (clavier) ; 2 = prise 3 du port
+; parallèle (D4-D7 + BUSY) ; 3 = prise 4 (D0-D3 + STROBE) ; 4, 5 = manettes
+; Jaguar sur les ports étendus A et B (STE seulement, le chargeur s'en
+; assure) ; 6 = aucune (joueur 3 seulement).
 ; ----------------------------------------------------------------------------
-readjoy3
-            ifd STEPAD
-            ; Version STE : port joystick étendu A (manette Jaguar, ou joystick
-            ; avec adaptateur DB15). $FF9202 en écriture = lignes de sélection
-            ; (bits 0-3 pour le port A, actives à 0) ; en lecture, bits 8-11 =
-            ; haut, bas, gauche, droite du port A, actifs à 0. $FF9200 (accès
-            ; en mot obligatoire) : bit 0 = Pause, bit 1 = A, B, C ou Option
-            ; selon la ligne sélectionnée, actifs à 0. Tir = A, B, C ou Pause.
-            ; Sur la machine réelle, une lecture de $FF9202 masque les boutons
-            ; dans la lecture suivante de $FF9200 (qui relit alors $FFFF) :
-            ; on lit donc $FF9200 d'abord (JOYTEST, VERSIONS.md section 12).
-            move.w  #$fffe,$ffff9202.w      ; ligne 0 : directions, A, Pause
-            move.w  $ffff9200.w,d1          ; boutons d'abord
-            move.w  $ffff9202.w,d0          ; puis directions
-            move.w  #$fffd,$ffff9202.w      ; ligne 1 : B
-            and.w   $ffff9200.w,d1
-            move.w  #$fffb,$ffff9202.w      ; ligne 2 : C
-            and.w   $ffff9200.w,d1
-            move.w  #$ffff,$ffff9202.w      ; plus aucune ligne sélectionnée
+ikbdhook    move.b  d0,RAW1                 ; octet bas : joystick 1
             lsr.w   #8,d0
-            andi.b  #$0f,d0                 ; directions, actives à 0
-            not.b   d1
-            andi.b  #3,d1                   ; <> 0 : un bouton est appuyé
-            beq.s   .nofire
-            else
-            move.w  sr,-(a7)
-            or.w    #$0700,sr
-            ; Port B du PSG (données du port parallèle) en ENTRÉE : la routine
-            ; son du jeu ($B2B6) écrit sans cesse $DC dans le registre 7, dont
-            ; le bit 7 met le port B en sortie. On relirait alors notre propre
-            ; sortie au lieu des joysticks (Hatari ignore ce bit, pas la machine).
-            move.b  #7,$ffff8800.w
+            move.b  d0,RAW0                 ; octet haut : joystick 0
+            rts
+
+vblmap      move.b  #1,$1016.w              ; instruction remplacée ($1BAA)
+            lea     CTL(pc),a2
+            lea     $126c.w,a3
+            moveq   #2,d3
+.pl         moveq   #0,d0
+            move.b  (a2)+,d0
+            cmp.b   #6,d0
+            bhi.s   .none
+            add.w   d0,d0
+            move.w  .tab(pc,d0.w),d0
+            jsr     .tab(pc,d0.w)
+            move.b  d0,(a3)+
+            dbra    d3,.pl
+            rts
+.none       moveq   #$0f,d0                 ; rien d'appuyé
+            move.b  d0,(a3)+
+            dbra    d3,.pl
+            rts
+.tab        dc.w    src0-.tab,src1-.tab,src2-.tab,src3-.tab
+            dc.w    srcpa-.tab,srcpb-.tab,src6-.tab
+
+src0        move.b  RAW0(pc),d0
+            rts
+src1        move.b  RAW1(pc),d0
+            rts
+src6        moveq   #$0f,d0
+            rts
+
+; Prises du port parallèle. Port B du PSG (données) mis en ENTRÉE : la
+; routine son du jeu écrit $DC/$F8 dans le registre 7 (bit 7 = sortie ;
+; corrigé en $5C/$78 par patch_p3.py, mais on s'en assure). IRQ masquées le
+; temps des accès au PSG (quelques dizaines de cycles).
+psgin       move.b  #7,$ffff8800.w
             move.b  $ffff8800.w,d1
             bclr    #7,d1
             move.b  d1,$ffff8802.w
-            ; prise « joystick 3 » : directions sur D4-D7, tir sur BUSY
-            move.b  #15,$ffff8800.w         ; PSG registre 15 = données du port parallèle
+            move.b  #15,$ffff8800.w         ; registre 15 = données du port parallèle
             move.b  $ffff8800.w,d0
-            move.b  $fffffa01.w,d1          ; GPIP : bit 0 = BUSY
-            move.w  (a7)+,sr
-            lsr.b   #4,d0                   ; D4-D7 -> bits 0-3, actifs à 0
-            btst    #0,d1
-            bne.s   .nofire
-            endif
-            bset    #4,d0                   ; tir appuyé
-.nofire     move.b  d0,JOY3.w
             rts
 
-; ----------------------------------------------------------------------------
-; rdhook : remplace « clr.w d0 / clr.w d1 / clr.w d2 » au début de F_0ED04,
-; la lecture des joysticks pendant les épreuves bonus (qui ne passe pas par
-; F_07732) : le joystick 3 y est aussi tenu à jour.
-; ----------------------------------------------------------------------------
-rdhook      movem.l d0-d2,-(a7)
-            bsr     readjoy3
-            movem.l (a7)+,d0-d2
-            clr.w   d0
-            clr.w   d1
-            clr.w   d2
-            rts
+; prise « joystick 3 » : directions sur D4-D7, tir sur BUSY (GPIP bit 0)
+src2        move.w  sr,-(a7)
+            or.w    #$0700,sr
+            bsr.s   psgin
+            move.b  $fffffa01.w,d1
+            move.w  (a7)+,sr
+            lsr.b   #4,d0
+            btst    #0,d1
+            bra.s   fire
+
+; prise « joystick 4 » : directions sur D0-D3, tir sur STROBE (bit 5 du
+; port A du PSG). Le jeu met STROBE à 0 : on le remet à 1, sinon le tir
+; serait toujours vu appuyé. Sélection et lecture deux fois : sous Hatari,
+; la valeur lue est figée à la sélection.
+src3        move.w  sr,-(a7)
+            or.w    #$0700,sr
+            bsr.s   psgin
+            move.b  #14,$ffff8800.w
+            move.b  $ffff8800.w,d1
+            move.b  #14,$ffff8800.w
+            move.b  $ffff8800.w,d1          ; bit 5 = tir, 0 = appuyé
+            move.b  d1,d2
+            bset    #5,d2
+            move.b  d2,$ffff8802.w
+            move.w  (a7)+,sr
+            andi.b  #$0f,d0
+            btst    #5,d1
+fire        bne.s   .nf
+            bset    #4,d0
+.nf         rts
+
+; Manettes Jaguar (ports étendus du STE). $FF9202 en écriture : lignes de
+; sélection, actives à 0 (port A bits 0-3, port B bits 4-7) ; en lecture :
+; directions (A bits 8-11, B bits 12-15), actives à 0. $FF9200 : Pause et
+; A/B/C/Option selon la ligne (A bits 0-1, B bits 2-3), actifs à 0.
+; Sur la machine réelle, lire $FF9202 masque les boutons dans la lecture
+; suivante de $FF9200 : on lit $FF9200 d'abord (VERSIONS.md section 12).
+; Tir = A, B, C ou Pause (lignes 0, 1, 2).
+srcpa       moveq   #0,d2
+            bra.s   pad
+srcpb       moveq   #4,d2
+pad         move.w  #$fffe,d1
+            rol.w   d2,d1                   ; ligne 0 du port choisi
+            move.w  d1,$ffff9202.w
+            move.w  $ffff9200.w,d4          ; boutons d'abord
+            move.w  $ffff9202.w,d0          ; puis directions
+            rol.w   #1,d1                   ; ligne 1 : B
+            move.w  d1,$ffff9202.w
+            and.w   $ffff9200.w,d4
+            rol.w   #1,d1                   ; ligne 2 : C
+            move.w  d1,$ffff9202.w
+            and.w   $ffff9200.w,d4
+            move.w  #$ffff,$ffff9202.w
+            lsr.w   #8,d0
+            lsr.w   d2,d0
+            andi.b  #$0f,d0
+            lsr.w   #1,d2
+            lsr.w   d2,d4
+            not.b   d4
+            andi.b  #3,d4                   ; <> 0 : un bouton est appuyé
+            beq.s   .np
+            bset    #4,d0
+.np         rts
 
 ; ----------------------------------------------------------------------------
 ; blinka / blinkb : les épreuves bonus écrivent $14 dans $1314[joueur]
@@ -285,7 +353,9 @@ roundmsg    move.b  d0,$1092.w
 ; 3 joueurs, avec la même condition ($1006 >= $19), puis demande de nouvelle
 ; partie ($135F, traitée par l'interruption VBL en $1C56).
 ; ----------------------------------------------------------------------------
-f3key       moveq   #0,d0
+f3key       cmpi.b  #6,CTL+2                ; joueur 3 sans joystick : F3 ne fait rien
+            beq.s   .r
+            moveq   #0,d0
             move.b  $1006.w,d0
             cmpi.w  #$19,d0
             blt.s   .r

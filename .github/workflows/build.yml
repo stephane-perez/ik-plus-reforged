@@ -16,6 +16,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    # tags: version shown on the intro page (make TAG)
 
       - name: Cache vasm
         uses: actions/cache@v4
@@ -39,11 +41,12 @@ jobs:
           path: |
             build/IK_PLUS.TOS
             build/p3.bin
-            build/p3_ste.bin
+            build/p3b.bin
             build/ste.bin
-            build/IK_STE.TOS
             build/JOYTEST.TOS
             build/JOYTSTEN.TOS
+            dist/README.TXT
+            dist/LISEZMOI.TXT
 
       - name: Publish the release
         if: startsWith(github.ref, 'refs/tags/v')
@@ -54,8 +57,7 @@ jobs:
           files: |
             build/IK_PLUS.TOS
             build/p3.bin
-            build/p3_ste.bin
+            build/p3b.bin
             build/ste.bin
-            build/IK_STE.TOS
             build/JOYTEST.TOS
             build/JOYTSTEN.TOS
