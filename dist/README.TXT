@@ -11,8 +11,8 @@ Run IK_PLUS.TOS, from a floppy disk or a hard disk. The folder contains:
   IKPLUS.CFG    your joystick choice (written by the loader)
   README.TXT    this file (LISEZMOI.TXT: the same in French)
 
-Machines: STF, STE and Mega STE, TOS 1.04 to 2.06. On an STE with 1 MB
-or more, DMA sound and the blitter are used automatically.
+Machines: STF, STE and Mega STE, TOS 1.04 to 2.06. On an STE or a Mega STE
+with 1 MB or more, DMA sound and the blitter are used automatically.
 
 
 WHAT IS DIFFERENT FROM THE ORIGINAL GAME
@@ -26,6 +26,7 @@ Start-up
 - Runs on STE, Mega STE and TOS 2.06. The original crashed at start-up
   on these machines (its random number generator read the TOS 1.x ROM).
 - Mega STE: the game runs at 8 MHz with the cache off, as it expects.
+  Keypad / switches to 16 MHz with cache and back (experimental).
 - The reset button resets the machine instead of restarting the game.
 
 Joysticks (intro page)
@@ -69,7 +70,7 @@ Display
 - Top bar: the red and blue energy bars, scores and fists are moved a
   little to the left, so that the blue fist no longer touches "LV".
 
-STE with 1 MB or more
+STE or Mega STE with 1 MB or more
 - Sound effects are played by DMA, at 12.5 kHz. The music keeps its three
   voices during the shouts. About 2 seconds of green screen at start-up
   while the sounds are converted.

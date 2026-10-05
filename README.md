@@ -6,7 +6,7 @@ Patches and tools for **International Karate +** (IK+) on the Atari ST:
 
 - **STE / Mega STE / TOS 2.06 compatibility**: the game now runs on STF, STE and Mega STE, at 8 and 16 MHz;
 - a **simultaneous 3-player mode**: the third player uses a joystick on a parallel-port adapter;
-- **STE extras**, added automatically on an STE with 1 MB or more: sound effects played by DMA, fighters drawn by the blitter, the turbo speed now holds 25 frames per second; Jaguar pads on the enhanced joystick ports;
+- **STE extras**, added automatically on an STE or a Mega STE with 1 MB or more: sound effects played by DMA, fighters drawn by the blitter, the turbo speed now holds 25 frames per second; Jaguar pads on the enhanced joystick ports;
 - **one program for every machine**, and a choice of controller for each player;
 - a **new loader**: an intro page (IK+ logo, controls), then the game's own intro;
 - **JOYTEST**, a small utility that shows the state of every joystick, including those on the parallel port and the STE's enhanced ports.
@@ -60,7 +60,7 @@ Player 3 uses a **parallel-port joystick adapter**, the kind used by *Gauntlet I
 
 ### STE extras
 
-On an **STE with 1 MB of memory or more**, the loader adds the following by itself (on any other machine, the game runs without them):
+On an **STE or a Mega STE with 1 MB of memory or more**, the loader adds the following by itself (on any other machine, the game runs without them). On a Mega STE, keypad **/** switches between 8 MHz without cache (the default) and 16 MHz with cache; this is for testing, and is not shown on the intro page.
 
 - **Jaguar pads** on the STE's enhanced joystick ports A and B (the 15-pin sockets; tested on a real STE), or ordinary joysticks with a DB15 adapter (not tested). Fire = A, B, C or Pause. No parallel-port adapter is needed. The pads are offered on any STE, even with 512 KB.
 - **Sound effects are played by DMA**, at 12,517 Hz. The original played each effect through the YM chip, with one interrupt per sample, which used 13 to 18% of the processor. The 18 sounds are converted when the game starts, which takes about 2 seconds of green screen. The music now keeps its three voices during the shouts, and the effects no longer vary in pitch.
@@ -107,13 +107,13 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 
 **The file to provide**: `IK+.PRG`, the game as a single program (344,516 bytes, MD5 `4107c876be9d49deb2a3cf5b390f70be`). The tools refuse any other file.
 
-**The result**: `build/IK_PLUS/` contains `IK_PLUS.TOS` (the loader), `IKPLUS.IMG` (the patched game), and `README.TXT` / `LISEZMOI.TXT`, which list every difference from the original game (from `dist/`, converted for the Atari by `tools/textfile.py`). Copy the folder to a floppy disk or a hard disk, then run `IK_PLUS.TOS`. On an STE with 1 MB or more, the loader applies the 9 STE hooks (table `build/stehooks.i`, from `tools/patch_ste.py`) after checking their original bytes. With the default settings, `make check` compares the result with the expected checksums (`IK_STE_CHECK.IMG` is the image as the loader patches it on an STE: it is identical to the STE version validated on real hardware):
+**The result**: `build/IK_PLUS/` contains `IK_PLUS.TOS` (the loader), `IKPLUS.IMG` (the patched game), and `README.TXT` / `LISEZMOI.TXT`, which list every difference from the original game (from `dist/`, converted for the Atari by `tools/textfile.py`). Copy the folder to a floppy disk or a hard disk, then run `IK_PLUS.TOS`. On an STE or a Mega STE with 1 MB or more, the loader applies the 9 STE hooks (table `build/stehooks.i`, from `tools/patch_ste.py`) after checking their original bytes. With the default settings, `make check` compares the result with the expected checksums (`IK_STE_CHECK.IMG` is the image as the loader patches it on an STE: its STE hooks are those of the STE version validated on real hardware):
 
 | File | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `47c4470c565aed31afed2fdafc2fa5ae` |
-| `IK_PLUS/IK_PLUS.TOS` | `467fd398b98d0594f39fc1a8764893ca` |
-| `IK_STE_CHECK.IMG` (control) | `1f8287f1eabad2373a98013a6f8e76af` |
+| `IK_PLUS/IKPLUS.IMG` | `27a89706e1ed3ed66090db8122d66f76` |
+| `IK_PLUS/IK_PLUS.TOS` | `71f575dedc3c2ee4b98f74d529737756` |
+| `IK_STE_CHECK.IMG` (control) | `b9d8dddfe68b650fc2ffc0a5396777cf` |
 
 **Option**: `make game LIMIT=180 PRG=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
 

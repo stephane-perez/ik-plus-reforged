@@ -99,16 +99,16 @@ Chaîne des correctifs : `patch_game.py` (image tirée de `IK+.PRG` ;
 RNG lisant la ROM en `$FC0000`, cause du plantage STE ; vérification de la
 disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800` + 27
 accroches, barre du haut, textes, écran d'aide par `tools/helpscreen.py`) → pour le STE, `patch_ste.py` (9 accroches vers `src/ste.s`), posées au
-lancement par le chargeur (table `build/stehooks.i`) sur un STE avec 1 Mo ;
-`make check` vérifie que le résultat (`IK_STE_CHECK.IMG`) est l'image STE
-validée sur machine réelle.
+lancement par le chargeur (table `build/stehooks.i`) sur un STE ou un Mega
+STE avec 1 Mo ; `make check` vérifie aussi l'image de contrôle
+`IK_STE_CHECK.IMG` (image telle que le chargeur la corrige).
 
 ## Carte mémoire (à respecter)
 
 | Zone | Usage |
 |---|---|
 | `$700`–`$537FF` | image du jeu (`$E64`–`$14E5` variables, pile depuis `$F28`) |
-| `$800`–`$BFF` | code 3 joueurs (`p3.s`) : **1 Ko au total**, ~934 octets utilisés ; choix des joysticks `CTL` en `$848` |
+| `$800`–`$BFF` | code 3 joueurs (`p3.s`) : **1 Ko au total**, ~970 octets utilisés ; choix des joysticks `CTL` et drapeau Mega STE en `$84C` |
 | `$70000` / `$78000` | les deux écrans |
 | `$80000`–`$A37FF` | STE : sprites convertis pour le blitter |
 | `$A7000`–`$BFFFF` | STE, mode contrôle (`-DCHECK`) seulement : copies de travail |

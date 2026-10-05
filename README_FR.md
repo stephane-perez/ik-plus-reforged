@@ -6,7 +6,7 @@ Correctifs et outils pour **International Karate +** (IK+) sur Atari ST :
 
 - **compatibilité STE / Mega STE / TOS 2.06** : le jeu tourne désormais sur STF, STE et Mega STE, à 8 et 16 MHz ;
 - un **mode 3 joueurs simultanés** : le troisième joueur utilise un joystick branché sur un adaptateur du port parallèle ;
-- des **ajouts STE**, posés automatiquement sur un STE avec au moins 1 Mo : bruitages joués par le DMA, combattants dessinés par le blitter, la vitesse turbo tient désormais 25 images par seconde ; manettes Jaguar sur les ports joystick étendus ;
+- des **ajouts STE**, posés automatiquement sur un STE ou un Mega STE avec au moins 1 Mo : bruitages joués par le DMA, combattants dessinés par le blitter, la vitesse turbo tient désormais 25 images par seconde ; manettes Jaguar sur les ports joystick étendus ;
 - **un seul programme pour toutes les machines**, et le choix de la commande de chaque joueur ;
 - un **nouveau chargeur** : une page d'introduction (logo IK+, contrôles), puis l'introduction du jeu ;
 - **JOYTEST**, un petit utilitaire qui affiche l'état de tous les joysticks, y compris ceux du port parallèle et des ports étendus du STE.
@@ -60,7 +60,7 @@ Le joueur 3 utilise un **adaptateur joystick sur le port parallèle**, du type d
 
 ### Ajouts STE
 
-Sur un **STE avec au moins 1 Mo de mémoire**, le chargeur ajoute de lui-même ce qui suit (sur une autre machine, le jeu tourne sans) :
+Sur un **STE ou un Mega STE avec au moins 1 Mo de mémoire**, le chargeur ajoute de lui-même ce qui suit (sur une autre machine, le jeu tourne sans). Sur Mega STE, la touche **/** du pavé numérique bascule entre 8 MHz sans cache (le réglage de départ) et 16 MHz avec cache ; c'est pour les essais, et ce n'est pas indiqué sur la page d'introduction.
 
 - **Manettes Jaguar** sur les ports joystick étendus A et B du STE (les prises à 15 broches ; testées sur un vrai STE), ou joysticks ordinaires avec un adaptateur DB15 (non testé). Tir = A, B, C ou Pause. Plus besoin d'adaptateur sur le port parallèle. Les manettes sont proposées sur tout STE, même avec 512 Ko.
 - **Les bruitages sont joués par le DMA**, à 12 517 Hz. L'original jouait chaque bruitage par la puce YM, avec une interruption par échantillon, ce qui prenait 13 à 18 % du processeur. Les 18 sons sont convertis au lancement du jeu, soit environ 2 secondes d'écran vert. La musique garde maintenant ses trois voix pendant les cris, et la hauteur des bruitages ne varie plus.
@@ -107,13 +107,13 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 
 **Le fichier à fournir** : `IK+.PRG`, le jeu en un seul programme (344 516 octets, MD5 `4107c876be9d49deb2a3cf5b390f70be`). Les outils refusent tout autre fichier.
 
-**Le résultat** : `build/IK_PLUS/` contient `IK_PLUS.TOS` (le chargeur), `IKPLUS.IMG` (le jeu corrigé), et `README.TXT` / `LISEZMOI.TXT`, qui listent toutes les différences avec le jeu d'origine (tirés de `dist/`, convertis pour l'Atari par `tools/textfile.py`). Copiez le dossier sur une disquette ou un disque dur, puis lancez `IK_PLUS.TOS`. Sur un STE avec au moins 1 Mo, le chargeur pose les 9 accroches STE (table `build/stehooks.i`, tirée de `tools/patch_ste.py`) après avoir vérifié leurs octets d'origine. Avec les réglages par défaut, `make check` compare le résultat aux empreintes attendues (`IK_STE_CHECK.IMG` est l'image telle que le chargeur la corrige sur un STE : elle est identique à la version STE validée sur machine réelle) :
+**Le résultat** : `build/IK_PLUS/` contient `IK_PLUS.TOS` (le chargeur), `IKPLUS.IMG` (le jeu corrigé), et `README.TXT` / `LISEZMOI.TXT`, qui listent toutes les différences avec le jeu d'origine (tirés de `dist/`, convertis pour l'Atari par `tools/textfile.py`). Copiez le dossier sur une disquette ou un disque dur, puis lancez `IK_PLUS.TOS`. Sur un STE ou un Mega STE avec au moins 1 Mo, le chargeur pose les 9 accroches STE (table `build/stehooks.i`, tirée de `tools/patch_ste.py`) après avoir vérifié leurs octets d'origine. Avec les réglages par défaut, `make check` compare le résultat aux empreintes attendues (`IK_STE_CHECK.IMG` est l'image telle que le chargeur la corrige sur un STE : ses accroches STE sont celles de la version STE validée sur machine réelle) :
 
 | Fichier | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `47c4470c565aed31afed2fdafc2fa5ae` |
-| `IK_PLUS/IK_PLUS.TOS` | `467fd398b98d0594f39fc1a8764893ca` |
-| `IK_STE_CHECK.IMG` (contrôle) | `1f8287f1eabad2373a98013a6f8e76af` |
+| `IK_PLUS/IKPLUS.IMG` | `27a89706e1ed3ed66090db8122d66f76` |
+| `IK_PLUS/IK_PLUS.TOS` | `71f575dedc3c2ee4b98f74d529737756` |
+| `IK_STE_CHECK.IMG` (contrôle) | `b9d8dddfe68b650fc2ffc0a5396777cf` |
 
 **Option** : `make game LIMIT=180 PRG=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.
 

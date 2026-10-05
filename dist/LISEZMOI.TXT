@@ -12,8 +12,9 @@ contient :
   IKPLUS.CFG    votre choix de joysticks (écrit par le chargeur)
   LISEZMOI.TXT  ce fichier (README.TXT : le même en anglais)
 
-Machines : STF, STE et Mega STE, TOS 1.04 à 2.06. Sur un STE avec au
-moins 1 Mo, le son DMA et le blitter sont utilisés automatiquement.
+Machines : STF, STE et Mega STE, TOS 1.04 à 2.06. Sur un STE ou un Mega
+STE avec au moins 1 Mo, le son DMA et le blitter sont utilisés
+automatiquement.
 
 
 CE QUI CHANGE PAR RAPPORT AU JEU D'ORIGINE
@@ -28,7 +29,9 @@ Démarrage
 - Fonctionne sur STE, Mega STE et TOS 2.06. L'original plantait au
   démarrage sur ces machines (son générateur de hasard lisait la ROM du
   TOS 1.x).
-- Mega STE : le jeu tourne à 8 MHz sans cache, comme il l'attend.
+- Mega STE : le jeu tourne à 8 MHz sans cache, comme il l'attend. La
+  touche / du pavé numérique passe à 16 MHz avec cache et revient
+  (expérimental).
 - Le bouton reset redémarre la machine au lieu de relancer le jeu.
 
 Joysticks (page d'introduction)
@@ -74,7 +77,7 @@ Affichage
 - Barre du haut : les barres de vie, scores et poings du rouge et du bleu
   sont un peu décalés vers la gauche ; le poing bleu ne touche plus « LV ».
 
-STE avec au moins 1 Mo
+STE ou Mega STE avec au moins 1 Mo
 - Bruitages joués par le DMA, à 12,5 kHz. La musique garde ses trois voix
   pendant les cris. Environ 2 secondes d'écran vert au démarrage, le temps
   de convertir les sons.

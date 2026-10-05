@@ -12,8 +12,8 @@
 ;    ceux de la SCC du Mega STE ($180-$1BC) ;
 ;  - Mega STE : interruptions de la SCC coupées (WR9 = 0), 8 MHz sans cache ;
 ;  - STE / Mega STE : son DMA arrêté, registres vidéo STE remis à zéro ;
-;  - un seul programme pour toutes les machines : sur un STE (cookie _MCH =
-;    $00010000) avec au moins 1 Mo, le module src/ste.s (son DMA, blitter)
+;  - un seul programme pour toutes les machines : sur un STE ou un Mega STE
+;    (cookie _MCH = $00010000 ou $00010010) avec au moins 1 Mo, le module src/ste.s (son DMA, blitter)
 ;    est recopié en STEBASE et ses 9 accroches sont posées dans l'image lue,
 ;    après vérification des octets d'origine (table build/stehooks.i, tirée
 ;    de tools/patch_ste.py) ; sinon, le jeu tourne sans elles ;
@@ -99,6 +99,7 @@ start       move.l  4(a7),a5                ; basepage
             move.b  ctl,(a0)+
             move.b  ctl+1,(a0)+
             move.b  ctl+2,(a0)+
+            move.b  ismste,(a0)+            ; MSTE : touche « / » (8 / 16 MHz)
 
             ; au moins ~2 s depuis la fin de la lecture : laisser le lecteur
             ; de disquette s'arrêter (d7 = images déjà passées sur la page)
@@ -168,7 +169,7 @@ stehook     lea     stehooks,a0             ; 1. vérification
 ; ----------------------------------------------------------------------------
 LOGO        equ $1b678
 FONT        equ $9736
-CTLADR      equ $848                        ; CTL dans src/p3.s : sources des joueurs
+CTLADR      equ $84c                        ; CTL dans src/p3.s : sources des joueurs, puis MSTE
 NSRC        equ 7                           ; sources 0 à 6 (6 = aucune)
 NAMECOL     equ 26                          ; colonne du nom de la source
 
@@ -270,11 +271,12 @@ intro       bsr     loadcfg
 .r          rts
 
 ; prep (superviseur) : STE ? (cookie _MCH = $00010000 : ports étendus) ;
-; STE avec au moins 1 Mo (phystop) : mode STE possible ; clic clavier coupé
-; (conterm, bit 0).
+; Mega STE ? ($00010010) ; STE ou Mega STE avec au moins 1 Mo (phystop) :
+; mode STE possible (son DMA, blitter) ; clic clavier coupé (conterm, bit 0).
 prep        bclr    #0,$484.w
             bsr.s   .mch
-            tst.b   isste
+            move.b  isste,d0
+            or.b    ismste,d0
             beq.s   .r
             cmp.l   #$100000,$42e.w
             shs     stecan
@@ -289,6 +291,8 @@ prep        bclr    #0,$484.w
             bne.s   .cj
             cmp.l   #$00010000,d1
             seq     isste
+            cmp.l   #$00010010,d1
+            seq     ismste
 .x          rts
 
 ; ok : d0 = 0 si la source d0 est permise pour le joueur d5 (0 à 2),
@@ -649,7 +653,8 @@ cfgold      ds.l    1                       ; ce qui a été lu dans IKPLUS.CFG
 cfgbuf      ds.l    1
 oldcrit     ds.l    1
 isste       ds.b    1                       ; STE : ports étendus (manettes)
-stecan      ds.b    1                       ; STE avec 1 Mo : mode STE possible
+ismste      ds.b    1                       ; Mega STE
+stecan      ds.b    1                       ; STE ou Mega STE avec 1 Mo : mode STE possible
 stemode     ds.b    1                       ; accroches STE posées
             even
 fh          ds.w    1

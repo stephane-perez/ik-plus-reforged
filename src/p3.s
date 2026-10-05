@@ -62,14 +62,17 @@ FIST_X      equ $70             ; blanc $28, rouge $4C, bleu $70 (pas de 2 pixel
             bra.w blinkset      ; $83C  début de partie : clignotement des poings
             bra.w blinkvbl      ; $840  F_07608 : clignotement (interruption VBL)
             bra.w vblmap        ; $844  VBL ($1BAA) : joysticks des trois joueurs
+            bra.w slashkey      ; $848  touche « / » du pavé numérique (Mega STE)
 
-; --- choix des joysticks, écrit par le chargeur (adresse fixe $848) ---------
+; --- écrit par le chargeur (adresse fixe $84C, 4 octets) -------------------
 CTL         dc.b 1,0,2          ; sources des joueurs 1, 2, 3 (voir vblmap)
+MSTE        dc.b 0              ; 1 = Mega STE (touche « / » permise)
 RAW0        dc.b $0f            ; joystick 0 du clavier, au format du jeu
 RAW1        dc.b $0f            ; joystick 1
+FAST        dc.b 0              ; Mega STE : 1 = 16 MHz avec cache
             even
-            if CTL!=$848
-            fail "CTL doit rester en $848 (chargeur)"
+            if CTL!=$84c
+            fail "CTL doit rester en $84C (chargeur)"
             endif
 
 ; --- variables ----------------------------------------------------------------
@@ -374,6 +377,22 @@ f5key       tst.b   $100e.w
             bra.s   .r
 .on         move.b  #1,$100e.w
             jsr     $1734.w                 ; musique remise
+.r          jmp     $73a8
+
+; ----------------------------------------------------------------------------
+; slashkey : touche « / » du pavé numérique ($732E saute ici), pour les
+; essais : sur Mega STE seulement, bascule entre 8 MHz sans cache (réglage
+; du chargeur au départ) et 16 MHz avec cache ($FF8E21 : bit 0 = 16 MHz,
+; bit 1 = cache). Ailleurs, rien (ce registre n'existe pas).
+; ----------------------------------------------------------------------------
+slashkey    tst.b   MSTE
+            beq.s   .r
+            eori.b  #1,FAST
+            moveq   #0,d0
+            tst.b   FAST
+            beq.s   .w
+            moveq   #3,d0
+.w          move.b  d0,$ffff8e21.w
 .r          jmp     $73a8
 
 ; ----------------------------------------------------------------------------
