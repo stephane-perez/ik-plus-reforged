@@ -19,9 +19,9 @@ WHAT IS DIFFERENT FROM THE ORIGINAL GAME
 ----------------------------------------
 
 Start-up
-- A new loader replaces the original program. It shows an intro page
-  (IK+ logo, joystick choice, training mode, PRESS SPACE TO START), then
-  the game's own intro.
+- A new loader replaces the original program. It shows LOADING, then an
+  intro page (IK+ logo, joystick choice, training mode, PRESS SPACE TO
+  START), then the game's own intro.
 - No floppy disk check: the game no longer needs a disk in drive A, and
   it runs from a hard disk.
 - Runs on STE, Mega STE and TOS 2.06. The original crashed at start-up
@@ -79,7 +79,7 @@ Display
 
 STE or Mega STE with 1 MB or more
 - Sound effects are played by DMA, at 12.5 kHz. The music keeps its three
-  voices during the shouts. About 2 seconds of green screen at start-up
+  voices during the shouts. After SPACE, about 2 seconds of PLEASE WAIT
   while the sounds are converted.
 - The fighters are drawn and erased by the blitter, with the same result
   as the original drawing.

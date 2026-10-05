@@ -208,3 +208,10 @@ Ticket #16 : un seul programme pour toutes les machines, une page d'introduction
 - Vérifié dans Hatari (STF/1.04) : page ; partie à 1 joueur en entraînement, 75 s de combat contre l'ordinateur : points de round toujours à 0, « TIME: -- », le round continue ; sans entraînement, la même partie se termine normalement.
 - Empreintes : `IK_PLUS/IKPLUS.IMG` = `90c05ec22bd45bc9898ed30653b37300`, `IK_PLUS_REF.TOS` = `2b13ae7a9cbff22b48d9e2a0fbbafdd3`, `IK_STE_CHECK.IMG` = `368df6c7c8ae7cd4bc9c729f61e6f341`.
 - **Retour de la machine réelle** : tout validé sur STE et Mega STE (page, entraînement sans points, mode STE). Fusion dans `master`.
+
+## 17. Version 10 : écran de chargement
+
+- **Plus de fond bleu** pendant la lecture de `IKPLUS.IMG` : le chargeur (`loading`) passe en basse résolution, met la palette à noir (couleur 0) et blanc (couleur 15, celle du texte du TOS), cache la souris et le curseur, puis écrit « LOADING » en haut à gauche avec la police du TOS (la police du jeu n'est pas encore lue). La page d'introduction suit.
+- Textes de la distribution et README : « PLEASE WAIT » (page d'introduction) au lieu de l'ancien écran vert pendant la conversion des sons.
+- Vérifié dans Hatari : Mega STE/2.06 depuis une disquette (« LOADING » pendant la lecture, puis la page), STF/1.04 depuis le disque dur (lecture trop rapide pour le voir, page normale).
+- Empreintes : `IK_PLUS/IKPLUS.IMG` inchangée (`90c05ec22bd45bc9898ed30653b37300`), `IK_PLUS_REF.TOS` = `7ffc0b454eaa4279ae817ccdf21ab081`.

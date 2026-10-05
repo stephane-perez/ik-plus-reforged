@@ -20,7 +20,8 @@
 ;  - page d'introduction (logo IK+ et police du jeu, pris dans l'image lue :
 ;    rien du jeu dans ce programme) : F1, F2, F3 choisissent le joystick de
 ;    chaque joueur, mémorisé dans IKPLUS.CFG ; Espace pour continuer.
-; Diagnostic (couleur du fond) : bleu = chargement,
+; Au départ : « LOADING » en haut à gauche, en blanc sur noir (VT52 du TOS,
+; basse résolution). Diagnostic (couleur du fond) :
 ; rouge figé = erreur de bus / d'adresse avant que le jeu ait installé ses
 ; propres vecteurs.
 ; ============================================================================
@@ -63,10 +64,7 @@ start       move.l  4(a7),a5                ; basepage
             clr.b   stecan
 .blk
 
-            pea     setblue(pc)             ; fond bleu pendant le chargement
-            move.w  #$26,-(a7)
-            trap    #14
-            addq.l  #6,a7
+            bsr     loading                 ; « LOADING », blanc sur noir
 
             clr.w   -(a7)                   ; Fopen("IKPLUS.IMG", lecture)
             pea     fname(pc)
@@ -126,7 +124,36 @@ lderr        pea     errmsg(pc)
             clr.w   -(a7)
             trap    #1
 
-setblue     move.w  #$007,$ffff8240.w
+; loading : basse résolution, fond noir, « LOADING » en haut à gauche (police
+; du TOS : la police du jeu n'est pas encore lue), souris et curseur cachés.
+loading     dc.w    $a00a                   ; Line-A : souris cachée
+            move.w  #4,-(a7)                ; Getrez
+            trap    #14
+            addq.l  #2,a7
+            tst.w   d0
+            beq.s   .low
+            clr.w   -(a7)                   ; Setscreen(-1, -1, 0) : basse résolution
+            moveq   #-1,d0
+            move.l  d0,-(a7)
+            move.l  d0,-(a7)
+            move.w  #5,-(a7)
+            trap    #14
+            lea     12(a7),a7
+.low        pea     ldpal(pc)               ; Setpalette : 0 noir, 15 blanc (texte)
+            move.w  #6,-(a7)
+            trap    #14
+            addq.l  #6,a7
+            clr.w   -(a7)                   ; Cursconf(0) : curseur caché
+            move.w  #21,-(a7)
+            trap    #14
+            addq.l  #4,a7
+            pea     ldmsg(pc)               ; Cconws
+            move.w  #9,-(a7)
+            trap    #1
+            addq.l  #6,a7
+            move.w  #$25,-(a7)              ; Vsync : la palette est posée
+            trap    #14
+            addq.l  #2,a7
             rts
 
 ; stehook : pose les accroches du module STE (table stehooks) dans l'image
@@ -693,6 +720,10 @@ stubste     dc.w    0                       ; 1 : module STE en place
 stubend
 
 fname       dc.b    'IKPLUS.IMG',0
+ldmsg       dc.b    27,'E','LOADING',0      ; écran effacé, curseur en haut à gauche
+            even
+ldpal       dc.w    $000,$000,$000,$000,$000,$000,$000,$000
+            dc.w    $000,$000,$000,$000,$000,$000,$000,$777
 errmsg      dc.b    13,10,'IK+ : IKPLUS.IMG introuvable ou memoire insuffisante.',13,10,0
             even
             section data
