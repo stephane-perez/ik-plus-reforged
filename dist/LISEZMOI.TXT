@@ -22,16 +22,14 @@ CE QUI CHANGE PAR RAPPORT AU JEU D'ORIGINE
 
 Démarrage
 - Un nouveau chargeur remplace le programme d'origine. Il affiche une page
-  d'introduction (logo IK+, choix des joysticks, SPACE TO START), puis
-  l'introduction du jeu.
+  d'introduction (logo IK+, choix des joysticks, mode entraînement,
+  PRESS SPACE TO START), puis l'introduction du jeu.
 - Plus de vérification de la disquette : le jeu n'a plus besoin d'une
   disquette dans le lecteur A, et il tourne depuis un disque dur.
 - Fonctionne sur STE, Mega STE et TOS 2.06. L'original plantait au
   démarrage sur ces machines (son générateur de hasard lisait la ROM du
   TOS 1.x).
-- Mega STE : le jeu tourne à 8 MHz sans cache, comme il l'attend. La
-  touche / du pavé numérique passe à 16 MHz avec cache et revient
-  (expérimental).
+- Mega STE : le jeu tourne à 8 MHz sans cache, comme il l'attend.
 - Le bouton reset redémarre la machine au lieu de relancer le jeu.
 
 Joysticks (page d'introduction)
@@ -48,6 +46,7 @@ Joysticks (page d'introduction)
   joueur 3 sur JOYSTICK 2 (JOYPAD A sur un STE).
 - Le choix est mémorisé dans IKPLUS.CFG. Sur un disque protégé en écriture
   ou plein, rien n'est écrit et le jeu démarre quand même.
+- F4 : mode entraînement marche / arrêt (voir plus bas). Jamais mémorisé.
 - Pas de clic clavier sur la page d'introduction.
 
 Mode 3 joueurs
@@ -60,6 +59,12 @@ Mode 3 joueurs
 - Le joueur 3 joue aussi les deux épreuves bonus, à tour de rôle avec les
   autres. Dans l'épreuve des bombes, les explosions sont bleues pendant
   son tour.
+
+Mode entraînement (F4 sur la page d'introduction)
+- Pendant une partie, le temps du round ne baisse pas et s'affiche
+  « TIME: -- ». Une partie à 3 ne s'arrête plus au bout de 5 minutes. La
+  démo et les épreuves bonus ne changent pas. Quitter le jeu pour
+  retrouver le chronomètre.
 
 Touches
 - F3 : partie à 3 joueurs (avant : musique marche / arrêt).

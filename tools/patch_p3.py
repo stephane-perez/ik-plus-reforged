@@ -1,14 +1,14 @@
 """patch_p3.py <image du jeu corrigée (patch_game.py)> <build/p3.bin> <sortie>
 
 Pose le code du mode 3 joueurs (src/p3.s, assemblé en $800) dans l'image
-du jeu et le relie par 27 accroches. Chaque accroche vérifie les octets
+du jeu et le relie par 29 accroches. Chaque accroche vérifie les octets
 d'origine avant de les remplacer. Corrige aussi quelques réglages du jeu
 (vitesse gardée, bouton reset, barre du haut, textes, écran d'aide).
 Entrées fixes de p3.s : $800 pre, $804 looptail, $808 other, $80C elim,
 $810 tick, $814 erasehook, $818 drawhook, $81C roundend, $820 roundmsg, $824 f3key,
 $828 ikbdhook, $82C blinka, $830 blinkb, $834 f5key, $838 setp12, $83C blinkset,
-$840 blinkvbl, $844 vblmap, $848 slashkey ; choix des joysticks (CTL) et
-drapeau Mega STE en $84C (écrits par le chargeur).
+$840 blinkvbl, $844 vblmap, $848 timechk, $84C timedisp ; choix des joysticks
+(CTL) et mode entraînement (TRAIN) en $850 (écrits par le chargeur).
 """
 import sys, hashlib
 import helpscreen
@@ -64,13 +64,11 @@ def main(src, binf, dst):
     put(0x662C, '11c01092' '343c0002', jsr(0x820) + nops(1))
 
     # 11. touche F3 (musique, $7316-$733B)  ->  F3 : jmp f3key (partie à
-    #     3 joueurs) ; F5 (code $3F, inutilisé par le jeu) : jmp f5key (musique) ;
-    #     « / » du pavé numérique (code $65) : jmp slashkey (Mega STE, 8/16 MHz)
+    #     3 joueurs) ; F5 (code $3F, inutilisé par le jeu) : jmp f5key (musique)
     put(0x7316, '0c11003d' '66000020'
         '4a38100e' '6700000a' '4eb81706' '6000007c' '11fc0001100e' '4eb81734' '6000006e',
         bytes.fromhex('0c11003d' '6606') + jmp(0x824)
-        + bytes.fromhex('0c11003f' '6606') + jmp(0x834)
-        + bytes.fromhex('0c110065' '6608') + jmp(0x848) + nops(1))
+        + bytes.fromhex('0c11003f' '6614') + jmp(0x834) + nops(7))
     # 12. message $0B de l'arbitre : « PRESS F3 FOR MUSIC » -> « PRESS F5 FOR MUSIC »
     #     et message des démos : « OR F1 AND F2 KEYS » -> « OR F1 F2 F3 KEYS »
     for old, new in ((b'@PRESS@F3@FOR@', b'@PRESS@F5@FOR@'),
@@ -102,6 +100,12 @@ def main(src, binf, dst):
     put(0xEF4A, '41f81314' '11bc00142000', jsr(0x830) + nops(2))
     # 27. VBL (P_01BA6) : move.b #1,$1016.w -> jsr vblmap
     put(0x1BAA, '11fc00011016', jsr(0x844))
+    # 28. VBL, chronomètre du round : move.b $11fb.w,d0 / beq.w L_01DD2
+    #     -> jsr timechk / beq.s L_01DD2 (mode entraînement : le temps ne baisse plus)
+    put(0x1DBA, '103811fb' '67000012', jsr(0x848) + bytes.fromhex('6710'))
+    # 29. F_07536 (affichage du temps) : move.w #$26,d1 / move.b $11fb.w,d0
+    #     -> jsr timedisp + NOP (mode entraînement : « -- »)
+    put(0x7564, '323c0026' '103811fb', jsr(0x84C) + nops(1))
     # 22. F1, F2 (L_07388) : move.b d1,$1007.w / move.b d2,$1008.w -> jsr setp12 + NOP
     put(0x7388, '11c11007' '11c21008', jsr(0x838) + nops(1))
     # 23. début de partie (F_06CD0) : clignotement des poings 0 et 1 -> jsr blinkset
@@ -128,7 +132,7 @@ def main(src, binf, dst):
     helpscreen.patch(d, BASE)
 
     open(dst, 'wb').write(d)
-    print('%s : code 3 joueurs %d octets en $800, 27 accroches' % (dst, len(code)))
+    print('%s : code 3 joueurs %d octets en $800, 29 accroches' % (dst, len(code)))
 
 
 if __name__ == '__main__':

@@ -4,7 +4,7 @@
 
 Correctifs et outils pour **International Karate +** (IK+) sur Atari ST :
 
-- **compatibilité STE / Mega STE / TOS 2.06** : le jeu tourne désormais sur STF, STE et Mega STE, à 8 et 16 MHz ;
+- **compatibilité STE / Mega STE / TOS 2.06** : le jeu tourne désormais sur STF, STE et Mega STE (à 8 MHz) ;
 - un **mode 3 joueurs simultanés** : le troisième joueur utilise un joystick branché sur un adaptateur du port parallèle ;
 - des **ajouts STE**, posés automatiquement sur un STE ou un Mega STE avec au moins 1 Mo : bruitages joués par le DMA, combattants dessinés par le blitter, la vitesse turbo tient désormais 25 images par seconde ; manettes Jaguar sur les ports joystick étendus ;
 - **un seul programme pour toutes les machines**, et le choix de la commande de chaque joueur ;
@@ -36,7 +36,8 @@ Ce qui a été corrigé :
 
 - **Le générateur de nombres aléatoires du jeu** lisait la ROM du TOS 1.x en `$FC0000`. Cette adresse n'existe ni sur STE et Mega STE, ni avec le TOS 2.06 : chaque lecture provoquait une erreur de bus, et le jeu plantait ou redémarrait en boucle. Il lit maintenant des données graphiques en RAM. La modification tient en un octet.
 - **La vérification de la disquette** : `IK+.PRG` la lance toujours au démarrage, puis attend l'arrêt du moteur du lecteur, qui n'arrive jamais sans disquette dans le lecteur. Reforged la saute.
-- **Le nouveau chargeur** lit le jeu dans une zone mémoire réservée et le met en place sans risque. Sur Mega STE, il coupe les interruptions de la puce série (SCC) et passe en 8 MHz sans cache. Tous les vecteurs d'exception inutilisés pointent vers un endroit sûr. Avant le jeu, il affiche une page d'introduction : le logo IK+ et la police du jeu, tous deux pris dans votre copie du jeu, « REFORGED », le joystick de chaque joueur et « SPACE TO START ».
+- **Le nouveau chargeur** lit le jeu dans une zone mémoire réservée et le met en place sans risque. Sur Mega STE, il coupe les interruptions de la puce série (SCC) et passe en 8 MHz sans cache. Tous les vecteurs d'exception inutilisés pointent vers un endroit sûr. Avant le jeu, il affiche une page d'introduction : le logo IK+ et la police du jeu, tous deux pris dans votre copie du jeu, « REFORGED EDITION », le joystick de chaque joueur, le mode entraînement, « PRESS SPACE TO START » (puis « PLEASE WAIT »), « ENHANCED BY CLAUDE AI - 2026 » avec la version (`make TAG=…`, par défaut l'étiquette git), et « IN MEMORY OF ARCHER MACLEAN (1962-2022) ».
+- **Mode entraînement** : **F4** sur la page d'introduction l'active (il n'est jamais mémorisé). Pendant une partie, le temps du round ne baisse plus et s'affiche « TIME: -- » ; une partie à 3 ne s'arrête plus au bout de 5 minutes. La démo et les épreuves bonus ne changent pas.
 
 ### Mode 3 joueurs
 
@@ -60,7 +61,7 @@ Le joueur 3 utilise un **adaptateur joystick sur le port parallèle**, du type d
 
 ### Ajouts STE
 
-Sur un **STE ou un Mega STE avec au moins 1 Mo de mémoire**, le chargeur ajoute de lui-même ce qui suit (sur une autre machine, le jeu tourne sans). Sur Mega STE, la touche **/** du pavé numérique bascule entre 8 MHz sans cache (le réglage de départ) et 16 MHz avec cache ; c'est pour les essais, et ce n'est pas indiqué sur la page d'introduction.
+Sur un **STE ou un Mega STE avec au moins 1 Mo de mémoire**, le chargeur ajoute de lui-même ce qui suit (sur une autre machine, le jeu tourne sans).
 
 - **Manettes Jaguar** sur les ports joystick étendus A et B du STE (les prises à 15 broches ; testées sur un vrai STE), ou joysticks ordinaires avec un adaptateur DB15 (non testé). Tir = A, B, C ou Pause. Plus besoin d'adaptateur sur le port parallèle. Les manettes sont proposées sur tout STE, même avec 512 Ko.
 - **Les bruitages sont joués par le DMA**, à 12 517 Hz. L'original jouait chaque bruitage par la puce YM, avec une interruption par échantillon, ce qui prenait 13 à 18 % du processeur. Les 18 sons sont convertis au lancement du jeu, soit environ 2 secondes d'écran vert. La musique garde maintenant ses trois voix pendant les cris, et la hauteur des bruitages ne varie plus.
@@ -111,9 +112,9 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 
 | Fichier | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `27a89706e1ed3ed66090db8122d66f76` |
-| `IK_PLUS/IK_PLUS.TOS` | `71f575dedc3c2ee4b98f74d529737756` |
-| `IK_STE_CHECK.IMG` (contrôle) | `b9d8dddfe68b650fc2ffc0a5396777cf` |
+| `IK_PLUS/IKPLUS.IMG` | `d4b04662410edecebb08ecd4babaf052` |
+| `IK_PLUS_REF.TOS` (le chargeur avec le texte de version `V0.0.0`) | `579567695ab7465149d96149eed7e7dd` |
+| `IK_STE_CHECK.IMG` (contrôle) | `648aa93950588c2da491ef0b1b912980` |
 
 **Option** : `make game LIMIT=180 PRG=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.
 

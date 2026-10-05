@@ -20,13 +20,13 @@ WHAT IS DIFFERENT FROM THE ORIGINAL GAME
 
 Start-up
 - A new loader replaces the original program. It shows an intro page
-  (IK+ logo, joystick choice, SPACE TO START), then the game's own intro.
+  (IK+ logo, joystick choice, training mode, PRESS SPACE TO START), then
+  the game's own intro.
 - No floppy disk check: the game no longer needs a disk in drive A, and
   it runs from a hard disk.
 - Runs on STE, Mega STE and TOS 2.06. The original crashed at start-up
   on these machines (its random number generator read the TOS 1.x ROM).
 - Mega STE: the game runs at 8 MHz with the cache off, as it expects.
-  Keypad / switches to 16 MHz with cache and back (experimental).
 - The reset button resets the machine instead of restarting the game.
 
 Joysticks (intro page)
@@ -43,6 +43,7 @@ Joysticks (intro page)
   on JOYSTICK 2 (JOYPAD A on an STE).
 - The choice is saved in IKPLUS.CFG. On a write-protected or full disk,
   nothing is written and the game starts anyway.
+- F4: training mode on or off (see below). It is never saved.
 - No key click on the intro page.
 
 3-player mode
@@ -54,6 +55,11 @@ Joysticks (intro page)
   after 5 minutes of fighting with "MATCH OVER".
 - Player 3 also plays the two bonus stages, taking turns with the other
   players. In the bomb stage, the explosions are blue during that turn.
+
+Training mode (F4 on the intro page)
+- During a game, the round time does not count down and shows
+  "TIME: --". A 3-player match no longer ends after 5 minutes. The demo
+  and the bonus stages are unchanged. Quit the game to get the timer back.
 
 Keys
 - F3: 3-player game (was: music on/off).

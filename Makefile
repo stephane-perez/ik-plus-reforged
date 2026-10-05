@@ -12,17 +12,21 @@
 #   make vasm            builds the vasm assembler into .tools/ (done automatically)
 #
 # Options: LIMIT=300 (length of a 3-player match, in seconds of fighting)
+#          TAG=v1.0.9 (version shown on the intro page; by default the git
+#          tag of the current commit, or the last tag followed by "+")
 
 PY     ?= python3
 LIMIT  ?= 300
 PRG    ?= IK+.PRG
 VASM   ?= $(shell command -v vasmm68k_mot 2>/dev/null || echo .tools/vasm/vasmm68k_mot)
 B      := build
+TAG    ?= $(shell git describe --tags --exact-match 2>/dev/null || \
+            (t=$$(git describe --tags --abbrev=0 2>/dev/null); echo "$${t:-v?}+"))
 VFLAGS := -quiet -m68000
 
-TOOLS_OUT := $(B)/IK_PLUS.TOS $(B)/p3.bin $(B)/ste.bin $(B)/JOYTEST.TOS $(B)/JOYTSTEN.TOS
+TOOLS_OUT := $(B)/IK_PLUS.TOS $(B)/IK_PLUS_REF.TOS $(B)/p3.bin $(B)/ste.bin $(B)/JOYTEST.TOS $(B)/JOYTSTEN.TOS
 
-.PHONY: all game check vasm clean
+.PHONY: all game check vasm clean FORCE
 all: $(TOOLS_OUT)
 
 $(VASM):
@@ -34,9 +38,21 @@ $(B):
 	mkdir -p $(B)
 
 # --- our own programs (no game data involved) ------------------------------
-# the loader includes the STE module and the table of its hooks
-$(B)/IK_PLUS.TOS: src/loader.s $(B)/ste.bin $(B)/stehooks.i | $(B) $(VASM)
+# the loader includes the STE module, the table of its hooks and the version
+$(B)/IK_PLUS.TOS: src/loader.s $(B)/ste.bin $(B)/stehooks.i $(B)/version.i | $(B) $(VASM)
 	$(VASM) $(VFLAGS) -Ftos -o $@ $<
+
+# same loader with a fixed version text, for make check
+$(B)/IK_PLUS_REF.TOS: src/loader.s $(B)/ste.bin $(B)/stehooks.i | $(B) $(VASM)
+	$(VASM) $(VFLAGS) -Ftos -DREFTAG -o $@ $<
+
+# version text, rewritten only when the tag changes
+$(B)/version.i: FORCE | $(B)
+	@$(PY) -c "import sys; t='            dc.b    \'ENHANCED BY CLAUDE AI - 2026 - %s\',0\n' % sys.argv[1].upper(); \
+p=sys.argv[2]; o=open(p).read() if __import__('os').path.exists(p) else ''; \
+(o!=t) and open(p,'w').write(t)" "$(TAG)" $@
+
+FORCE:
 
 $(B)/stehooks.i: tools/patch_ste.py | $(B)
 	$(PY) tools/patch_ste.py --asm $@
@@ -68,10 +84,11 @@ game: all $(B)/IK_BASE.IMG
 	@echo
 	@echo "Copy build/IK_PLUS to your Atari and run IK_PLUS.TOS."
 
-# Expected MD5 with the default LIMIT=300
+# Expected MD5 with the default LIMIT=300 (the loader is checked with a fixed
+# version text: IK_PLUS_REF.TOS)
 check:
 	@$(PY) -c "import hashlib,sys; \
-exp={'$(B)/IK_PLUS/IKPLUS.IMG':'27a89706e1ed3ed66090db8122d66f76','$(B)/IK_PLUS.TOS':'71f575dedc3c2ee4b98f74d529737756','$(B)/IK_STE_CHECK.IMG':'b9d8dddfe68b650fc2ffc0a5396777cf'}; \
+exp={'$(B)/IK_PLUS/IKPLUS.IMG':'d4b04662410edecebb08ecd4babaf052','$(B)/IK_PLUS_REF.TOS':'579567695ab7465149d96149eed7e7dd','$(B)/IK_STE_CHECK.IMG':'648aa93950588c2da491ef0b1b912980'}; \
 bad=[f for f,h in exp.items() if hashlib.md5(open(f,'rb').read()).hexdigest()!=h]; \
 print('OK' if not bad else 'MISMATCH: '+' '.join(bad)); sys.exit(1 if bad else 0)"
 

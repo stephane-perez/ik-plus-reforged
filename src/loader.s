@@ -20,7 +20,7 @@
 ;  - page d'introduction (logo IK+ et police du jeu, pris dans l'image lue :
 ;    rien du jeu dans ce programme) : F1, F2, F3 choisissent le joystick de
 ;    chaque joueur, mémorisé dans IKPLUS.CFG ; Espace pour continuer.
-; Diagnostic (couleur du fond) : bleu = chargement, vert = saut dans le jeu,
+; Diagnostic (couleur du fond) : bleu = chargement,
 ; rouge figé = erreur de bus / d'adresse avant que le jeu ait installé ses
 ; propres vecteurs.
 ; ============================================================================
@@ -99,7 +99,7 @@ start       move.l  4(a7),a5                ; basepage
             move.b  ctl,(a0)+
             move.b  ctl+1,(a0)+
             move.b  ctl+2,(a0)+
-            move.b  ismste,(a0)+            ; MSTE : touche « / » (8 / 16 MHz)
+            move.b  train,(a0)+             ; TRAIN : mode entraînement
 
             ; au moins ~2 s depuis la fin de la lecture : laisser le lecteur
             ; de disquette s'arrêter (d7 = images déjà passées sur la page)
@@ -169,9 +169,10 @@ stehook     lea     stehooks,a0             ; 1. vérification
 ; ----------------------------------------------------------------------------
 LOGO        equ $1b678
 FONT        equ $9736
-CTLADR      equ $84c                        ; CTL dans src/p3.s : sources des joueurs, puis MSTE
+CTLADR      equ $850                        ; CTL dans src/p3.s : sources des joueurs, puis TRAIN
 NSRC        equ 7                           ; sources 0 à 6 (6 = aucune)
 NAMECOL     equ 26                          ; colonne du nom de la source
+ROW1        equ 122                         ; ligne du joueur 1 (puis +12)
 
 intro       bsr     loadcfg
             dc.w    $a00a                   ; Line-A : souris cachée
@@ -204,10 +205,10 @@ intro       bsr     loadcfg
             trap    #14
             addq.l  #6,a7
 
-            ; logo : lignes 5 à 111 de l'image, en y = 4, centré (x = 80)
+            ; logo : lignes 5 à 111 de l'image, tout en haut (y = 0), centré
             move.l  buf,a0
             add.l   #LOGO-DEST+5*160,a0
-            lea     4*160+40(a6),a1
+            lea     40(a6),a1
             move.w  #111-5,d0
 .lg         moveq   #80/4-1,d1
 .lgw        move.l  (a0)+,(a1)+
@@ -225,7 +226,8 @@ intro       bsr     loadcfg
             move.b  (a5)+,d1                ; colonne (255 = centré)
             bsr     dtext
             bra.s   .tx
-.txe        moveq   #0,d5                   ; noms des sources des 3 joueurs
+.txe        bsr     dtrain                  ; ligne F4 (mode entraînement)
+            moveq   #0,d5                   ; noms des sources des 3 joueurs
 .nm         bsr     dname
             addq.w  #1,d5
             cmp.w   #3,d5
@@ -257,18 +259,49 @@ intro       bsr     loadcfg
             cmp.b   #' ',d0
             beq.s   .go
             swap    d0                      ; code de la touche
-            sub.b   #$3b,d0                 ; F1, F2, F3 -> 0, 1, 2
+            sub.b   #$3b,d0                 ; F1, F2, F3 -> 0, 1, 2 ; F4 -> 3
             cmp.b   #3,d0
+            beq.s   .f4
             bhs.s   .wk
             moveq   #0,d5
             move.b  d0,d5
             bsr     nextsrc
             bsr     dname
             bra.s   .wk
-.go         bsr     savecfg
+.f4         eori.b  #1,train                ; mode entraînement (jamais mémorisé)
+            bsr     dtrain
+            bra     .wk
+.go         lea     tblank(pc),a5           ; « PLEASE WAIT » à la place de
+            moveq   #2,d2                   ; « PRESS SPACE TO START »
+            moveq   #0,d0
+            move.b  -2(a5),d0
+            moveq   #0,d1
+            move.b  -1(a5),d1
+            bsr     dtext
+            lea     twait(pc),a5
+            moveq   #0,d0
+            move.b  -2(a5),d0
+            moveq   #-1,d1
+            bsr     dtext
+            bsr     savecfg
             beq.s   .r
             moveq   #0,d7                   ; fichier écrit : ~2 s pour le lecteur
 .r          rts
+
+; dtrain : ligne « F4 TRAINING MODE », grise (arrêt) ou verte (marche).
+dtrain      movem.l d0-d7/a0-a6,-(a7)
+            lea     ttrain(pc),a5
+            moveq   #3,d2
+            tst.b   train
+            beq.s   .off
+            moveq   #4,d2
+.off        moveq   #0,d0
+            move.b  -2(a5),d0
+            moveq   #0,d1
+            move.b  -1(a5),d1
+            bsr     dtext
+            movem.l (a7)+,d0-d7/a0-a6
+            rts
 
 ; prep (superviseur) : STE ? (cookie _MCH = $00010000 : ports étendus) ;
 ; Mega STE ? ($00010010) ; STE ou Mega STE avec au moins 1 Mo (phystop) :
@@ -345,7 +378,7 @@ dname       movem.l d0-d7/a0-a6,-(a7)
             add.w   d0,a5
             moveq   #12,d0                  ; ligne 132 + 12 x joueur
             mulu    d5,d0
-            add.w   #132,d0
+            add.w   #ROW1,d0
             moveq   #NAMECOL,d1
             moveq   #1,d2
             bsr     dtext
@@ -475,7 +508,7 @@ dtext       move.l  a5,a0
             lea     (a6,d0.l),a1            ; a1 = début de la ligne
 .ch         moveq   #0,d0
             move.b  (a5)+,d0
-            beq.s   .end
+            beq     .end
             move.l  buf,a2                  ; police du jeu
             add.l   #FONT-DEST,a2
             cmp.b   #' ',d0
@@ -484,7 +517,14 @@ dtext       move.l  a5,a0
 .nsp        cmp.b   #':',d0
             bne.s   .ncl
             moveq   #'=',d0                 ; le « = » du jeu a la forme de « : »
-.ncl        cmp.b   #'(',d0
+.ncl        cmp.b   #'-',d0
+            bne.s   .nmi
+            moveq   #$5c,d0                 ; le « - » du jeu : lettre 44 ($5C - '0')
+.nmi        cmp.b   #'.',d0
+            bne.s   .npt
+            lea     gdot(pc),a2
+            moveq   #'0',d0
+.npt        cmp.b   #'(',d0
             bne.s   .npo
             lea     gparen(pc),a2
             moveq   #'0',d0
@@ -518,26 +558,40 @@ dtext       move.l  a5,a0
             lea     160(a3),a3
             dbra    d4,.row
             addq.w  #1,d1
-            bra.s   .ch
+            bra     .ch
 .end        rts
 
-; « ( » et « ) », absents de la police du jeu
+; « ( », « ) » et « . », absents de la police du jeu
 gparen      dc.b    $0c,$18,$30,$30,$30,$18,$0c,$00
             dc.b    $30,$18,$0c,$0c,$0c,$18,$30,$00
+gdot        dc.b    $00,$00,$00,$00,$00,$18,$18,$00
 
-; couleurs : 0 noir, 1 blanc, 2 jaune, 3 gris ; 9 à 15 : celles du logo dans
-; l'introduction du jeu (rouges, noir, gris clair)
-pal         dc.w    $000,$777,$750,$444,$000,$000,$000,$000
+; couleurs : 0 noir, 1 blanc, 2 jaune, 3 gris, 4 vert ; 9 à 15 : celles du
+; logo dans l'introduction du jeu (rouges, noir, gris clair)
+pal         dc.w    $000,$777,$750,$444,$070,$000,$000,$000
             dc.w    $000,$300,$400,$500,$600,$700,$000,$666
 
 ; textes : couleur, ligne, colonne (255 = centré), texte, 0
-texts       dc.b    13,116,255,'REFORGED',0
-            dc.b    1,132,3,'F1  PLAYER 1 (WHITE) :',0
-            dc.b    1,144,3,'F2  PLAYER 2 (RED)   :',0
-            dc.b    1,156,3,'F3  PLAYER 3 (BLUE)  :',0
-            dc.b    2,172,255,'SPACE TO START',0
-            dc.b    3,188,255,'CLAUDE AI 2026',0
+texts       dc.b    13,108,255,'REFORGED EDITION',0
+            dc.b    1,ROW1,3,'F1  PLAYER 1 (WHITE) :',0
+            dc.b    1,ROW1+12,3,'F2  PLAYER 2 (RED)   :',0
+            dc.b    1,ROW1+24,3,'F3  PLAYER 3 (BLUE)  :',0
+            dc.b    2,TROW,255,'PRESS SPACE TO START',0
+            dc.b    3,180,255
+            ifd     REFTAG
+            dc.b    'ENHANCED BY CLAUDE AI - 2026 - V0.0.0',0
+            else
+            include "build/version.i"       ; « ENHANCED BY CLAUDE AI - 2026 - Vx.y.z »
+            endif
+            dc.b    11,191,255,'IN MEMORY OF ARCHER MACLEAN (1962-2022)',0
             dc.b    0
+TROW        equ     168                     ; ligne de « PRESS SPACE TO START »
+            dc.b    ROW1+36,3               ; (ligne, colonne de ttrain)
+ttrain      dc.b    'F4  TRAINING MODE (NO TIME LIMIT)',0
+            dc.b    TROW,10
+tblank      dc.b    '                    ',0
+            dc.b    TROW,0
+twait       dc.b    'PLEASE WAIT',0
 ; noms des sources (10 lettres + 0), dans l'ordre de vblmap (src/p3.s)
 names       dc.b    'JOYSTICK 0',0,'JOYSTICK 1',0,'JOYSTICK 2',0,'JOYSTICK 3',0
             dc.b    'JOYPAD A  ',0,'JOYPAD B  ',0,'NONE      ',0
@@ -596,7 +650,6 @@ go          move.w  #$2700,sr
             move.w  #($400-$10)/4-1,d0
 .vec        move.l  #$6f0,(a0)+
             dbra    d0,.vec
-            move.w  #$070,$ffff8240.w       ; vert : on saute dans le jeu
             move.b  stemode,stubste         ; pour la routine de recopie
             beq.s   .nste
             lea     steblob,a0              ; module STE en STEBASE
@@ -653,6 +706,7 @@ cfgold      ds.l    1                       ; ce qui a été lu dans IKPLUS.CFG
 cfgbuf      ds.l    1
 oldcrit     ds.l    1
 isste       ds.b    1                       ; STE : ports étendus (manettes)
+train       ds.b    1                       ; mode entraînement choisi (F4)
 ismste      ds.b    1                       ; Mega STE
 stecan      ds.b    1                       ; STE ou Mega STE avec 1 Mo : mode STE possible
 stemode     ds.b    1                       ; accroches STE posées

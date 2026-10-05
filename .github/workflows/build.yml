@@ -16,6 +16,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    # tags: version shown on the intro page (make TAG)
 
       - name: Cache vasm
         uses: actions/cache@v4
