@@ -112,9 +112,9 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 
 | Fichier | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `90c05ec22bd45bc9898ed30653b37300` |
-| `IK_PLUS_REF.TOS` (le chargeur avec le texte de version `V0.0.0`) | `2b13ae7a9cbff22b48d9e2a0fbbafdd3` |
-| `IK_STE_CHECK.IMG` (contrôle) | `368df6c7c8ae7cd4bc9c729f61e6f341` |
+| `IK_PLUS/IKPLUS.IMG` | `013611bbd5cd32e80b95482e1696755d` |
+| `IK_PLUS_REF.TOS` (le chargeur avec le texte de version `V0.0.0`) | `809e5a2d723f26f73d774f8924b30c55` |
+| `IK_STE_CHECK.IMG` (contrôle) | `b6eaf97dc6de13dfc49e560aba921663` |
 
 **Option** : `make game LIMIT=180 PRG=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.
 

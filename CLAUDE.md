@@ -72,7 +72,7 @@ temporaire : tout ce qui n'est pas poussé disparaît avec elle.
    conversation (ils arrivent dans `/root/.claude/uploads/<session>/`). Les
    ranger dans `../ikplus-local/` (à côté du dépôt, variable `IKPLUS_LOCAL`) :
    `IK+.PRG` et `rom/tos104.img` (STF), `rom/tos162.img` (STE),
-   `rom/tos206.img` (Mega STE). Puis relancer `sh scripts/setup-dev.sh`,
+   `rom/tos206.img` (Mega STE), `rom/tos404.img` (Falcon). Puis relancer `sh scripts/setup-dev.sh`,
    qui fait `make game` et `make check`.
 3. **Où on en est** : la section « Le projet » ci-dessus, `docs/ROADMAP.md`
    et les tickets GitHub ouverts ; l'historique dans `docs/fr/VERSIONS.md`.
@@ -97,7 +97,7 @@ Listing du jeu pour l'étude : `python3 tools/trace_ik.py IK+.PRG` →
 
 Chaîne des correctifs : `patch_game.py` (image tirée de `IK+.PRG` ;
 RNG lisant la ROM en `$FC0000`, cause du plantage STE ; vérification de la
-disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800`, `src/p3b.s` en `$6A4A`, 30
+disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800`, `src/p3b.s` en `$6A4A`, 31
 accroches, barre du haut, textes, écran d'aide par `tools/helpscreen.py`) → pour le STE, `patch_ste.py` (9 accroches vers `src/ste.s`), posées au
 lancement par le chargeur (table `build/stehooks.i`) sur un STE ou un Mega
 STE avec 1 Mo ; `make check` vérifie aussi l'image de contrôle
@@ -109,7 +109,7 @@ STE avec 1 Mo ; `make check` vérifie aussi l'image de contrôle
 |---|---|
 | `$700`–`$537FF` | image du jeu (`$E64`–`$14E5` variables, pile depuis `$F28`) |
 | `$800`–`$BFF` | code 3 joueurs (`p3.s`) : **1 Ko au total**, ~940 octets utilisés ; choix des joysticks `CTL` et mode entraînement `TRAIN` en `$850` |
-| `$6A4A`–`$6AF7` | code en plus (`p3b.s`, mode entraînement) : 174 octets, dans la vérification de la disquette sautée |
+| `$6A4A`–`$6AF7` | code en plus (`p3b.s` : mode entraînement, retour `rte` du 68030) : 174 octets, dans la vérification de la disquette sautée |
 | `$70000` / `$78000` | les deux écrans |
 | `$80000`–`$A37FF` | STE : sprites convertis pour le blitter |
 | `$A7000`–`$BFFFF` | STE, mode contrôle (`-DCHECK`) seulement : copies de travail |
@@ -143,6 +143,10 @@ Tu fournis les ROM TOS (pas dans le dépôt). Scripts dans `hatari/` :
   à lire avec `m <adresse>` dans le débogueur (adresses dans le listing
   `vasm -L`). Ce mode masque les interruptions : couleurs fausses et jeu lent
   sont normaux.
+- **Falcon** : `run.sh … falcon ../../ikplus-local/rom/tos404.img … --monitor rgb`
+  (TOS 4.04 fourni par Stéphane ; `etos512us.img`, EmuTOS 1.3, en secours). Hatari
+  n'affiche pas les changements de palette en cours d'écran sur Falcon : les
+  couleurs du combat y sont fausses ; seule la machine réelle les juge.
 - Épreuves bonus : avec 3 humains (F2 puis F3), épreuve A vers VBL 4 900,
   épreuve B vers VBL 10 800 (points d'arrêt `$DFA0`, `$EEC8`).
 

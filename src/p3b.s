@@ -24,6 +24,7 @@ P3          equ $1009
             bra.w timechk       ; $6A4A  VBL ($1DBA) : chronomètre du round
             bra.w timedisp      ; $6A4E  F_07536 ($7564) : affichage du temps
             bra.w ptschk        ; $6A52  F_08564 ($8586) : points de round
+            bra.w restart       ; $6A56  $1C9C : retour en P_014FA par rte
 
 ; training : Z = 1 si le mode entraînement s'applique. Détruit d0.
 training    tst.b   TRAIN.w
@@ -67,6 +68,18 @@ ptschk      bsr.s   training
             move.b  $125e.w,d0
             add.b   d0,(a0,d2.w)
 .r          rts
+
+; restart : remplace « move.l #P_014FA,-(a7) / move.w #$2300,-(a7) / rte »
+; ($1C9C : nouvelle partie demandée, pile remise à zéro juste avant). Le jeu
+; fabrique là un cadre d'exception de 68000 (SR, PC). Les 68010 et plus
+; (Falcon030 : `_longframe`, en $59E, non nul) attendent en plus un mot de
+; format après le PC : sans lui, rte repart n'importe où.
+restart     tst.w   $59e.w
+            beq.s   .short
+            clr.w   -(a7)                   ; format 0, vecteur 0
+.short      move.l  #$14fa,-(a7)
+            move.w  #$2300,-(a7)
+            rte
 
 end_p3b
             if end_p3b>$6af8
