@@ -327,6 +327,10 @@ prep        bclr    #0,$484.w
             seq     isste
             cmp.l   #$00010010,d1
             seq     ismste
+            move.b  isste,haspad            ; ports étendus : STE et Falcon
+            cmp.l   #$00030000,d1
+            bne.s   .x
+            st      haspad
 .x          rts
 
 ; ok : d0 = 0 si la source d0 est permise pour le joueur d5 (0 à 2),
@@ -336,9 +340,9 @@ ok          cmp.b   #6,d0                   ; « aucun » : joueur 3 seulement
             cmp.w   #2,d5
             bne.s   .no
             bra.s   .yes
-.n6         cmp.b   #4,d0                   ; manettes : STE seulement
+.n6         cmp.b   #4,d0                   ; manettes : STE et Falcon seulement
             blo.s   .np
-            tst.b   isste
+            tst.b   haspad
             beq.s   .no
 .np         lea     ctl,a0                  ; pas déjà prise par un autre joueur
             moveq   #2,d1
@@ -521,7 +525,10 @@ dtext       move.l  a5,a0
 .ncl        cmp.b   #'-',d0
             bne.s   .nmi
             moveq   #$5c,d0                 ; le « - » du jeu : lettre 44 ($5C - '0')
-.nmi        cmp.b   #'.',d0
+.nmi        cmp.b   #'+',d0
+            bne.s   .npl
+            moveq   #';',d0                 ; le « + » du jeu : lettre 11
+.npl        cmp.b   #'.',d0
             bne.s   .npt
             lea     gdot(pc),a2
             moveq   #'0',d0
@@ -621,8 +628,19 @@ go          move.w  #$2700,sr
             bne.s   .cj
             move.l  d1,d6
 .nocj
-            swap    d6                      ; 0 = ST, 1 = STE/Mega STE, 2 = TT...
-            cmp.w   #1,d6
+            swap    d6                      ; 0 = ST, 1 = STE/Mega STE, 2 = TT, 3 = Falcon
+            cmp.w   #3,d6
+            bne.s   .nofa
+            ; Falcon030 : son DMA arrêté, caches du 68030 vidés et coupés
+            ; (movec d0,cacr), processeur à 8 MHz ($FF8007, bit 0), comme un ST
+            clr.b   $ffff8901.w
+            move.l  #$0808,d0               ; CI + CD : caches vidés
+            dc.w    $4e7b,$0002             ; movec d0,cacr
+            moveq   #0,d0                   ; caches coupés
+            dc.w    $4e7b,$0002
+            bclr    #0,$ffff8007.w          ; 8 MHz
+            bra.s   .nost
+.nofa       cmp.w   #1,d6
             bne.s   .nost
             clr.b   $ffff8901.w             ; son DMA arrêté
             clr.b   $ffff820f.w             ; largeur de ligne en plus
@@ -709,7 +727,8 @@ ctl         ds.l    1                       ; sources des joueurs 1 à 3 (+ 1 oc
 cfgold      ds.l    1                       ; ce qui a été lu dans IKPLUS.CFG
 cfgbuf      ds.l    1
 oldcrit     ds.l    1
-isste       ds.b    1                       ; STE : ports étendus (manettes)
+isste       ds.b    1                       ; STE
+haspad      ds.b    1                       ; ports étendus (manettes) : STE, Falcon
 train       ds.b    1                       ; mode entraînement choisi (F4)
 ismste      ds.b    1                       ; Mega STE
 stecan      ds.b    1                       ; STE ou Mega STE avec 1 Mo : mode STE possible
