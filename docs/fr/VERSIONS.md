@@ -218,3 +218,4 @@ Ticket #16 : un seul programme pour toutes les machines, une page d'introduction
 - Page d'introduction : le « + » des versions de développement (« V1.0.8+ ») utilise la lettre 11 de la police du jeu (avant : un pavé).
 - **CT60 (68060)** : pas encore traité. Le jeu utilise `movep` (VBL, `$1BDC`), absent du 68060 et émulé par le gestionnaire du TOS de la CT60, que le chargeur écrase en remplaçant tous les vecteurs ; caches et vitesse à voir aussi.
 - Empreintes : `IK_PLUS/IKPLUS.IMG` = `013611bbd5cd32e80b95482e1696755d`, `IK_PLUS_REF.TOS` = `809e5a2d723f26f73d774f8924b30c55`, `IK_STE_CHECK.IMG` = `b6eaf97dc6de13dfc49e560aba921663`.
+- **TOS 4.04** (fourni par Stéphane, `rom/tos404.img`) : même résultat qu'avec EmuTOS dans Hatari (page, introduction, partie à 3 avec F3, relance à 2 avec F2, aucune erreur) ; couleurs du combat toujours non jugeables dans Hatari.
