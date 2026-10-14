@@ -143,7 +143,7 @@ Tu fournis les ROM TOS (pas dans le dépôt). Scripts dans `hatari/` :
   à lire avec `m <adresse>` dans le débogueur (adresses dans le listing
   `vasm -L`). Ce mode masque les interruptions : couleurs fausses et jeu lent
   sont normaux.
-- **Falcon** : `run.sh … falcon ../../ikplus-local/rom/tos404.img … --monitor rgb`
+- **Falcon** : `run.sh … falcon ../../ikplus-local/rom/tos404.img … --monitor rgb --mmu on` (sans `--mmu on`, Hatari ignore la MMU que le TOS 4 active : table racine en `$700`)
   (TOS 4.04 fourni par Stéphane ; `etos512us.img`, EmuTOS 1.3, en secours). Hatari
   n'affiche pas les changements de palette en cours d'écran sur Falcon : les
   couleurs du combat y sont fausses ; seule la machine réelle les juge.

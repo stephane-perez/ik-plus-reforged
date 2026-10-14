@@ -113,7 +113,7 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 | File | MD5 |
 |---|---|
 | `IK_PLUS/IKPLUS.IMG` | `013611bbd5cd32e80b95482e1696755d` |
-| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `809e5a2d723f26f73d774f8924b30c55` |
+| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `25cc870f15c748bcf4c0c61cf8e0997b` |
 | `IK_STE_CHECK.IMG` (control) | `b6eaf97dc6de13dfc49e560aba921663` |
 
 **Option**: `make game LIMIT=180 PRG=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.

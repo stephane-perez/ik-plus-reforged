@@ -617,16 +617,22 @@ defctl      dc.b    1,0,2,0
 ; ----------------------------------------------------------------------------
 go          move.w  #$2700,sr
             ; type de machine : cookie _MCH (TOS >= 1.06), sinon STF
+            ; et processeur : cookie _CPU (30 = 68030)
             moveq   #0,d6
+            moveq   #0,d5
             move.l  $5a0.w,d0
             beq.s   .nocj
             move.l  d0,a0
 .cj         move.l  (a0)+,d0
             beq.s   .nocj
             move.l  (a0)+,d1
-            cmp.l   #'_MCH',d0
+            cmp.l   #'_CPU',d0
+            bne.s   .cj1
+            move.l  d1,d5
+.cj1        cmp.l   #'_MCH',d0
             bne.s   .cj
             move.l  d1,d6
+            bra.s   .cj
 .nocj
             swap    d6                      ; 0 = ST, 1 = STE/Mega STE, 2 = TT, 3 = Falcon
             cmp.w   #3,d6
@@ -634,11 +640,18 @@ go          move.w  #$2700,sr
             ; Falcon030 : son DMA arrêté, caches du 68030 vidés et coupés
             ; (movec d0,cacr), processeur à 8 MHz ($FF8007, bit 0), comme un ST
             clr.b   $ffff8901.w
+            cmp.l   #30,d5                  ; 68030 seulement (pas la CT60)
+            bne.s   .no30
             move.l  #$0808,d0               ; CI + CD : caches vidés
             dc.w    $4e7b,$0002             ; movec d0,cacr
             moveq   #0,d0                   ; caches coupés
             dc.w    $4e7b,$0002
-            bclr    #0,$ffff8007.w          ; 8 MHz
+            ; MMU coupée : le TOS 4 met sa table racine (CRP) en $700, là où
+            ; va le jeu ; il ne fait qu'une correspondance identité.
+            clr.l   -(a7)
+            dc.w    $f017,$4000             ; pmove.l (a7),tc
+            addq.l  #4,a7
+.no30       bclr    #0,$ffff8007.w          ; 8 MHz
             bra.s   .nost
 .nofa       cmp.w   #1,d6
             bne.s   .nost
