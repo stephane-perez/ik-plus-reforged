@@ -217,6 +217,15 @@ intro       bsr     loadcfg
             lea     80(a0),a0
             lea     80(a1),a1
             dbra    d0,.lg
+            ; dessins « REFORGED » et « EDITION » de part et d'autre du logo
+            lea     sidel,a0
+            lea     SIDEY*160(a6),a1
+            moveq   #SIDELW-1,d2
+            bsr     dside
+            lea     sider,a0
+            lea     SIDEY*160+120(a6),a1
+            moveq   #SIDERW-1,d2
+            bsr     dside
 
             lea     texts(pc),a5
 .tx         move.b  (a5)+,d2                ; couleur (0 = fin)
@@ -521,7 +530,10 @@ dtext       move.l  a5,a0
 .ncl        cmp.b   #'-',d0
             bne.s   .nmi
             moveq   #$5c,d0                 ; le « - » du jeu : lettre 44 ($5C - '0')
-.nmi        cmp.b   #'.',d0
+.nmi        cmp.b   #'+',d0
+            bne.s   .npl
+            moveq   #';',d0                 ; le « + » du jeu : lettre 11
+.npl        cmp.b   #'.',d0
             bne.s   .npt
             lea     gdot(pc),a2
             moveq   #'0',d0
@@ -562,6 +574,35 @@ dtext       move.l  a5,a0
             bra     .ch
 .end        rts
 
+; dside : pose un bloc de SIDEH lignes de d2+1 groupes de 16 pixels (4 plans
+; entrelacés, comme l'écran), a0 = bloc, a1 = écran ; seuls les pixels non
+; noirs du bloc sont écrits (masque), le reste de l'écran ne change pas.
+dside       movem.l d3-d7/a2,-(a7)
+            moveq   #SIDEH-1,d0
+.l          move.l  a1,a2
+            move.w  d2,d1
+.g          movem.w (a0)+,d3-d6
+            move.w  d3,d7
+            or.w    d4,d7
+            or.w    d5,d7
+            or.w    d6,d7
+            not.w   d7
+            and.w   d7,(a2)
+            or.w    d3,(a2)+
+            and.w   d7,(a2)
+            or.w    d4,(a2)+
+            and.w   d7,(a2)
+            or.w    d5,(a2)+
+            and.w   d7,(a2)
+            or.w    d6,(a2)+
+            dbra    d1,.g
+            lea     160(a1),a1
+            dbra    d0,.l
+            movem.l (a7)+,d3-d7/a2
+            rts
+
+            include "src/sides.i"           ; dessins de Stéphane (tools/sides.py)
+
 ; « ( », « ) » et « . », absents de la police du jeu
 gparen      dc.b    $0c,$18,$30,$30,$30,$18,$0c,$00
             dc.b    $30,$18,$0c,$0c,$0c,$18,$30,$00
@@ -573,9 +614,7 @@ pal         dc.w    $000,$777,$750,$444,$070,$000,$000,$000
             dc.w    $000,$300,$400,$500,$600,$700,$000,$666
 
 ; textes : couleur, ligne, colonne (255 = centré), texte, 0
-texts       dc.b    13,49,1,'REFORGED',0     ; à gauche du logo (cases 10 à 29)
-            dc.b    13,49,31,'EDITION',0     ; à droite
-            dc.b    1,ROW1,3,'F1  PLAYER 1 (WHITE) :',0
+texts       dc.b    1,ROW1,3,'F1  PLAYER 1 (WHITE) :',0
             dc.b    1,ROW1+RSTEP,3,'F2  PLAYER 2 (RED)   :',0
             dc.b    1,ROW1+2*RSTEP,3,'F3  PLAYER 3 (BLUE)  :',0
             dc.b    2,TROW,255,'PRESS SPACE TO START',0

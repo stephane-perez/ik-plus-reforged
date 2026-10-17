@@ -208,3 +208,12 @@ Ticket #16 : un seul programme pour toutes les machines, une page d'introduction
 - Vérifié dans Hatari (STF/1.04) : page ; partie à 1 joueur en entraînement, 75 s de combat contre l'ordinateur : points de round toujours à 0, « TIME: -- », le round continue ; sans entraînement, la même partie se termine normalement.
 - Empreintes : `IK_PLUS/IKPLUS.IMG` = `90c05ec22bd45bc9898ed30653b37300`, `IK_PLUS_REF.TOS` = `2b13ae7a9cbff22b48d9e2a0fbbafdd3`, `IK_STE_CHECK.IMG` = `368df6c7c8ae7cd4bc9c729f61e6f341`.
 - **Retour de la machine réelle** : tout validé sur STE et Mega STE (page, entraînement sans points, mode STE). Fusion dans `master`.
+
+## 19. Page d'introduction : dessins « REFORGED » et « EDITION »
+
+- Les textes « REFORGED » et « EDITION » (police du jeu, ligne 49) sont remplacés par deux dessins de Stéphane, de part et d'autre du logo, lignes 43 à 60 (gauche : x = 0 à 82 ; droite : x = 245 à 318).
+- Source : son écran Degas `IKPLUS2.PI1` (MD5 `b42973810f1abce24c1b5523601727d8`), hors du dépôt dans `../ikplus-local/` puisqu'il contient aussi le logo du jeu. `tools/sides.py` en tire les deux blocs (6 et 5 groupes de 16 pixels, 4 plans entrelacés, 1 584 octets), seuls dans le dépôt : `src/sides.i`. La palette du PI1 est d'un cran plus sombre (conversion PNG → PI1) : chaque couleur est remontée d'un cran et retrouvée dans la palette du chargeur, qui ne change pas (rouges du logo 9 à 13, gris clair 15).
+- Chargeur : `dside` pose chaque bloc après le logo, avec un masque (les pixels noirs du dessin ne touchent pas l'écran).
+- Page d'introduction : le « + » des versions de développement (« V1.0.9+ ») utilise la lettre 11 de la police du jeu (avant : un pavé ; même correctif que sur la branche `falcon`).
+- Essais Hatari (STF TOS 1.04, STE TOS 1.62, Mega STE TOS 2.06) : l'écran obtenu est identique, au pixel près, à la maquette tirée du PI1 (couleurs corrigées), hormis la ligne de version ; le jeu démarre après Espace.
+- Empreinte : `IK_PLUS_REF.TOS` = `c457539f4593793a993c093c5b8fa94f`.
