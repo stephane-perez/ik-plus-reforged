@@ -1,8 +1,7 @@
 # IK+ Reforged - build
 #
 #   make                 builds everything that does not need the game:
-#                        loaders, 3-player code, STE module, JOYTEST (French
-#                        and English)
+#                        loaders, 3-player code, STE module
 #   make game PRG=path/to/IK+.PRG
 #                        also patches YOUR copy of the game and assembles the
 #                        ready-to-copy folder build/IK_PLUS (one program for
@@ -24,7 +23,7 @@ TAG    ?= $(shell git describe --tags --exact-match 2>/dev/null || \
             (t=$$(git describe --tags --abbrev=0 2>/dev/null); echo "$${t:-v?}+"))
 VFLAGS := -quiet -m68000
 
-TOOLS_OUT := $(B)/IK_PLUS.TOS $(B)/IK_PLUS_REF.TOS $(B)/p3.bin $(B)/p3b.bin $(B)/ste.bin $(B)/JOYTEST.TOS $(B)/JOYTSTEN.TOS
+TOOLS_OUT := $(B)/IK_PLUS.TOS $(B)/IK_PLUS_REF.TOS $(B)/p3.bin $(B)/p3b.bin $(B)/ste.bin
 
 .PHONY: all game check vasm clean FORCE
 all: $(TOOLS_OUT)
@@ -65,12 +64,6 @@ $(B)/p3b.bin: src/p3b.s | $(B) $(VASM)
 
 $(B)/ste.bin: src/ste.s | $(B) $(VASM)
 	$(VASM) $(VFLAGS) -Fbin -o $@ $<
-
-$(B)/JOYTEST.TOS: src/joytest.s | $(B) $(VASM)
-	$(VASM) $(VFLAGS) -Ftos -o $@ $<
-
-$(B)/JOYTSTEN.TOS: src/joytest.s | $(B) $(VASM)
-	$(VASM) $(VFLAGS) -Ftos -DENGLISH -o $@ $<
 
 # --- the game: built from the user's own IK+.PRG ---------------------------
 $(B)/IK_BASE.IMG: $(PRG) tools/patch_game.py tools/ikimg.py | $(B)

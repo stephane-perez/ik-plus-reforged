@@ -9,7 +9,7 @@ Correctifs et outils pour **International Karate +** (IK+) sur Atari ST :
 - des **ajouts STE**, posés automatiquement sur un STE ou un Mega STE avec au moins 1 Mo : bruitages joués par le DMA, combattants dessinés par le blitter, la vitesse turbo tient désormais 25 images par seconde ; manettes Jaguar sur les ports joystick étendus ;
 - **un seul programme pour toutes les machines**, et le choix de la commande de chaque joueur ;
 - un **nouveau chargeur** : une page d'introduction (logo IK+, contrôles), puis l'introduction du jeu ;
-- **JOYTEST**, un petit utilitaire qui affiche l'état de tous les joysticks, y compris ceux du port parallèle et des ports étendus du STE.
+- **JOYTEST**, le testeur de joysticks écrit d'abord pour ce projet, a maintenant son propre dépôt : [joystick-tester](https://github.com/stephane-perez/joystick-tester).
 
 > ## ⚠️ Avertissement
 >
@@ -80,19 +80,13 @@ Dans IK+, une image correspond à un pas du jeu : F6 à F10 fixent un nombre min
 
 ### JOYTEST
 
-`JOYTEST.TOS` (français) et `JOYTSTEN.TOS` (anglais) affichent en temps réel :
-
-- les ports 0 et 1 du ST : les 8 directions et le bouton de tir ;
-- le port parallèle : les directions lues sur D0–D3 et sur D4–D7, le tir sur BUSY et sur STROBE, et les 8 lignes de données brutes ;
-- sur STE ou Falcon, les ports étendus A et B : les directions et les boutons A, B, C, Pause (P) et Option (O).
-
-C'est pratique pour vérifier n'importe quel adaptateur. Une touche quelconque quitte le programme, et la souris est remise en service.
+JOYTEST affiche en temps réel l'état de tous les joysticks : ports 0 et 1, port parallèle (adaptateurs 3 joueurs) et ports étendus du STE et du Falcon (manettes Jaguar). Il a été écrit pour vérifier les adaptateurs et les manettes utilisés par Reforged, et vit désormais dans son propre dépôt : [joystick-tester](https://github.com/stephane-perez/joystick-tester).
 
 ## Construction
 
 ### Construction automatique (GitHub Actions)
 
-Chaque envoi (push) construit les chargeurs, le code 3 joueurs, le module STE et JOYTEST. Le résultat se télécharge depuis l'onglet **Actions**, sous le nom d'artefact `ik-plus-reforged`. Le jeu lui-même n'y est **jamais** construit, puisque le workflow n'a accès à aucun fichier du jeu.
+Chaque envoi (push) construit les chargeurs, le code 3 joueurs et le module STE. Le résultat se télécharge depuis l'onglet **Actions**, sous le nom d'artefact `ik-plus-reforged`. Le jeu lui-même n'y est **jamais** construit, puisque le workflow n'a accès à aucun fichier du jeu.
 
 ### Construction manuelle
 
@@ -101,7 +95,7 @@ Prérequis : `make`, un compilateur C (pour construire l'assembleur vasm), `pyth
 ```sh
 git clone https://github.com/stephane-perez/ik-plus-reforged
 cd ik-plus-reforged
-make                                  # chargeurs, code 3 joueurs, module STE, JOYTEST
+make                                  # chargeurs, code 3 joueurs, module STE
 make game PRG=/chemin/vers/IK+.PRG    # corrige VOTRE copie du jeu
 make check                            # vérifie le résultat
 ```
@@ -136,7 +130,6 @@ Attention : Hatari 2.4.1 est plus permissif que la vraie machine sur le port par
 - `src/ste.s` : le module STE (son DMA, blitter), placé en `$C0000`, au-dessus des 512 Ko prévus par le jeu.
 - `tools/ikimg.py` : tire l'image mémoire du jeu de `IK+.PRG`.
 - `tools/patch_game.py`, `tools/patch_p3.py` et `tools/patch_ste.py` : appliquent les correctifs. Avant de modifier le moindre octet, ils vérifient l'empreinte et les octets d'origine.
-- `src/joytest.s` : JOYTEST.
 - `tools/trace_ik.py` et `tools/show.py` : un désassembleur récursif et un visualiseur de listing, pour l'étude. Ils nécessitent `pip install capstone`.
 - `docs/fr/` : les notes techniques (méthodologie, carte du code, historique des versions).
 

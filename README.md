@@ -9,7 +9,7 @@ Patches and tools for **International Karate +** (IK+) on the Atari ST:
 - **STE extras**, added automatically on an STE or a Mega STE with 1 MB or more: sound effects played by DMA, fighters drawn by the blitter, the turbo speed now holds 25 frames per second; Jaguar pads on the enhanced joystick ports;
 - **one program for every machine**, and a choice of controller for each player;
 - a **new loader**: an intro page (IK+ logo, controls), then the game's own intro;
-- **JOYTEST**, a small utility that shows the state of every joystick, including those on the parallel port and the STE's enhanced ports.
+- **JOYTEST**, the joystick tester first written for this project, now has its own repository: [joystick-tester](https://github.com/stephane-perez/joystick-tester).
 
 > ## ⚠️ Disclaimer
 >
@@ -80,19 +80,13 @@ In IK+, one frame is one step of the game: F6 to F10 set a minimum number of scr
 
 ### JOYTEST
 
-`JOYTSTEN.TOS` (English) and `JOYTEST.TOS` (French) show, in real time:
-
-- ports 0 and 1 of the ST: the 8 directions and the fire button;
-- the parallel port: the directions read on D0–D3 and on D4–D7, the fire button on BUSY and on STROBE, and the 8 raw data lines;
-- on an STE or a Falcon, the enhanced ports A and B: the directions and the A, B, C, Pause (P) and Option (O) buttons.
-
-This makes it easy to check any joystick adapter. Press any key to quit: the mouse is switched back on.
+JOYTEST shows, in real time, the state of every joystick: ports 0 and 1, the parallel port (3-player adapters) and the enhanced ports of the STE and Falcon (Jaguar pads). It was written to check the adapters and pads used by Reforged, and now lives in its own repository: [joystick-tester](https://github.com/stephane-perez/joystick-tester).
 
 ## Building
 
 ### Automatic build (GitHub Actions)
 
-Every push builds the loaders, the 3-player code, the STE module and JOYTEST. The result can be downloaded from the **Actions** tab, as the `ik-plus-reforged` artifact. The game itself is **never** built there, because no game file is available to the workflow.
+Every push builds the loaders, the 3-player code and the STE module. The result can be downloaded from the **Actions** tab, as the `ik-plus-reforged` artifact. The game itself is **never** built there, because no game file is available to the workflow.
 
 ### Manual build
 
@@ -101,7 +95,7 @@ Requirements: `make`, a C compiler (to build the vasm assembler), `python3`, and
 ```sh
 git clone https://github.com/stephane-perez/ik-plus-reforged
 cd ik-plus-reforged
-make                                  # loaders, 3-player code, STE module, JOYTEST
+make                                  # loaders, 3-player code, STE module
 make game PRG=/path/to/IK+.PRG        # patches YOUR copy of the game
 make check                            # checks the result
 ```
@@ -136,7 +130,6 @@ Note: Hatari 2.4.1 is more permissive than real hardware on the parallel port. I
 - `src/ste.s`: the STE module (DMA sound, blitter), placed at `$C0000`, above the 512 KB the game was written for.
 - `tools/ikimg.py`: extracts the game's memory image from `IK+.PRG`.
 - `tools/patch_game.py`, `tools/patch_p3.py` and `tools/patch_ste.py`: apply the patches. Before changing any byte, they check the checksum and the original bytes.
-- `src/joytest.s`: JOYTEST.
 - `tools/trace_ik.py` and `tools/show.py`: a recursive disassembler and a listing viewer, for study. They need `pip install capstone`.
 - `docs/fr/`: the technical notes (methodology, code map, version history).
 
