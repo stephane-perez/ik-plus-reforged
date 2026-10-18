@@ -30,12 +30,13 @@ de crackers dans le projet.
 - **JOYTEST** : testeur de joysticks (ports ST, port parallèle, ports étendus
   STE/Falcon), français (`JOYTEST.TOS`) et anglais (`JOYTSTEN.TOS`, `-DENGLISH`).
 
-Machines visées : STF, STE et Mega STE de base. Le blitter est exploité
-dès que `_MCH` indique un STE ou un Mega STE ; pas de prise en charge des
-cartes accélératrices.
+Machines visées : STF, STE et Mega STE de base, et Falcon030 (validé sur
+machine réelle : 16 MHz, caches et MMU coupés, ni son DMA ni blitter). Le
+blitter est exploité dès que `_MCH` indique un STE ou un Mega STE ; pas de
+prise en charge des cartes accélératrices (CT60).
 
-Le propriétaire (Stéphane) teste sur **STE 4 Mo / TOS 1.62** et
-**Mega STE / TOS 2.06**. Ce qu'on ne peut valider que sur la machine, on le
+Le propriétaire (Stéphane) teste sur **520 STF**, **STE 4 Mo / TOS 1.62**,
+**Mega STE / TOS 2.06** et **Falcon030 14 Mo / TOS 4.04** (moniteur RGB). Ce qu'on ne peut valider que sur la machine, on le
 lui demande, avec une liste précise de choses à vérifier.
 
 ## Règles absolues
@@ -76,8 +77,8 @@ temporaire : tout ce qui n'est pas poussé disparaît avec elle.
    qui fait `make game` et `make check`.
 3. **Où on en est** : la section « Le projet » ci-dessus, `docs/ROADMAP.md`
    et les tickets GitHub ouverts ; l'historique dans `docs/fr/VERSIONS.md`.
-4. **Étiquettes** : format `v1.0.N` (`v1.0.0`, `v1.0.5`, `v1.0.6`…), la
-   suivante incrémente le dernier nombre ; jamais `vN`. Le proxy git des
+4. **Étiquettes** : format `v1.N.M` (`v1.0.0`, `v1.0.9`, puis `v1.1.0`) ;
+   jamais `vN`. Stéphane choisit le numéro (après la v1.0.9 : `v1.1.0`). Le proxy git des
    sessions refuse de pousser les étiquettes (`git push origin v1.0.7` →
    403) : donner la commande à Stéphane.
 
@@ -110,14 +111,16 @@ STE avec 1 Mo ; `make check` vérifie aussi l'image de contrôle
 | `$700`–`$537FF` | image du jeu (`$E64`–`$14E5` variables, pile depuis `$F28`) |
 | `$800`–`$BFF` | code 3 joueurs (`p3.s`) : **1 Ko au total**, ~940 octets utilisés ; choix des joysticks `CTL` et mode entraînement `TRAIN` en `$850` |
 | `$6A4A`–`$6AF7` | code en plus (`p3b.s` : mode entraînement, retour `rte` du 68030) : 174 octets, dans la vérification de la disquette sautée |
+| `$53800`–`$54FFF` | STE, au lancement seulement : fin de la routine de recopie et module, avant leur départ en `$C0000` |
 | `$70000` / `$78000` | les deux écrans |
 | `$80000`–`$A37FF` | STE : sprites convertis pour le blitter |
 | `$A7000`–`$BFFFF` | STE, mode contrôle (`-DCHECK`) seulement : copies de travail |
 | `$C0000`–`$C0FFF` | STE : module `ste.s` (entrées fixes en `$C0000`, `$C0004`…) |
 | `$D0000`–`$EBE74` | STE : sons rééchantillonnés |
 
-Le jeu, écrit pour 512 Ko, n'utilise rien au-dessus de `$80000`. Le
-chargeur STE exige un bloc `Malloc` qui finit sous `$C0000`.
+Le jeu, écrit pour 512 Ko, n'utilise rien au-dessus de `$80000`. Le bloc
+`Malloc` où le chargeur lit le jeu peut être n'importe où (VERSIONS.md §20) :
+le module STE n'est posé en `$C0000` qu'une fois le jeu recopié.
 
 ## Tester dans Hatari (2.4.1)
 
