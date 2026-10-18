@@ -270,3 +270,9 @@ Ticket #16 : un seul programme pour toutes les machines, une page d'introduction
 - `README.TXT` / `LISEZMOI.TXT` : mode 3 joueurs, feu du joueur 3 pendant la démo.
 - Empreintes : `IK_PLUS/IKPLUS.IMG` = `8400e5ff1bbdc51e445debf7d909cb61`, `IK_STE_CHECK.IMG` = `5d6a0fa424d0dd333d99f339b6fce926`.
 - **Retour de la machine réelle** (essai 5) : validé (feu du joueur 3 pendant la démo). Fusion dans `master` après le Falcon (§18), l'écran de chargement (§17), les dessins (§19) et le mode STE (§20) : 32 accroches ; `IKPLUS.IMG` identique à celui de l'essai 5. Empreintes : `IK_PLUS/IKPLUS.IMG` = `c37781546d8a0d30da69ffada25a2bf5`, `IK_PLUS_REF.TOS` = `2d8d92fd5dbe391febd66d4ff42c4f73` (inchangée), `IK_STE_CHECK.IMG` = `ceb320652984ac5858572e451c0ce28d`.
+
+## 22. JOYTEST dans son propre dépôt
+
+- À la demande de Stéphane, après la v1.1.0 : JOYTEST (`src/joytest.s`) quitte IK+ Reforged pour devenir un outil à part entière, [joystick-tester](https://github.com/stephane-perez/joystick-tester) (Makefile, intégration continue avec publication sur étiquette `v*`, README anglais et français, notes techniques `docs/fr/NOTES.md`, scripts Hatari). `JOYTEST.TOS` et `JOYTSTEN.TOS` y sont construits identiques à l'octet (`409a6a20a58231d018e19241b7feac34`, `324808fc4ba48e3561794939379ea1ce`).
+- Ici : `src/joytest.s`, ses deux cibles du `Makefile` et ses fichiers dans l'intégration continue sont retirés ; les README renvoient vers le nouveau dépôt. Les sections ci-dessus (§7, §8, §12) gardent l'historique. Le jeu et le chargeur ne changent pas (`make check` inchangé).
+

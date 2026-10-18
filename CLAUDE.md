@@ -27,8 +27,8 @@ de crackers dans le projet.
   joueur 3 = manette Jaguar sur le port joystick étendu A ;
   bruitages en DMA ; combattants dessinés au blitter ; turbo (F6) à
   25 images/s en permanence.
-- **JOYTEST** : testeur de joysticks (ports ST, port parallèle, ports étendus
-  STE/Falcon), français (`JOYTEST.TOS`) et anglais (`JOYTSTEN.TOS`, `-DENGLISH`).
+- **JOYTEST** (testeur de joysticks) : sorti du projet après la v1.1.0, dans
+  son propre dépôt, https://github.com/stephane-perez/joystick-tester.
 
 Machines visées : STF, STE et Mega STE de base, et Falcon030 (validé sur
 machine réelle : 16 MHz, caches et MMU coupés, ni son DMA ni blitter). Le
@@ -87,7 +87,7 @@ temporaire : tout ce qui n'est pas poussé disparaît avec elle.
 ## Construire
 
 ```sh
-make                              # chargeurs, code 3 joueurs, module STE, JOYTEST
+make                              # chargeurs, code 3 joueurs, module STE
 make game PRG=/chemin/IK+.PRG     # corrige la copie du jeu : build/IK_PLUS
 make check                        # empreintes attendues
 ```
