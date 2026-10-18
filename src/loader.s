@@ -638,21 +638,33 @@ go          move.w  #$2700,sr
             cmp.w   #3,d6
             bne.s   .nofa
             ; Falcon030 : son DMA arrêté, caches du 68030 vidés et coupés
-            ; (movec d0,cacr), processeur à 8 MHz ($FF8007, bit 0), comme un ST
+            ; (movec d0,cacr), processeur à 8 MHz ($FF8007, bit 0), comme un ST.
+            ; Essais (-DF16 : 16 MHz ; -DFCACHE : caches gardés) : le jeu
+            ; compte ses images en VBL, un processeur plus rapide ne change
+            ; pas sa vitesse (sauf en turbo), il lui laisse plus de marge.
             clr.b   $ffff8901.w
             cmp.l   #30,d5                  ; 68030 seulement (pas la CT60)
             bne.s   .no30
             move.l  #$0808,d0               ; CI + CD : caches vidés
             dc.w    $4e7b,$0002             ; movec d0,cacr
+            ifd     FCACHE
+            move.l  #$3111,d0               ; caches remis comme le TOS
+            else
             moveq   #0,d0                   ; caches coupés
+            endif
             dc.w    $4e7b,$0002
             ; MMU coupée : le TOS 4 met sa table racine (CRP) en $700, là où
             ; va le jeu ; il ne fait qu'une correspondance identité.
             clr.l   -(a7)
             dc.w    $f017,$4000             ; pmove.l (a7),tc
             addq.l  #4,a7
-.no30       bclr    #0,$ffff8007.w          ; 8 MHz
-            bra.s   .nost
+.no30
+            ifd     F16
+            bset    #0,$ffff8007.w          ; 16 MHz
+            else
+            bclr    #0,$ffff8007.w          ; 8 MHz
+            endif
+            bra.s   .scc
 .nofa       cmp.w   #1,d6
             bne.s   .nost
             clr.b   $ffff8901.w             ; son DMA arrêté
@@ -662,16 +674,22 @@ go          move.w  #$2700,sr
             swap    d6
             cmp.w   #$10,d6                 ; Mega STE ?
             bne.s   .nost
-            ; SCC : WR9 = 0 (plus d'interruptions), via le canal A
-            tst.b   $ffff8c81.w             ; remet le pointeur de registre à 0
+            ; SCC (Mega STE et Falcon) : WR9 = 0 (plus d'interruptions), via le canal A
+            ; (attente entre deux accès : 4 nop, assez à 16 MHz)
+.scc        tst.b   $ffff8c81.w             ; remet le pointeur de registre à 0
+            rept    4
             nop
-            nop
+            endr
             move.b  #9,$ffff8c81.w
+            rept    4
             nop
-            nop
+            endr
             move.b  #0,$ffff8c81.w
+            rept    4
             nop
-            nop
+            endr
+            cmp.w   #$10,d6                 ; Mega STE (Falcon : d6 = 3)
+            bne.s   .nost
             clr.b   $ffff8e21.w             ; 8 MHz, cache coupé
 .nost
             ; vecteurs : rte en $6F0, arrêt rouge en $6E0 (bus/adresse)
