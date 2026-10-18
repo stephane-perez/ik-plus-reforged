@@ -14,7 +14,8 @@
 ;  - STE / Mega STE : son DMA arrêté, registres vidéo STE remis à zéro ;
 ;  - un seul programme pour toutes les machines : sur un STE ou un Mega STE
 ;    (cookie _MCH = $00010000 ou $00010010) avec au moins 1 Mo, le module src/ste.s (son DMA, blitter)
-;    est recopié en STEBASE et ses 9 accroches sont posées dans l'image lue,
+;    est recopié en STEBASE (une fois le jeu en place : le bloc lu peut être
+;    n'importe où) et ses 9 accroches sont posées dans l'image lue,
 ;    après vérification des octets d'origine (table build/stehooks.i, tirée
 ;    de tools/patch_ste.py) ; sinon, le jeu tourne sans elles ;
 ;  - page d'introduction (logo IK+ et police du jeu, pris dans l'image lue :
@@ -27,7 +28,9 @@
 
 SIZE        equ $53100              ; taille de IKPLUS.IMG
 DEST        equ $700
-STEBASE     equ $C0000              ; module STE : il faut un bloc Malloc qui finit dessous
+STEBASE     equ $C0000              ; module STE
+TAIL        equ DEST+SIZE           ; fin de la routine de recopie, en mode STE
+STUBSPACE   equ $1000               ; après l'image lue : routine de recopie et module STE
 
             section text
 start       move.l  4(a7),a5                ; basepage
@@ -48,7 +51,7 @@ start       move.l  4(a7),a5                ; basepage
             trap    #14
             addq.l  #6,a7
 
-            move.l  #SIZE+$200,-(a7)        ; Malloc : image + routine de recopie
+            move.l  #SIZE+STUBSPACE,-(a7)   ; Malloc : image + routine de recopie
             move.w  #$48,-(a7)
             trap    #1
             addq.l  #6,a7
@@ -57,10 +60,9 @@ start       move.l  4(a7),a5                ; basepage
             addq.l  #3,d0                   ; aligné sur 4
             and.b   #$fc,d0
             move.l  d0,buf
-            add.l   #SIZE+$200,d0           ; mode STE : le bloc doit finir sous STEBASE
-            cmp.l   #STEBASE,d0
-            bls.s   .blk
-            clr.b   stecan
+            cmp.l   #$10000,d0              ; mode STE : la routine de recopie (après
+            bhs.s   .blk                    ; l'image lue) doit être au-dessus de TAIL
+            clr.b   stecan                  ; (toujours vrai en pratique)
 .blk
 
             pea     setblue(pc)             ; fond bleu pendant le chargement
@@ -694,15 +696,10 @@ go          move.w  #$2700,sr
 .vec        move.l  #$6f0,(a0)+
             dbra    d0,.vec
             move.b  stemode,stubste         ; pour la routine de recopie
-            beq.s   .nste
-            lea     steblob,a0              ; module STE en STEBASE
-            lea     STEBASE,a1
-            move.w  #(steend-steblob)/2-1,d0
-.cs         move.w  (a0)+,(a1)+
-            dbra    d0,.cs
-.nste
 
-            ; routine de recopie posée après les données
+            ; routine de recopie posée après les données, suivie du module
+            ; STE en mode STE. Le bloc lu peut être n'importe où (même sur
+            ; STEBASE) : le module n'est posé qu'une fois le jeu recopié.
             move.l  buf,a0
             move.l  a0,a1
             adda.l  #SIZE,a1
@@ -711,25 +708,50 @@ go          move.w  #$2700,sr
             move.w  #(stubend-stub)/2-1,d0
 .cp         move.w  (a3)+,(a1)+
             dbra    d0,.cp
-            jmp     (a2)                    ; a0 = source
+            tst.b   stubste
+            beq.s   .nste
+            lea     steblob,a3
+            move.w  #STESIZE/2-1,d0
+.cm         move.w  (a3)+,(a1)+
+            dbra    d0,.cm
+.nste       jmp     (a2)                    ; a0 = source
 
-; position indépendante : ne dépend que de a0 et de sa table
+; position indépendante : ne dépend que de a0 et de sa table. Le jeu va en
+; DEST, toujours plus bas que le bloc lu : recopie vers le bas sans risque.
 stub        lea     DEST.w,a1
             move.l  #SIZE/4-1,d0
 .l          move.l  (a0)+,(a1)+
             subq.l  #1,d0
             bpl.s   .l
             move.b  stubste(pc),d0
-            beq.s   .go
+            beq.s   stubgo
+            ; mode STE : la fin de cette routine et le module qui la suit
+            ; vont en TAIL, juste après l'image du jeu (place libre) ; de là,
+            ; le module va en STEBASE, et son init (sons en $D0000, sprites
+            ; plus tard en $80000) ne peut plus écraser la routine.
+            lea     tail(pc),a0
+            lea     TAIL,a1
+            move.w  #(stubend-tail+STESIZE)/2-1,d0
+.t          move.w  (a0)+,(a1)+
+            dbra    d0,.t
+            jmp     TAIL
+tail        lea     stubend(pc),a0          ; module STE (après la routine)
+            lea     STEBASE,a1
+            move.w  #STESIZE/2-1,d0
+.m          move.w  (a0)+,(a1)+
+            dbra    d0,.m
             lea     STEBASE+$10000,a7       ; pile hors de l'image du jeu
             jsr     STEBASE                 ; init : sons rééchantillonnés
-.go
+stubgo
             movem.l regs(pc),d0-d7/a0-a7    ; registres au départ du jeu (pile en $F28)
             jmp     $1000.w
 regs        dc.l    $ffff,$ffff,$123400fb,0,0,$1f33a,$ffff,$ffff
             dc.l    $97c,$946,$70000,0,$fffffa01,$ffff8604,$ffff8606,$f28
-stubste     dc.w    0                       ; 1 : module STE en place
+stubste     dc.w    0                       ; 1 : mode STE (module après stubend)
 stubend
+            if (stubend-stub)>$100
+            fail "routine de recopie trop longue"
+            endif
 
 fname       dc.b    'IKPLUS.IMG',0
 errmsg      dc.b    13,10,'IK+ : IKPLUS.IMG introuvable ou memoire insuffisante.',13,10,0
@@ -739,6 +761,10 @@ errmsg      dc.b    13,10,'IK+ : IKPLUS.IMG introuvable ou memoire insuffisante.
 steblob     incbin  "build/ste.bin"
             even
 steend
+STESIZE     equ     steend-steblob
+            if STESIZE>STUBSPACE-$100
+            fail "module STE trop long pour STUBSPACE"
+            endif
             include "build/stehooks.i"
             even
 
