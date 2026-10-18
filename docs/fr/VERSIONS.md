@@ -211,7 +211,7 @@ Ticket #16 : un seul programme pour toutes les machines, une page d'introduction
 
 ## 17. Version 10 : écran de chargement
 
-- **Plus de fond bleu** pendant la lecture de `IKPLUS.IMG` : le chargeur (`loading`) passe en basse résolution, met la palette à noir (couleur 0) et blanc (couleur 15, celle du texte du TOS), cache la souris et le curseur, puis écrit « LOADING » en haut à gauche avec la police du TOS (la police du jeu n'est pas encore lue). La page d'introduction suit.
+- **Plus de fond bleu** pendant la lecture de `IKPLUS.IMG` : le chargeur (`loading`) passe en basse résolution, met la palette à noir (couleur 0) et blanc (couleur 15, celle du texte du TOS), cache la souris et le curseur, puis écrit « Loading, please wait... » en haut à gauche avec la police du TOS (la police du jeu n'est pas encore lue ; d'abord « LOADING », texte changé à la demande de Stéphane). La page d'introduction suit.
 - Textes de la distribution et README : « PLEASE WAIT » (page d'introduction) au lieu de l'ancien écran vert pendant la conversion des sons.
-- Vérifié dans Hatari : Mega STE/2.06 depuis une disquette (« LOADING » pendant la lecture, puis la page), STF/1.04 depuis le disque dur (lecture trop rapide pour le voir, page normale).
-- Empreintes : `IK_PLUS/IKPLUS.IMG` inchangée (`90c05ec22bd45bc9898ed30653b37300`), `IK_PLUS_REF.TOS` = `7ffc0b454eaa4279ae817ccdf21ab081`.
+- Vérifié dans Hatari : Mega STE/2.06 depuis une disquette (« Loading, please wait... » pendant la lecture, puis la page), STF/1.04 depuis le disque dur (lecture trop rapide pour le voir, page normale).
+- Empreintes : `IK_PLUS/IKPLUS.IMG` inchangée (`90c05ec22bd45bc9898ed30653b37300`), `IK_PLUS_REF.TOS` = `efd3aa5f4b6dbf8d376fc24d203786fe`.

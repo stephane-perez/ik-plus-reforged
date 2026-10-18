@@ -19,9 +19,9 @@ WHAT IS DIFFERENT FROM THE ORIGINAL GAME
 ----------------------------------------
 
 Start-up
-- A new loader replaces the original program. It shows LOADING, then an
-  intro page (IK+ logo, joystick choice, training mode, PRESS SPACE TO
-  START), then the game's own intro.
+- A new loader replaces the original program. It shows "Loading, please
+  wait...", then an intro page (IK+ logo, joystick choice, training mode,
+  PRESS SPACE TO START), then the game's own intro.
 - No floppy disk check: the game no longer needs a disk in drive A, and
   it runs from a hard disk.
 - Runs on STE, Mega STE and TOS 2.06. The original crashed at start-up

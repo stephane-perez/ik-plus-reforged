@@ -20,7 +20,7 @@
 ;  - page d'introduction (logo IK+ et police du jeu, pris dans l'image lue :
 ;    rien du jeu dans ce programme) : F1, F2, F3 choisissent le joystick de
 ;    chaque joueur, mémorisé dans IKPLUS.CFG ; Espace pour continuer.
-; Au départ : « LOADING » en haut à gauche, en blanc sur noir (VT52 du TOS,
+; Au départ : « Loading, please wait... » en haut à gauche, en blanc sur noir (VT52 du TOS,
 ; basse résolution). Diagnostic (couleur du fond) :
 ; rouge figé = erreur de bus / d'adresse avant que le jeu ait installé ses
 ; propres vecteurs.
@@ -64,7 +64,7 @@ start       move.l  4(a7),a5                ; basepage
             clr.b   stecan
 .blk
 
-            bsr     loading                 ; « LOADING », blanc sur noir
+            bsr     loading                 ; « Loading, please wait... »
 
             clr.w   -(a7)                   ; Fopen("IKPLUS.IMG", lecture)
             pea     fname(pc)
@@ -124,8 +124,9 @@ lderr        pea     errmsg(pc)
             clr.w   -(a7)
             trap    #1
 
-; loading : basse résolution, fond noir, « LOADING » en haut à gauche (police
-; du TOS : la police du jeu n'est pas encore lue), souris et curseur cachés.
+; loading : basse résolution, fond noir, « Loading, please wait... » en haut
+; à gauche (police du TOS : la police du jeu n'est pas encore lue), souris et
+; curseur cachés.
 loading     dc.w    $a00a                   ; Line-A : souris cachée
             move.w  #4,-(a7)                ; Getrez
             trap    #14
@@ -720,7 +721,7 @@ stubste     dc.w    0                       ; 1 : module STE en place
 stubend
 
 fname       dc.b    'IKPLUS.IMG',0
-ldmsg       dc.b    27,'E','LOADING',0      ; écran effacé, curseur en haut à gauche
+ldmsg       dc.b    27,'E','Loading, please wait...',0 ; écran effacé, curseur en haut à gauche
             even
 ldpal       dc.w    $000,$000,$000,$000,$000,$000,$000,$000
             dc.w    $000,$000,$000,$000,$000,$000,$000,$777
