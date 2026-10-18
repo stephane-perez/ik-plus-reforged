@@ -30,12 +30,13 @@ de crackers dans le projet.
 - **JOYTEST** : testeur de joysticks (ports ST, port parallèle, ports étendus
   STE/Falcon), français (`JOYTEST.TOS`) et anglais (`JOYTSTEN.TOS`, `-DENGLISH`).
 
-Machines visées : STF, STE et Mega STE de base. Le blitter est exploité
-dès que `_MCH` indique un STE ou un Mega STE ; pas de prise en charge des
-cartes accélératrices.
+Machines visées : STF, STE et Mega STE de base, et Falcon030 (validé sur
+machine réelle : 16 MHz, caches et MMU coupés, ni son DMA ni blitter). Le
+blitter est exploité dès que `_MCH` indique un STE ou un Mega STE ; pas de
+prise en charge des cartes accélératrices (CT60).
 
-Le propriétaire (Stéphane) teste sur **STE 4 Mo / TOS 1.62** et
-**Mega STE / TOS 2.06**. Ce qu'on ne peut valider que sur la machine, on le
+Le propriétaire (Stéphane) teste sur **520 STF**, **STE 4 Mo / TOS 1.62**,
+**Mega STE / TOS 2.06** et **Falcon030 14 Mo / TOS 4.04** (moniteur RGB). Ce qu'on ne peut valider que sur la machine, on le
 lui demande, avec une liste précise de choses à vérifier.
 
 ## Règles absolues
@@ -72,12 +73,12 @@ temporaire : tout ce qui n'est pas poussé disparaît avec elle.
    conversation (ils arrivent dans `/root/.claude/uploads/<session>/`). Les
    ranger dans `../ikplus-local/` (à côté du dépôt, variable `IKPLUS_LOCAL`) :
    `IK+.PRG` et `rom/tos104.img` (STF), `rom/tos162.img` (STE),
-   `rom/tos206.img` (Mega STE). Puis relancer `sh scripts/setup-dev.sh`,
+   `rom/tos206.img` (Mega STE), `rom/tos404.img` (Falcon). Puis relancer `sh scripts/setup-dev.sh`,
    qui fait `make game` et `make check`.
 3. **Où on en est** : la section « Le projet » ci-dessus, `docs/ROADMAP.md`
    et les tickets GitHub ouverts ; l'historique dans `docs/fr/VERSIONS.md`.
-4. **Étiquettes** : format `v1.0.N` (`v1.0.0`, `v1.0.5`, `v1.0.6`…), la
-   suivante incrémente le dernier nombre ; jamais `vN`. Le proxy git des
+4. **Étiquettes** : format `v1.N.M` (`v1.0.0`, `v1.0.9`, puis `v1.1.0`) ;
+   jamais `vN`. Stéphane choisit le numéro (après la v1.0.9 : `v1.1.0`). Le proxy git des
    sessions refuse de pousser les étiquettes (`git push origin v1.0.7` →
    403) : donner la commande à Stéphane.
 
@@ -97,7 +98,7 @@ Listing du jeu pour l'étude : `python3 tools/trace_ik.py IK+.PRG` →
 
 Chaîne des correctifs : `patch_game.py` (image tirée de `IK+.PRG` ;
 RNG lisant la ROM en `$FC0000`, cause du plantage STE ; vérification de la
-disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800`, `src/p3b.s` en `$6A4A`, 30
+disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800`, `src/p3b.s` en `$6A4A`, 31
 accroches, barre du haut, textes, écran d'aide par `tools/helpscreen.py`) → pour le STE, `patch_ste.py` (9 accroches vers `src/ste.s`), posées au
 lancement par le chargeur (table `build/stehooks.i`) sur un STE ou un Mega
 STE avec 1 Mo ; `make check` vérifie aussi l'image de contrôle
@@ -109,15 +110,17 @@ STE avec 1 Mo ; `make check` vérifie aussi l'image de contrôle
 |---|---|
 | `$700`–`$537FF` | image du jeu (`$E64`–`$14E5` variables, pile depuis `$F28`) |
 | `$800`–`$BFF` | code 3 joueurs (`p3.s`) : **1 Ko au total**, ~940 octets utilisés ; choix des joysticks `CTL` et mode entraînement `TRAIN` en `$850` |
-| `$6A4A`–`$6AF7` | code en plus (`p3b.s`, mode entraînement) : 174 octets, dans la vérification de la disquette sautée |
+| `$6A4A`–`$6AF7` | code en plus (`p3b.s` : mode entraînement, retour `rte` du 68030) : 174 octets, dans la vérification de la disquette sautée |
+| `$53800`–`$54FFF` | STE, au lancement seulement : fin de la routine de recopie et module, avant leur départ en `$C0000` |
 | `$70000` / `$78000` | les deux écrans |
 | `$80000`–`$A37FF` | STE : sprites convertis pour le blitter |
 | `$A7000`–`$BFFFF` | STE, mode contrôle (`-DCHECK`) seulement : copies de travail |
 | `$C0000`–`$C0FFF` | STE : module `ste.s` (entrées fixes en `$C0000`, `$C0004`…) |
 | `$D0000`–`$EBE74` | STE : sons rééchantillonnés |
 
-Le jeu, écrit pour 512 Ko, n'utilise rien au-dessus de `$80000`. Le
-chargeur STE exige un bloc `Malloc` qui finit sous `$C0000`.
+Le jeu, écrit pour 512 Ko, n'utilise rien au-dessus de `$80000`. Le bloc
+`Malloc` où le chargeur lit le jeu peut être n'importe où (VERSIONS.md §20) :
+le module STE n'est posé en `$C0000` qu'une fois le jeu recopié.
 
 ## Tester dans Hatari (2.4.1)
 
@@ -143,6 +146,10 @@ Tu fournis les ROM TOS (pas dans le dépôt). Scripts dans `hatari/` :
   à lire avec `m <adresse>` dans le débogueur (adresses dans le listing
   `vasm -L`). Ce mode masque les interruptions : couleurs fausses et jeu lent
   sont normaux.
+- **Falcon** : `run.sh … falcon ../../ikplus-local/rom/tos404.img … --monitor rgb --mmu on` (sans `--mmu on`, Hatari ignore la MMU que le TOS 4 active : table racine en `$700`)
+  (TOS 4.04 fourni par Stéphane ; `etos512us.img`, EmuTOS 1.3, en secours). Hatari
+  n'affiche pas les changements de palette en cours d'écran sur Falcon : les
+  couleurs du combat y sont fausses ; seule la machine réelle les juge.
 - Épreuves bonus : avec 3 humains (F2 puis F3), épreuve A vers VBL 4 900,
   épreuve B vers VBL 10 800 (points d'arrêt `$DFA0`, `$EEC8`).
 

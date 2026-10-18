@@ -14,7 +14,8 @@
 ;  - STE / Mega STE : son DMA arrêté, registres vidéo STE remis à zéro ;
 ;  - un seul programme pour toutes les machines : sur un STE ou un Mega STE
 ;    (cookie _MCH = $00010000 ou $00010010) avec au moins 1 Mo, le module src/ste.s (son DMA, blitter)
-;    est recopié en STEBASE et ses 9 accroches sont posées dans l'image lue,
+;    est recopié en STEBASE (une fois le jeu en place : le bloc lu peut être
+;    n'importe où) et ses 9 accroches sont posées dans l'image lue,
 ;    après vérification des octets d'origine (table build/stehooks.i, tirée
 ;    de tools/patch_ste.py) ; sinon, le jeu tourne sans elles ;
 ;  - page d'introduction (logo IK+ et police du jeu, pris dans l'image lue :
@@ -28,7 +29,9 @@
 
 SIZE        equ $53100              ; taille de IKPLUS.IMG
 DEST        equ $700
-STEBASE     equ $C0000              ; module STE : il faut un bloc Malloc qui finit dessous
+STEBASE     equ $C0000              ; module STE
+TAIL        equ DEST+SIZE           ; fin de la routine de recopie, en mode STE
+STUBSPACE   equ $1000               ; après l'image lue : routine de recopie et module STE
 
             section text
 start       move.l  4(a7),a5                ; basepage
@@ -49,7 +52,7 @@ start       move.l  4(a7),a5                ; basepage
             trap    #14
             addq.l  #6,a7
 
-            move.l  #SIZE+$200,-(a7)        ; Malloc : image + routine de recopie
+            move.l  #SIZE+STUBSPACE,-(a7)   ; Malloc : image + routine de recopie
             move.w  #$48,-(a7)
             trap    #1
             addq.l  #6,a7
@@ -58,10 +61,9 @@ start       move.l  4(a7),a5                ; basepage
             addq.l  #3,d0                   ; aligné sur 4
             and.b   #$fc,d0
             move.l  d0,buf
-            add.l   #SIZE+$200,d0           ; mode STE : le bloc doit finir sous STEBASE
-            cmp.l   #STEBASE,d0
-            bls.s   .blk
-            clr.b   stecan
+            cmp.l   #$10000,d0              ; mode STE : la routine de recopie (après
+            bhs.s   .blk                    ; l'image lue) doit être au-dessus de TAIL
+            clr.b   stecan                  ; (toujours vrai en pratique)
 .blk
 
             bsr     loading                 ; « Loading, please wait... »
@@ -245,6 +247,15 @@ intro       bsr     loadcfg
             lea     80(a0),a0
             lea     80(a1),a1
             dbra    d0,.lg
+            ; dessins « REFORGED » et « EDITION » de part et d'autre du logo
+            lea     sidel,a0
+            lea     SIDEY*160(a6),a1
+            moveq   #SIDELW-1,d2
+            bsr     dside
+            lea     sider,a0
+            lea     SIDEY*160+120(a6),a1
+            moveq   #SIDERW-1,d2
+            bsr     dside
 
             lea     texts(pc),a5
 .tx         move.b  (a5)+,d2                ; couleur (0 = fin)
@@ -355,6 +366,10 @@ prep        bclr    #0,$484.w
             seq     isste
             cmp.l   #$00010010,d1
             seq     ismste
+            move.b  isste,haspad            ; ports étendus : STE et Falcon
+            cmp.l   #$00030000,d1
+            bne.s   .x
+            st      haspad
 .x          rts
 
 ; ok : d0 = 0 si la source d0 est permise pour le joueur d5 (0 à 2),
@@ -364,9 +379,9 @@ ok          cmp.b   #6,d0                   ; « aucun » : joueur 3 seulement
             cmp.w   #2,d5
             bne.s   .no
             bra.s   .yes
-.n6         cmp.b   #4,d0                   ; manettes : STE seulement
+.n6         cmp.b   #4,d0                   ; manettes : STE et Falcon seulement
             blo.s   .np
-            tst.b   isste
+            tst.b   haspad
             beq.s   .no
 .np         lea     ctl,a0                  ; pas déjà prise par un autre joueur
             moveq   #2,d1
@@ -549,7 +564,10 @@ dtext       move.l  a5,a0
 .ncl        cmp.b   #'-',d0
             bne.s   .nmi
             moveq   #$5c,d0                 ; le « - » du jeu : lettre 44 ($5C - '0')
-.nmi        cmp.b   #'.',d0
+.nmi        cmp.b   #'+',d0
+            bne.s   .npl
+            moveq   #';',d0                 ; le « + » du jeu : lettre 11
+.npl        cmp.b   #'.',d0
             bne.s   .npt
             lea     gdot(pc),a2
             moveq   #'0',d0
@@ -590,6 +608,35 @@ dtext       move.l  a5,a0
             bra     .ch
 .end        rts
 
+; dside : pose un bloc de SIDEH lignes de d2+1 groupes de 16 pixels (4 plans
+; entrelacés, comme l'écran), a0 = bloc, a1 = écran ; seuls les pixels non
+; noirs du bloc sont écrits (masque), le reste de l'écran ne change pas.
+dside       movem.l d3-d7/a2,-(a7)
+            moveq   #SIDEH-1,d0
+.l          move.l  a1,a2
+            move.w  d2,d1
+.g          movem.w (a0)+,d3-d6
+            move.w  d3,d7
+            or.w    d4,d7
+            or.w    d5,d7
+            or.w    d6,d7
+            not.w   d7
+            and.w   d7,(a2)
+            or.w    d3,(a2)+
+            and.w   d7,(a2)
+            or.w    d4,(a2)+
+            and.w   d7,(a2)
+            or.w    d5,(a2)+
+            and.w   d7,(a2)
+            or.w    d6,(a2)+
+            dbra    d1,.g
+            lea     160(a1),a1
+            dbra    d0,.l
+            movem.l (a7)+,d3-d7/a2
+            rts
+
+            include "src/sides.i"           ; dessins de Stéphane (tools/sides.py)
+
 ; « ( », « ) » et « . », absents de la police du jeu
 gparen      dc.b    $0c,$18,$30,$30,$30,$18,$0c,$00
             dc.b    $30,$18,$0c,$0c,$0c,$18,$30,$00
@@ -601,9 +648,7 @@ pal         dc.w    $000,$777,$750,$444,$070,$000,$000,$000
             dc.w    $000,$300,$400,$500,$600,$700,$000,$666
 
 ; textes : couleur, ligne, colonne (255 = centré), texte, 0
-texts       dc.b    13,49,1,'REFORGED',0     ; à gauche du logo (cases 10 à 29)
-            dc.b    13,49,31,'EDITION',0     ; à droite
-            dc.b    1,ROW1,3,'F1  PLAYER 1 (WHITE) :',0
+texts       dc.b    1,ROW1,3,'F1  PLAYER 1 (WHITE) :',0
             dc.b    1,ROW1+RSTEP,3,'F2  PLAYER 2 (RED)   :',0
             dc.b    1,ROW1+2*RSTEP,3,'F3  PLAYER 3 (BLUE)  :',0
             dc.b    2,TROW,255,'PRESS SPACE TO START',0
@@ -638,19 +683,52 @@ defctl      dc.b    1,0,2,0
 ; ----------------------------------------------------------------------------
 go          move.w  #$2700,sr
             ; type de machine : cookie _MCH (TOS >= 1.06), sinon STF
+            ; et processeur : cookie _CPU (30 = 68030)
             moveq   #0,d6
+            moveq   #0,d5
             move.l  $5a0.w,d0
             beq.s   .nocj
             move.l  d0,a0
 .cj         move.l  (a0)+,d0
             beq.s   .nocj
             move.l  (a0)+,d1
-            cmp.l   #'_MCH',d0
+            cmp.l   #'_CPU',d0
+            bne.s   .cj1
+            move.l  d1,d5
+.cj1        cmp.l   #'_MCH',d0
             bne.s   .cj
             move.l  d1,d6
+            bra.s   .cj
 .nocj
-            swap    d6                      ; 0 = ST, 1 = STE/Mega STE, 2 = TT...
-            cmp.w   #1,d6
+            swap    d6                      ; 0 = ST, 1 = STE/Mega STE, 2 = TT, 3 = Falcon
+            cmp.w   #3,d6
+            bne.s   .nofa
+            ; Falcon030 : son DMA arrêté, caches du 68030 vidés et coupés
+            ; (movec d0,cacr), processeur à 16 MHz ($FF8007, bit 0). Le jeu
+            ; compte ses images en VBL : 16 MHz ne change pas sa vitesse (sauf
+            ; en turbo), mais à 8 MHz le Falcon est plus lent qu'un ST (combats
+            ; lents, rasters en retard sur le Falcon réel). Avec les caches, le
+            ; jeu se fige. -DF8 : 8 MHz (essais).
+            clr.b   $ffff8901.w
+            cmp.l   #30,d5                  ; 68030 seulement (pas la CT60)
+            bne.s   .no30
+            move.l  #$0808,d0               ; CI + CD : caches vidés
+            dc.w    $4e7b,$0002             ; movec d0,cacr
+            moveq   #0,d0                   ; caches coupés
+            dc.w    $4e7b,$0002
+            ; MMU coupée : le TOS 4 met sa table racine (CRP) en $700, là où
+            ; va le jeu ; il ne fait qu'une correspondance identité.
+            clr.l   -(a7)
+            dc.w    $f017,$4000             ; pmove.l (a7),tc
+            addq.l  #4,a7
+.no30
+            ifd     F8
+            bclr    #0,$ffff8007.w          ; 8 MHz
+            else
+            bset    #0,$ffff8007.w          ; 16 MHz
+            endif
+            bra.s   .scc
+.nofa       cmp.w   #1,d6
             bne.s   .nost
             clr.b   $ffff8901.w             ; son DMA arrêté
             clr.b   $ffff820f.w             ; largeur de ligne en plus
@@ -659,16 +737,22 @@ go          move.w  #$2700,sr
             swap    d6
             cmp.w   #$10,d6                 ; Mega STE ?
             bne.s   .nost
-            ; SCC : WR9 = 0 (plus d'interruptions), via le canal A
-            tst.b   $ffff8c81.w             ; remet le pointeur de registre à 0
+            ; SCC (Mega STE et Falcon) : WR9 = 0 (plus d'interruptions), via le canal A
+            ; (attente entre deux accès : 4 nop, assez à 16 MHz)
+.scc        tst.b   $ffff8c81.w             ; remet le pointeur de registre à 0
+            rept    4
             nop
-            nop
+            endr
             move.b  #9,$ffff8c81.w
+            rept    4
             nop
-            nop
+            endr
             move.b  #0,$ffff8c81.w
+            rept    4
             nop
-            nop
+            endr
+            cmp.w   #$10,d6                 ; Mega STE (Falcon : d6 = 3)
+            bne.s   .nost
             clr.b   $ffff8e21.w             ; 8 MHz, cache coupé
 .nost
             ; vecteurs : rte en $6F0, arrêt rouge en $6E0 (bus/adresse)
@@ -683,15 +767,10 @@ go          move.w  #$2700,sr
 .vec        move.l  #$6f0,(a0)+
             dbra    d0,.vec
             move.b  stemode,stubste         ; pour la routine de recopie
-            beq.s   .nste
-            lea     steblob,a0              ; module STE en STEBASE
-            lea     STEBASE,a1
-            move.w  #(steend-steblob)/2-1,d0
-.cs         move.w  (a0)+,(a1)+
-            dbra    d0,.cs
-.nste
 
-            ; routine de recopie posée après les données
+            ; routine de recopie posée après les données, suivie du module
+            ; STE en mode STE. Le bloc lu peut être n'importe où (même sur
+            ; STEBASE) : le module n'est posé qu'une fois le jeu recopié.
             move.l  buf,a0
             move.l  a0,a1
             adda.l  #SIZE,a1
@@ -700,25 +779,50 @@ go          move.w  #$2700,sr
             move.w  #(stubend-stub)/2-1,d0
 .cp         move.w  (a3)+,(a1)+
             dbra    d0,.cp
-            jmp     (a2)                    ; a0 = source
+            tst.b   stubste
+            beq.s   .nste
+            lea     steblob,a3
+            move.w  #STESIZE/2-1,d0
+.cm         move.w  (a3)+,(a1)+
+            dbra    d0,.cm
+.nste       jmp     (a2)                    ; a0 = source
 
-; position indépendante : ne dépend que de a0 et de sa table
+; position indépendante : ne dépend que de a0 et de sa table. Le jeu va en
+; DEST, toujours plus bas que le bloc lu : recopie vers le bas sans risque.
 stub        lea     DEST.w,a1
             move.l  #SIZE/4-1,d0
 .l          move.l  (a0)+,(a1)+
             subq.l  #1,d0
             bpl.s   .l
             move.b  stubste(pc),d0
-            beq.s   .go
+            beq.s   stubgo
+            ; mode STE : la fin de cette routine et le module qui la suit
+            ; vont en TAIL, juste après l'image du jeu (place libre) ; de là,
+            ; le module va en STEBASE, et son init (sons en $D0000, sprites
+            ; plus tard en $80000) ne peut plus écraser la routine.
+            lea     tail(pc),a0
+            lea     TAIL,a1
+            move.w  #(stubend-tail+STESIZE)/2-1,d0
+.t          move.w  (a0)+,(a1)+
+            dbra    d0,.t
+            jmp     TAIL
+tail        lea     stubend(pc),a0          ; module STE (après la routine)
+            lea     STEBASE,a1
+            move.w  #STESIZE/2-1,d0
+.m          move.w  (a0)+,(a1)+
+            dbra    d0,.m
             lea     STEBASE+$10000,a7       ; pile hors de l'image du jeu
             jsr     STEBASE                 ; init : sons rééchantillonnés
-.go
+stubgo
             movem.l regs(pc),d0-d7/a0-a7    ; registres au départ du jeu (pile en $F28)
             jmp     $1000.w
 regs        dc.l    $ffff,$ffff,$123400fb,0,0,$1f33a,$ffff,$ffff
             dc.l    $97c,$946,$70000,0,$fffffa01,$ffff8604,$ffff8606,$f28
-stubste     dc.w    0                       ; 1 : module STE en place
+stubste     dc.w    0                       ; 1 : mode STE (module après stubend)
 stubend
+            if (stubend-stub)>$100
+            fail "routine de recopie trop longue"
+            endif
 
 fname       dc.b    'IKPLUS.IMG',0
 ldmsg       dc.b    27,'E','Loading, please wait...',0 ; écran effacé, curseur en haut à gauche
@@ -732,6 +836,10 @@ errmsg      dc.b    13,10,'IK+ : IKPLUS.IMG introuvable ou memoire insuffisante.
 steblob     incbin  "build/ste.bin"
             even
 steend
+STESIZE     equ     steend-steblob
+            if STESIZE>STUBSPACE-$100
+            fail "module STE trop long pour STUBSPACE"
+            endif
             include "build/stehooks.i"
             even
 
@@ -741,7 +849,8 @@ ctl         ds.l    1                       ; sources des joueurs 1 à 3 (+ 1 oc
 cfgold      ds.l    1                       ; ce qui a été lu dans IKPLUS.CFG
 cfgbuf      ds.l    1
 oldcrit     ds.l    1
-isste       ds.b    1                       ; STE : ports étendus (manettes)
+isste       ds.b    1                       ; STE
+haspad      ds.b    1                       ; ports étendus (manettes) : STE, Falcon
 train       ds.b    1                       ; mode entraînement choisi (F4)
 ismste      ds.b    1                       ; Mega STE
 stecan      ds.b    1                       ; STE ou Mega STE avec 1 Mo : mode STE possible
