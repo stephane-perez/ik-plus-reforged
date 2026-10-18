@@ -90,7 +90,7 @@ Chaque envoi (push) construit les chargeurs, le code 3 joueurs et le module STE.
 
 ### Construction manuelle
 
-Prérequis : `make`, un compilateur C (pour construire l'assembleur vasm), `python3`, et `curl` ou `git`. Testé sous Linux ; ça devrait aussi fonctionner sous macOS et sous Windows avec WSL.
+Prérequis : `make`, un compilateur C (pour construire l'assembleur vasm et le compresseur ZX0), `python3`, et `curl` ou `git`. Testé sous Linux ; ça devrait aussi fonctionner sous macOS et sous Windows avec WSL.
 
 ```sh
 git clone https://github.com/stephane-perez/ik-plus-reforged
@@ -104,12 +104,13 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 
 **Le fichier à fournir** : `IK+.PRG`, le jeu en un seul programme (344 516 octets, MD5 `4107c876be9d49deb2a3cf5b390f70be`). Les outils refusent tout autre fichier.
 
-**Le résultat** : `build/IK_PLUS/` contient `IK_PLUS.TOS` (le chargeur), `IKPLUS.IMG` (le jeu corrigé), et `README.TXT` / `LISEZMOI.TXT`, qui listent toutes les différences avec le jeu d'origine (tirés de `dist/`, convertis pour l'Atari par `tools/textfile.py`). Copiez le dossier sur une disquette ou un disque dur, puis lancez `IK_PLUS.TOS`. Sur un STE ou un Mega STE avec au moins 1 Mo, le chargeur pose les 9 accroches STE (table `build/stehooks.i`, tirée de `tools/patch_ste.py`) après avoir vérifié leurs octets d'origine. Avec les réglages par défaut, `make check` compare le résultat aux empreintes attendues (`IK_STE_CHECK.IMG` est l'image telle que le chargeur la corrige sur un STE : ses accroches STE sont celles de la version STE validée sur machine réelle) :
+**Le résultat** : `build/IK_PLUS/` contient `IK_PLUS.TOS` (le chargeur), `IKPLUS.IMG` (le jeu corrigé, compressé en [ZX0](https://github.com/einar-saukas/ZX0) : 156 Ko au lieu de 332 Ko), et `README.TXT` / `LISEZMOI.TXT`, qui listent toutes les différences avec le jeu d'origine (tirés de `dist/`, convertis pour l'Atari par `tools/textfile.py`). Copiez le dossier sur une disquette ou un disque dur, puis lancez `IK_PLUS.TOS`. Sur un STE ou un Mega STE avec au moins 1 Mo, le chargeur pose les 9 accroches STE (table `build/stehooks.i`, tirée de `tools/patch_ste.py`) après avoir vérifié leurs octets d'origine. Avec les réglages par défaut, `make check` compare le résultat aux empreintes attendues (`IK_STE_CHECK.IMG` est l'image telle que le chargeur la corrige sur un STE : ses accroches STE sont celles de la version STE validée sur machine réelle) :
 
 | Fichier | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `c37781546d8a0d30da69ffada25a2bf5` |
-| `IK_PLUS_REF.TOS` (le chargeur avec le texte de version `V0.0.0`) | `2d8d92fd5dbe391febd66d4ff42c4f73` |
+| `IKPLUS_RAW.IMG` (le jeu corrigé, non compressé) | `c37781546d8a0d30da69ffada25a2bf5` |
+| `IK_PLUS/IKPLUS.IMG` (le même, compressé en ZX0) | `71cfc7034f2f1204c3670406245149b9` |
+| `IK_PLUS_REF.TOS` (le chargeur avec le texte de version `V0.0.0`) | `3813a3673e4be40b79b9779c9d1f2d87` |
 | `IK_STE_CHECK.IMG` (contrôle) | `ceb320652984ac5858572e451c0ce28d` |
 
 **Option** : `make game LIMIT=180 PRG=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.
@@ -125,7 +126,8 @@ Attention : Hatari 2.4.1 est plus permissif que la vraie machine sur le port par
 
 ## Fonctionnement
 
-- `src/loader.s` : le chargeur, qui lit `IKPLUS.IMG` et lance le jeu. Assemblé avec `-DSTE`, il charge aussi le module STE.
+- `src/loader.s` : le chargeur, qui lit `IKPLUS.IMG`, le décompresse (son propre décompresseur ZX0, écrit d'après la description du format) et lance le jeu ; sur un STE ou un Mega STE avec au moins 1 Mo, il met aussi en place le module STE.
+- `scripts/get-zx0.sh` et `tools/unzx0.py` : construisent le compresseur ZX0 d'Einar Saukas (licence BSD, version figée) dans `.tools/`, et vérifient que le fichier compressé redonne exactement le jeu et se décompresse sur place, comme le fait le chargeur.
 - `src/p3.s` : le code du mode 3 joueurs, placé en `$800` dans une zone mémoire inutilisée.
 - `src/ste.s` : le module STE (son DMA, blitter), placé en `$C0000`, au-dessus des 512 Ko prévus par le jeu.
 - `tools/ikimg.py` : tire l'image mémoire du jeu de `IK+.PRG`.

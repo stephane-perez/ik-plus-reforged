@@ -7,7 +7,7 @@ other rights holder. https://github.com/stephane-perez/ik-plus-reforged
 
 Run IK_PLUS.TOS, from a floppy disk or a hard disk. The folder contains:
   IK_PLUS.TOS   the loader
-  IKPLUS.IMG    the patched game
+  IKPLUS.IMG    the patched game (compressed)
   IKPLUS.CFG    your joystick choice (written by the loader)
   README.TXT    this file (LISEZMOI.TXT: the same in French)
 
@@ -23,6 +23,8 @@ Start-up
 - A new loader replaces the original program. It shows "Loading, please
   wait...", then an intro page (IK+ logo, joystick choice, training mode,
   PRESS SPACE TO START), then the game's own intro.
+- The game file is compressed (156 KB instead of 332 KB): it loads faster
+  from a floppy disk, and the loader unpacks it in memory.
 - No floppy disk check: the game no longer needs a disk in drive A, and
   it runs from a hard disk.
 - Runs on STE, Mega STE and TOS 2.06. The original crashed at start-up

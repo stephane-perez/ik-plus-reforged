@@ -90,7 +90,7 @@ Every push builds the loaders, the 3-player code and the STE module. The result 
 
 ### Manual build
 
-Requirements: `make`, a C compiler (to build the vasm assembler), `python3`, and `curl` or `git`. Tested on Linux; it should also work on macOS and on Windows through WSL.
+Requirements: `make`, a C compiler (to build the vasm assembler and the ZX0 compressor), `python3`, and `curl` or `git`. Tested on Linux; it should also work on macOS and on Windows through WSL.
 
 ```sh
 git clone https://github.com/stephane-perez/ik-plus-reforged
@@ -104,12 +104,13 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 
 **The file to provide**: `IK+.PRG`, the game as a single program (344,516 bytes, MD5 `4107c876be9d49deb2a3cf5b390f70be`). The tools refuse any other file.
 
-**The result**: `build/IK_PLUS/` contains `IK_PLUS.TOS` (the loader), `IKPLUS.IMG` (the patched game), and `README.TXT` / `LISEZMOI.TXT`, which list every difference from the original game (from `dist/`, converted for the Atari by `tools/textfile.py`). Copy the folder to a floppy disk or a hard disk, then run `IK_PLUS.TOS`. On an STE or a Mega STE with 1 MB or more, the loader applies the 9 STE hooks (table `build/stehooks.i`, from `tools/patch_ste.py`) after checking their original bytes. With the default settings, `make check` compares the result with the expected checksums (`IK_STE_CHECK.IMG` is the image as the loader patches it on an STE: its STE hooks are those of the STE version validated on real hardware):
+**The result**: `build/IK_PLUS/` contains `IK_PLUS.TOS` (the loader), `IKPLUS.IMG` (the patched game, compressed with [ZX0](https://github.com/einar-saukas/ZX0): 156 KB instead of 332 KB), and `README.TXT` / `LISEZMOI.TXT`, which list every difference from the original game (from `dist/`, converted for the Atari by `tools/textfile.py`). Copy the folder to a floppy disk or a hard disk, then run `IK_PLUS.TOS`. On an STE or a Mega STE with 1 MB or more, the loader applies the 9 STE hooks (table `build/stehooks.i`, from `tools/patch_ste.py`) after checking their original bytes. With the default settings, `make check` compares the result with the expected checksums (`IK_STE_CHECK.IMG` is the image as the loader patches it on an STE: its STE hooks are those of the STE version validated on real hardware):
 
 | File | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `c37781546d8a0d30da69ffada25a2bf5` |
-| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `2d8d92fd5dbe391febd66d4ff42c4f73` |
+| `IKPLUS_RAW.IMG` (the patched game, uncompressed) | `c37781546d8a0d30da69ffada25a2bf5` |
+| `IK_PLUS/IKPLUS.IMG` (the same, compressed with ZX0) | `71cfc7034f2f1204c3670406245149b9` |
+| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `3813a3673e4be40b79b9779c9d1f2d87` |
 | `IK_STE_CHECK.IMG` (control) | `ceb320652984ac5858572e451c0ce28d` |
 
 **Option**: `make game LIMIT=180 PRG=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
@@ -125,7 +126,8 @@ Note: Hatari 2.4.1 is more permissive than real hardware on the parallel port. I
 
 ## How it works
 
-- `src/loader.s`: the loader, which reads `IKPLUS.IMG` and starts the game. Assembled with `-DSTE`, it also loads the STE module.
+- `src/loader.s`: the loader, which reads `IKPLUS.IMG`, unpacks it (its own ZX0 unpacker, written from the format description) and starts the game; on an STE or a Mega STE with 1 MB or more, it also sets up the STE module.
+- `scripts/get-zx0.sh` and `tools/unzx0.py`: build the ZX0 compressor by Einar Saukas (BSD licence, fixed version) into `.tools/`, and check that the compressed file gives back the game exactly and can be unpacked in place, as the loader does.
 - `src/p3.s`: the 3-player code, placed at `$800` in unused memory.
 - `src/ste.s`: the STE module (DMA sound, blitter), placed at `$C0000`, above the 512 KB the game was written for.
 - `tools/ikimg.py`: extracts the game's memory image from `IK+.PRG`.

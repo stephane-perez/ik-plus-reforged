@@ -8,7 +8,7 @@ aucun autre ayant droit. https://github.com/stephane-perez/ik-plus-reforged
 Lancez IK_PLUS.TOS, depuis une disquette ou un disque dur. Le dossier
 contient :
   IK_PLUS.TOS   le chargeur
-  IKPLUS.IMG    le jeu corrigé
+  IKPLUS.IMG    le jeu corrigé (compressé)
   IKPLUS.CFG    votre choix de joysticks (écrit par le chargeur)
   LISEZMOI.TXT  ce fichier (README.TXT : le même en anglais)
 
@@ -25,6 +25,9 @@ Démarrage
   « Loading, please wait... », puis une page d'introduction (logo IK+,
   choix des joysticks, mode entraînement, PRESS SPACE TO START), puis
   l'introduction du jeu.
+- Le fichier du jeu est compressé (156 Ko au lieu de 332 Ko) : il se
+  charge plus vite depuis une disquette, et le chargeur le décompresse en
+  mémoire.
 - Plus de vérification de la disquette : le jeu n'a plus besoin d'une
   disquette dans le lecteur A, et il tourne depuis un disque dur.
 - Fonctionne sur STE, Mega STE et TOS 2.06. L'original plantait au

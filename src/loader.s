@@ -32,6 +32,7 @@ DEST        equ $700
 STEBASE     equ $C0000              ; module STE
 TAIL        equ DEST+SIZE           ; fin de la routine de recopie, en mode STE
 STUBSPACE   equ $1000               ; après l'image lue : routine de recopie et module STE
+ZXMARGIN    equ $100                ; image compressée : place en plus après SIZE
 
             section text
 start       move.l  4(a7),a5                ; basepage
@@ -76,8 +77,35 @@ start       move.l  4(a7),a5                ; basepage
             tst.l   d0
             bmi     lderr
             move.w  d0,fh
-            move.l  buf,-(a7)               ; Fread
-            move.l  #SIZE,-(a7)
+            ; taille du fichier (Fseek à la fin, puis retour au début) :
+            ; SIZE = image brute, lue dans buf ; moins = image compressée en
+            ; ZX0 (make game), lue à la fin du bloc puis décompressée sur
+            ; place vers buf (le décompressé ne rattrape jamais le compressé :
+            ; marge ZXMARGIN, vérifiée par tools/unzx0.py à la construction)
+            move.w  #2,-(a7)
+            move.w  fh,-(a7)
+            clr.l   -(a7)
+            move.w  #$42,-(a7)              ; Fseek(0, fh, 2)
+            trap    #1
+            lea     10(a7),a7
+            move.l  d0,d6                   ; d6 = taille du fichier
+            ble     lderr
+            clr.w   -(a7)
+            move.w  fh,-(a7)
+            clr.l   -(a7)
+            move.w  #$42,-(a7)              ; Fseek(0, fh, 0)
+            trap    #1
+            lea     10(a7),a7
+            move.l  buf,d5                  ; d5 = adresse de lecture
+            cmp.l   #SIZE,d6
+            beq.s   .rd
+            cmp.l   #SIZE+ZXMARGIN,d6
+            bhi     lderr
+            add.l   #SIZE+ZXMARGIN,d5       ; compressé : à la fin du bloc
+            sub.l   d6,d5
+            bclr    #0,d5                   ; adresse paire (place : ZXMARGIN)
+.rd         move.l  d5,-(a7)                ; Fread
+            move.l  d6,-(a7)
             move.w  fh,-(a7)
             move.w  #$3f,-(a7)
             trap    #1
@@ -87,8 +115,18 @@ start       move.l  4(a7),a5                ; basepage
             move.w  #$3e,-(a7)
             trap    #1
             addq.l  #4,a7
-            cmp.l   #SIZE,d7
+            cmp.l   d6,d7
             bne     lderr
+            cmp.l   #SIZE,d6
+            beq.s   .raw
+            move.l  d5,a0                   ; décompression vers buf
+            move.l  buf,a1
+            bsr     unzx0
+            move.l  buf,d0
+            add.l   #SIZE,d0
+            cmp.l   a1,d0                   ; exactement SIZE octets
+            bne     lderr
+.raw
             tst.b   stecan                  ; STE, 1 Mo : accroches du module STE
             beq.s   .nost
             bsr     stehook
@@ -158,6 +196,67 @@ loading     dc.w    $a00a                   ; Line-A : souris cachée
             trap    #14
             addq.l  #2,a7
             rts
+
+; ----------------------------------------------------------------------------
+; unzx0 : décompresse des données ZX0 (format d'Einar Saukas, mode normal)
+; de a0 vers a1, en avançant ; en sortie, a1 = fin des données produites.
+; Écrite d'après la description du format (même logique que tools/unzx0.py).
+; Bits lus du poids fort au poids faible, d1 = tampon avec un bit sentinelle.
+; Détruit d0-d4, a2.
+; ----------------------------------------------------------------------------
+unzx0       moveq   #1,d0                   ; dernier décalage
+            move.b  #$80,d1                 ; tampon de bits vide (sentinelle)
+.lit        bsr.s   .gamma                  ; littéraux : longueur, puis octets
+.cl         move.b  (a0)+,(a1)+
+            subq.l  #1,d2
+            bne.s   .cl
+            bsr.s   .bit
+            bcs.s   .new
+            bsr.s   .gamma                  ; copie avec le dernier décalage
+.copy       move.l  a1,a2
+            suba.l  d0,a2
+.cc         move.b  (a2)+,(a1)+
+            subq.l  #1,d2
+            bne.s   .cc
+            bsr.s   .bit
+            bcc.s   .lit
+.new        moveq   #1,d2                   ; nouveau décalage : poids fort,
+.no         bsr.s   .bit                    ; gamma aux bits inversés
+            bcs.s   .nd
+            bsr.s   .bit
+            addx.l  d2,d2
+            eori.b  #1,d2
+            bra.s   .no
+.nd         cmp.l   #256,d2                 ; 256 : fin des données
+            beq.s   .end
+            lsl.l   #7,d2
+            moveq   #0,d3
+            move.b  (a0)+,d3                ; poids faible (7 bits) ; son bit 0
+            move.l  d3,d4                   ; est le premier bit de la longueur
+            lsr.l   #1,d3
+            sub.l   d3,d2
+            move.l  d2,d0
+            moveq   #1,d2
+            lsr.b   #1,d4                   ; C = premier bit
+            bsr.s   .gammac
+            addq.l  #1,d2
+            bra.s   .copy
+.end        rts
+; .gamma : gamma de Elias entrelacée -> d2 (.gammac : premier bit dans C,
+; d2 = 1 déjà posé)
+.gamma      moveq   #1,d2
+.g1         bsr.s   .bit
+.gammac     bcs.s   .gr
+            bsr.s   .bit
+            addx.l  d2,d2
+            bra.s   .g1
+.gr         rts
+; .bit : bit suivant dans C (et X)
+.bit        add.b   d1,d1
+            bne.s   .br
+            move.b  (a0)+,d1
+            addx.b  d1,d1
+.br         rts
 
 ; stehook : pose les accroches du module STE (table stehooks) dans l'image
 ; lue, si les octets d'origine de toutes sont bien là ; stemode = 1 alors.

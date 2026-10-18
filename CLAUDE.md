@@ -104,7 +104,13 @@ disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800`, `src
 accroches, barre du haut, textes, écran d'aide par `tools/helpscreen.py`) → pour le STE, `patch_ste.py` (9 accroches vers `src/ste.s`), posées au
 lancement par le chargeur (table `build/stehooks.i`) sur un STE ou un Mega
 STE avec 1 Mo ; `make check` vérifie aussi l'image de contrôle
-`IK_STE_CHECK.IMG` (image telle que le chargeur la corrige).
+`IK_STE_CHECK.IMG` (image telle que le chargeur la corrige). Enfin, l'image
+(`build/IKPLUS_RAW.IMG`) est compressée en ZX0, mode rapide (`.tools/zx0/zx0
+-q`, construit par `scripts/get-zx0.sh`, version figée) dans
+`IK_PLUS/IKPLUS.IMG` ; `tools/unzx0.py --check` vérifie qu'elle redonne
+l'image et qu'elle se décompresse sur place. Le chargeur (`unzx0`) lit le
+compressé à la fin de son bloc (marge `ZXMARGIN`) et le décompresse vers le
+début ; un `IKPLUS.IMG` non compressé (taille `SIZE`) est toujours accepté.
 
 ## Carte mémoire (à respecter)
 
