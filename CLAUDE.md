@@ -110,14 +110,16 @@ STE avec 1 Mo ; `make check` vérifie aussi l'image de contrôle
 | `$700`–`$537FF` | image du jeu (`$E64`–`$14E5` variables, pile depuis `$F28`) |
 | `$800`–`$BFF` | code 3 joueurs (`p3.s`) : **1 Ko au total**, ~940 octets utilisés ; choix des joysticks `CTL` et mode entraînement `TRAIN` en `$850` |
 | `$6A4A`–`$6AF7` | code en plus (`p3b.s`, mode entraînement) : 174 octets, dans la vérification de la disquette sautée |
+| `$53800`–`$54FFF` | STE, au lancement seulement : fin de la routine de recopie et module, avant leur départ en `$C0000` |
 | `$70000` / `$78000` | les deux écrans |
 | `$80000`–`$A37FF` | STE : sprites convertis pour le blitter |
 | `$A7000`–`$BFFFF` | STE, mode contrôle (`-DCHECK`) seulement : copies de travail |
 | `$C0000`–`$C0FFF` | STE : module `ste.s` (entrées fixes en `$C0000`, `$C0004`…) |
 | `$D0000`–`$EBE74` | STE : sons rééchantillonnés |
 
-Le jeu, écrit pour 512 Ko, n'utilise rien au-dessus de `$80000`. Le
-chargeur STE exige un bloc `Malloc` qui finit sous `$C0000`.
+Le jeu, écrit pour 512 Ko, n'utilise rien au-dessus de `$80000`. Le bloc
+`Malloc` où le chargeur lit le jeu peut être n'importe où (VERSIONS.md §20) :
+le module STE n'est posé en `$C0000` qu'une fois le jeu recopié.
 
 ## Tester dans Hatari (2.4.1)
 
