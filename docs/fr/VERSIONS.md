@@ -209,6 +209,15 @@ Ticket #16 : un seul programme pour toutes les machines, une page d'introduction
 - Empreintes : `IK_PLUS/IKPLUS.IMG` = `90c05ec22bd45bc9898ed30653b37300`, `IK_PLUS_REF.TOS` = `2b13ae7a9cbff22b48d9e2a0fbbafdd3`, `IK_STE_CHECK.IMG` = `368df6c7c8ae7cd4bc9c729f61e6f341`.
 - **Retour de la machine réelle** : tout validé sur STE et Mega STE (page, entraînement sans points, mode STE). Fusion dans `master`.
 
+## 17. Version 10 : écran de chargement
+
+- **Plus de fond bleu** pendant la lecture de `IKPLUS.IMG` : le chargeur (`loading`) passe en basse résolution, met la palette à noir (couleur 0) et blanc (couleur 15, celle du texte du TOS), cache la souris et le curseur, puis écrit « Loading, please wait... » en haut à gauche avec la police du TOS (la police du jeu n'est pas encore lue ; d'abord « LOADING », texte changé à la demande de Stéphane). La page d'introduction suit.
+- Textes de la distribution et README : « PLEASE WAIT » (page d'introduction) au lieu de l'ancien écran vert pendant la conversion des sons.
+- Vérifié dans Hatari : Mega STE/2.06 depuis une disquette (« Loading, please wait... » pendant la lecture, puis la page), STF/1.04 depuis le disque dur (lecture trop rapide pour le voir, page normale).
+- Empreintes : `IK_PLUS/IKPLUS.IMG` inchangée (`90c05ec22bd45bc9898ed30653b37300`), `IK_PLUS_REF.TOS` = `efd3aa5f4b6dbf8d376fc24d203786fe`.
+
+- **Retour de la machine réelle** (essai 5) : « Loading, please wait... » validé sur STF, STE, Mega STE et Falcon. Fusion dans `master` après le Falcon (§18) : `IK_PLUS_REF.TOS` = `2d8d92fd5dbe391febd66d4ff42c4f73`.
+
 ## 18. Falcon030 (ticket #5) : premiers essais
 
 - **Essai du jeu tel quel** (Hatari, Falcon, EmuTOS 1.3, moniteur RGB, 4 Mo) : le chargeur et la page d'introduction marchent ; le jeu démarre son introduction puis plante en boucle (saut à une adresse impaire près de `$1506`).
