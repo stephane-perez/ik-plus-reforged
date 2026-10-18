@@ -208,3 +208,12 @@ Ticket #16 : un seul programme pour toutes les machines, une page d'introduction
 - Vérifié dans Hatari (STF/1.04) : page ; partie à 1 joueur en entraînement, 75 s de combat contre l'ordinateur : points de round toujours à 0, « TIME: -- », le round continue ; sans entraînement, la même partie se termine normalement.
 - Empreintes : `IK_PLUS/IKPLUS.IMG` = `90c05ec22bd45bc9898ed30653b37300`, `IK_PLUS_REF.TOS` = `2b13ae7a9cbff22b48d9e2a0fbbafdd3`, `IK_STE_CHECK.IMG` = `368df6c7c8ae7cd4bc9c729f61e6f341`.
 - **Retour de la machine réelle** : tout validé sur STE et Mega STE (page, entraînement sans points, mode STE). Fusion dans `master`.
+
+## 21. Feu du joueur 3 : partie à 3 joueurs depuis la démo
+
+- Demande de Stéphane : pendant la démo, le feu du joueur 1 lance une partie à 1, celui du joueur 2 une partie à 2 ; le feu du joueur 3 ne faisait rien.
+- Le jeu teste le feu pendant la démo en `L_073B0` (`$1007` et `$1008` nuls) : `$126C` (joueur 1) → `L_07382`, puis `$126D` (joueur 2) → `L_0736C`. **Accroche 32** (`$73C4`) : `btst #4,$126d.w / bne.b L_0736C` → `jmp fire3` + NOP. `fire3` (`p3.s`, entrée `$848`, libre depuis le mode entraînement) teste le feu du joueur 2 comme avant, puis celui du joueur 3 (`$126E`, rempli à chaque VBL par `vblmap` selon son joystick) : il lance alors la partie à 3 comme F3 (`start3`, partagé avec `f3key` : `$1007`–`$1009` = 1, chronomètre à 0, `$135F` = 1). Rien si le joueur 3 est sur NONE. Comme pour les joueurs 1 et 2, pas de test de `$1006` (F1–F3 l'ont).
+- `p3.s` : 972 octets sur 1 024.
+- Essais Hatari (STF, TOS 1.04, émulation des joysticks par `runx.sh`, joueur 3 sur JOYSTICK 2) : feu du joueur 3 → partie à 3 (trois poings) ; feu du joueur 1 → partie à 1 ; feu du joueur 2 → partie à 2 ; joueur 3 sur NONE → son feu ne fait rien.
+- `README.TXT` / `LISEZMOI.TXT` : mode 3 joueurs, feu du joueur 3 pendant la démo.
+- Empreintes : `IK_PLUS/IKPLUS.IMG` = `8400e5ff1bbdc51e445debf7d909cb61`, `IK_STE_CHECK.IMG` = `5d6a0fa424d0dd333d99f339b6fce926`.

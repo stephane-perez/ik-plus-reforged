@@ -52,7 +52,8 @@ Joysticks (page d'introduction)
 Mode 3 joueurs
 - F3 lance une partie à 3 joueurs, comme F1 (1 joueur) et F2 (2 joueurs) :
   les trois poings clignotent, et le joueur 3 prend le combattant bleu.
-  Si le joueur 3 est sur NONE, F3 ne fait rien.
+  Pendant la démo, le feu du joueur 3 fait de même, comme le feu des
+  joueurs 1 et 2. Si le joueur 3 est sur NONE, F3 et son feu ne font rien.
 - À 3 joueurs : personne n'est éliminé, l'arbitre annonce des résultats
   neutres (X IS BEST / Y IS SECOND / Z IS WORST...), et le match se
   termine après 5 minutes de combat par « MATCH OVER ».

@@ -48,8 +48,9 @@ Joysticks (intro page)
 
 3-player mode
 - F3 starts a 3-player game, like F1 (1 player) and F2 (2 players): the
-  three fists flash, and player 3 gets the blue fighter. If player 3 is
-  set to NONE, F3 does nothing.
+  three fists flash, and player 3 gets the blue fighter. During the demo,
+  player 3's fire button does the same, as fire does for players 1 and 2.
+  If player 3 is set to NONE, F3 and his fire button do nothing.
 - With 3 players: nobody is eliminated, the referee announces neutral
   results (X IS BEST / Y IS SECOND / Z IS WORST...), and the match ends
   after 5 minutes of fighting with "MATCH OVER".
