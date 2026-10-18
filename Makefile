@@ -39,11 +39,11 @@ $(B):
 
 # --- our own programs (no game data involved) ------------------------------
 # the loader includes the STE module, the table of its hooks and the version
-$(B)/IK_PLUS.TOS: src/loader.s $(B)/ste.bin $(B)/stehooks.i $(B)/version.i | $(B) $(VASM)
+$(B)/IK_PLUS.TOS: src/loader.s src/sides.i $(B)/ste.bin $(B)/stehooks.i $(B)/version.i | $(B) $(VASM)
 	$(VASM) $(VFLAGS) -Ftos -o $@ $<
 
 # same loader with a fixed version text, for make check
-$(B)/IK_PLUS_REF.TOS: src/loader.s $(B)/ste.bin $(B)/stehooks.i | $(B) $(VASM)
+$(B)/IK_PLUS_REF.TOS: src/loader.s src/sides.i $(B)/ste.bin $(B)/stehooks.i | $(B) $(VASM)
 	$(VASM) $(VFLAGS) -Ftos -DREFTAG -o $@ $<
 
 # version text, rewritten only when the tag changes
@@ -91,7 +91,7 @@ game: all $(B)/IK_BASE.IMG
 # version text: IK_PLUS_REF.TOS)
 check:
 	@$(PY) -c "import hashlib,sys; \
-exp={'$(B)/IK_PLUS/IKPLUS.IMG':'8400e5ff1bbdc51e445debf7d909cb61','$(B)/IK_PLUS_REF.TOS':'2b13ae7a9cbff22b48d9e2a0fbbafdd3','$(B)/IK_STE_CHECK.IMG':'5d6a0fa424d0dd333d99f339b6fce926'}; \
+exp={'$(B)/IK_PLUS/IKPLUS.IMG':'c37781546d8a0d30da69ffada25a2bf5','$(B)/IK_PLUS_REF.TOS':'2d8d92fd5dbe391febd66d4ff42c4f73','$(B)/IK_STE_CHECK.IMG':'ceb320652984ac5858572e451c0ce28d'}; \
 bad=[f for f,h in exp.items() if hashlib.md5(open(f,'rb').read()).hexdigest()!=h]; \
 print('OK' if not bad else 'MISMATCH: '+' '.join(bad)); sys.exit(1 if bad else 0)"
 

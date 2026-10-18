@@ -4,7 +4,7 @@
 
 Patches and tools for **International Karate +** (IK+) on the Atari ST:
 
-- **STE / Mega STE / TOS 2.06 compatibility**: the game now runs on STF, STE and Mega STE (at 8 MHz);
+- **STE / Mega STE / TOS 2.06 / Falcon compatibility**: the game now runs on STF, STE and Mega STE (at 8 MHz), and on the Falcon030 (at 16 MHz, caches off);
 - a **simultaneous 3-player mode**: the third player uses a joystick on a parallel-port adapter;
 - **STE extras**, added automatically on an STE or a Mega STE with 1 MB or more: sound effects played by DMA, fighters drawn by the blitter, the turbo speed now holds 25 frames per second; Jaguar pads on the enhanced joystick ports;
 - **one program for every machine**, and a choice of controller for each player;
@@ -29,6 +29,8 @@ Patches and tools for **International Karate +** (IK+) on the Atari ST:
 | STF / TOS 2.06 | crashes at start-up | works |
 | STE / TOS 1.62 | crashes at start-up | works (tested on real hardware) |
 | Mega STE / TOS 2.06 | crashes at start-up | works (tested on real hardware) |
+| Falcon030 / TOS 4.04 | does not start (black screen) | works (tested on real hardware, RGB monitor; on VGA the music plays too fast, as the screen is not at 50 Hz) |
+| Falcon with CT60 (68060) | not tested | crashes after the intro page (not supported: switch the CT60 to 68030 mode) |
 
 The `IK+.PRG` column was checked in the Hatari emulator.
 
@@ -36,7 +38,7 @@ What was fixed:
 
 - **The game's random number generator** read the TOS 1.x ROM at `$FC0000`. That address does not exist on STE and Mega STE, nor with TOS 2.06, so each read caused a bus error, and the game crashed or restarted in a loop. It now reads graphics data in RAM instead. This is a one-byte change.
 - **The floppy disk check**: `IK+.PRG` still runs it at start-up, then waits for the floppy drive motor to stop, which never happens without a disk in the drive. Reforged skips it.
-- **The new loader** reads the game into reserved memory and copies it into place safely. On a Mega STE it switches off the serial chip (SCC) interrupts and selects 8 MHz with the cache off. All unused exception vectors point to a safe place. Before the game starts, it shows an intro page: the IK+ logo and the game's font, both taken from your copy of the game, "REFORGED" and "EDITION" on each side of the logo, the joystick of each player, the training mode, "PRESS SPACE TO START" (then "PLEASE WAIT"), "ENHANCED BY CLAUDE AI - 2026" with the version (`make TAG=…`, by default the git tag), and "IN MEMORY OF ARCHER MACLEAN (1962-2022)".
+- **The new loader** shows "Loading, please wait..." (white on black) while it reads the game into reserved memory and copies it into place safely. On a Mega STE it switches off the serial chip (SCC) interrupts and selects 8 MHz with the cache off. On a Falcon030 it also switches off the SCC interrupts, the 68030 caches and its MMU (TOS 4 keeps the MMU table at `$700`, where the game goes), and selects 16 MHz: at 8 MHz the Falcon is slower than an ST. The game counts its frames in VBLs, so it runs at the same speed. There is no DMA sound or blitter on the Falcon: sound effects still cut the music, as on an STF. On a VGA monitor the game works, but the music plays too fast (the screen is not at 50 Hz). The CT60 (68060) is not supported: the game crashes after the intro page; switch the CT60 to 68030 mode. All unused exception vectors point to a safe place. Before the game starts, it shows an intro page: the IK+ logo and the game's font, both taken from your copy of the game, two drawings, "REFORGED" and "EDITION", on each side of the logo, the joystick of each player, the training mode, "PRESS SPACE TO START" (then "PLEASE WAIT"), "ENHANCED BY CLAUDE AI - 2026" with the version (`make TAG=…`, by default the git tag), and "IN MEMORY OF ARCHER MACLEAN (1962-2022)".
 - **Training mode**: **F4** on the intro page turns it on (it is never saved). During a game, the round time no longer counts down and shows "TIME: --", and nobody scores round points (the score still goes up): rounds never end, and a 3-player match no longer ends after 5 minutes. The demo and the bonus stages are unchanged.
 
 ### 3-player mode
@@ -64,7 +66,7 @@ Player 3 uses a **parallel-port joystick adapter**, the kind used by *Gauntlet I
 On an **STE or a Mega STE with 1 MB of memory or more**, the loader adds the following by itself (on any other machine, the game runs without them).
 
 - **Jaguar pads** on the STE's enhanced joystick ports A and B (the 15-pin sockets; tested on a real STE), or ordinary joysticks with a DB15 adapter (not tested). Fire = A, B, C or Pause. No parallel-port adapter is needed. The pads are offered on any STE, even with 512 KB.
-- **Sound effects are played by DMA**, at 12,517 Hz. The original played each effect through the YM chip, with one interrupt per sample, which used 13 to 18% of the processor. The 18 sounds are converted when the game starts, which takes about 2 seconds of green screen. The music now keeps its three voices during the shouts, and the effects no longer vary in pitch.
+- **Sound effects are played by DMA**, at 12,517 Hz. The original played each effect through the YM chip, with one interrupt per sample, which used 13 to 18% of the processor. The 18 sounds are converted when the game starts, which takes about 2 seconds (the intro page stays on screen, with "PLEASE WAIT"). The music now keeps its three voices during the shouts, and the effects no longer vary in pitch.
 - **The fighters are drawn and erased by the blitter.** The result is identical, byte for byte, to the original drawing: this was checked in the emulator over more than a thousand calls.
 
 Measured in Hatari during a fight:
@@ -112,9 +114,9 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 
 | File | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `8400e5ff1bbdc51e445debf7d909cb61` |
-| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `2b13ae7a9cbff22b48d9e2a0fbbafdd3` |
-| `IK_STE_CHECK.IMG` (control) | `5d6a0fa424d0dd333d99f339b6fce926` |
+| `IK_PLUS/IKPLUS.IMG` | `c37781546d8a0d30da69ffada25a2bf5` |
+| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `2d8d92fd5dbe391febd66d4ff42c4f73` |
+| `IK_STE_CHECK.IMG` (control) | `ceb320652984ac5858572e451c0ce28d` |
 
 **Option**: `make game LIMIT=180 PRG=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
 

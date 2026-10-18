@@ -12,24 +12,31 @@ contient :
   IKPLUS.CFG    votre choix de joysticks (écrit par le chargeur)
   LISEZMOI.TXT  ce fichier (README.TXT : le même en anglais)
 
-Machines : STF, STE et Mega STE, TOS 1.04 à 2.06. Sur un STE ou un Mega
-STE avec au moins 1 Mo, le son DMA et le blitter sont utilisés
-automatiquement.
+Machines : STF, STE et Mega STE, TOS 1.04 à 2.06, et Falcon030 (TOS 4.04).
+Sur un STE ou un Mega STE avec au moins 1 Mo, le son DMA et le blitter
+sont utilisés automatiquement.
 
 
 CE QUI CHANGE PAR RAPPORT AU JEU D'ORIGINE
 ------------------------------------------
 
 Démarrage
-- Un nouveau chargeur remplace le programme d'origine. Il affiche une page
-  d'introduction (logo IK+, choix des joysticks, mode entraînement,
-  PRESS SPACE TO START), puis l'introduction du jeu.
+- Un nouveau chargeur remplace le programme d'origine. Il affiche
+  « Loading, please wait... », puis une page d'introduction (logo IK+,
+  choix des joysticks, mode entraînement, PRESS SPACE TO START), puis
+  l'introduction du jeu.
 - Plus de vérification de la disquette : le jeu n'a plus besoin d'une
   disquette dans le lecteur A, et il tourne depuis un disque dur.
 - Fonctionne sur STE, Mega STE et TOS 2.06. L'original plantait au
   démarrage sur ces machines (son générateur de hasard lisait la ROM du
   TOS 1.x).
 - Mega STE : le jeu tourne à 8 MHz sans cache, comme il l'attend.
+- Falcon030 : le jeu tourne à 16 MHz sans cache (à 8 MHz, le Falcon est
+  plus lent qu'un ST) ; sa vitesse est la même que sur ST. Pas de son DMA
+  ni de blitter : les bruitages coupent la musique, comme sur STF. Sur
+  moniteur VGA, la musique est trop rapide (l'écran n'est pas à 50 Hz).
+- CT60 (68060) : non prise en charge, le jeu plante après la page
+  d'introduction. Passer la CT60 en mode 68030.
 - Le bouton reset redémarre la machine au lieu de relancer le jeu.
 
 Joysticks (page d'introduction)
@@ -39,7 +46,7 @@ Joysticks (page d'introduction)
     JOYSTICK 1   prise joystick
     JOYSTICK 2   port parallèle, prise 3 de l'adaptateur (tir : BUSY)
     JOYSTICK 3   port parallèle, prise 4 de l'adaptateur (tir : STROBE)
-    JOYPAD A/B   manette Jaguar sur le port étendu A ou B (STE seulement)
+    JOYPAD A/B   manette Jaguar sur le port étendu A ou B (STE, Falcon)
     NONE         joueur 3 seulement : pas de troisième joueur
   Une commande ne sert jamais à deux joueurs. Par défaut : joueur 1 sur
   JOYSTICK 1, joueur 2 sur JOYSTICK 0 (comme dans le jeu d'origine),
@@ -86,8 +93,8 @@ Affichage
 
 STE ou Mega STE avec au moins 1 Mo
 - Bruitages joués par le DMA, à 12,5 kHz. La musique garde ses trois voix
-  pendant les cris. Environ 2 secondes d'écran vert au démarrage, le temps
-  de convertir les sons.
+  pendant les cris. Après Espace, environ 2 secondes de PLEASE WAIT, le
+  temps de convertir les sons.
 - Combattants dessinés et effacés par le blitter, avec le même résultat
   que le dessin d'origine.
 - Vitesse turbo (F6) régulière, à 25 images par seconde.

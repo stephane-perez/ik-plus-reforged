@@ -11,22 +11,29 @@ Run IK_PLUS.TOS, from a floppy disk or a hard disk. The folder contains:
   IKPLUS.CFG    your joystick choice (written by the loader)
   README.TXT    this file (LISEZMOI.TXT: the same in French)
 
-Machines: STF, STE and Mega STE, TOS 1.04 to 2.06. On an STE or a Mega STE
-with 1 MB or more, DMA sound and the blitter are used automatically.
+Machines: STF, STE and Mega STE, TOS 1.04 to 2.06, and Falcon030 (TOS 4.04).
+On an STE or a Mega STE with 1 MB or more, DMA sound and the blitter are
+used automatically.
 
 
 WHAT IS DIFFERENT FROM THE ORIGINAL GAME
 ----------------------------------------
 
 Start-up
-- A new loader replaces the original program. It shows an intro page
-  (IK+ logo, joystick choice, training mode, PRESS SPACE TO START), then
-  the game's own intro.
+- A new loader replaces the original program. It shows "Loading, please
+  wait...", then an intro page (IK+ logo, joystick choice, training mode,
+  PRESS SPACE TO START), then the game's own intro.
 - No floppy disk check: the game no longer needs a disk in drive A, and
   it runs from a hard disk.
 - Runs on STE, Mega STE and TOS 2.06. The original crashed at start-up
   on these machines (its random number generator read the TOS 1.x ROM).
 - Mega STE: the game runs at 8 MHz with the cache off, as it expects.
+- Falcon030: the game runs at 16 MHz with the caches off (at 8 MHz the
+  Falcon is slower than an ST); its speed is the same as on an ST. No DMA
+  sound or blitter: sound effects cut the music, as on an STF. On a VGA
+  monitor the music plays too fast (the screen is not at 50 Hz).
+- CT60 (68060): not supported, the game crashes after the intro page.
+  Switch the CT60 to 68030 mode.
 - The reset button resets the machine instead of restarting the game.
 
 Joysticks (intro page)
@@ -36,7 +43,7 @@ Joysticks (intro page)
     JOYSTICK 1   joystick port
     JOYSTICK 2   parallel port, adapter's joystick 3 socket (fire: BUSY)
     JOYSTICK 3   parallel port, adapter's joystick 4 socket (fire: STROBE)
-    JOYPAD A/B   Jaguar pad on the enhanced port A or B (STE only)
+    JOYPAD A/B   Jaguar pad on the enhanced port A or B (STE, Falcon)
     NONE         player 3 only: no third player
   A controller is never given to two players. Defaults: player 1 on
   JOYSTICK 1, player 2 on JOYSTICK 0 (as in the original game), player 3
@@ -80,7 +87,7 @@ Display
 
 STE or Mega STE with 1 MB or more
 - Sound effects are played by DMA, at 12.5 kHz. The music keeps its three
-  voices during the shouts. About 2 seconds of green screen at start-up
+  voices during the shouts. After SPACE, about 2 seconds of PLEASE WAIT
   while the sounds are converted.
 - The fighters are drawn and erased by the blitter, with the same result
   as the original drawing.
