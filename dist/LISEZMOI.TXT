@@ -33,8 +33,10 @@ Démarrage
 - Mega STE : le jeu tourne à 8 MHz sans cache, comme il l'attend.
 - Falcon030 : le jeu tourne à 16 MHz sans cache (à 8 MHz, le Falcon est
   plus lent qu'un ST) ; sa vitesse est la même que sur ST. Pas de son DMA
-  ni de blitter : les bruitages coupent la musique, comme sur STF. La CT60
-  (68060) n'est pas prise en charge.
+  ni de blitter : les bruitages coupent la musique, comme sur STF. Sur
+  moniteur VGA, la musique est trop rapide (l'écran n'est pas à 50 Hz).
+- CT60 (68060) : non prise en charge, le jeu plante après la page
+  d'introduction. Passer la CT60 en mode 68030.
 - Le bouton reset redémarre la machine au lieu de relancer le jeu.
 
 Joysticks (page d'introduction)
@@ -57,7 +59,8 @@ Joysticks (page d'introduction)
 Mode 3 joueurs
 - F3 lance une partie à 3 joueurs, comme F1 (1 joueur) et F2 (2 joueurs) :
   les trois poings clignotent, et le joueur 3 prend le combattant bleu.
-  Si le joueur 3 est sur NONE, F3 ne fait rien.
+  Pendant la démo, le feu du joueur 3 fait de même, comme le feu des
+  joueurs 1 et 2. Si le joueur 3 est sur NONE, F3 et son feu ne font rien.
 - À 3 joueurs : personne n'est éliminé, l'arbitre annonce des résultats
   neutres (X IS BEST / Y IS SECOND / Z IS WORST...), et le match se
   termine après 5 minutes de combat par « MATCH OVER ».

@@ -29,7 +29,8 @@ Patches and tools for **International Karate +** (IK+) on the Atari ST:
 | STF / TOS 2.06 | crashes at start-up | works |
 | STE / TOS 1.62 | crashes at start-up | works (tested on real hardware) |
 | Mega STE / TOS 2.06 | crashes at start-up | works (tested on real hardware) |
-| Falcon030 / TOS 4.04 | does not start (black screen) | works (tested on real hardware, RGB monitor) |
+| Falcon030 / TOS 4.04 | does not start (black screen) | works (tested on real hardware, RGB monitor; on VGA the music plays too fast, as the screen is not at 50 Hz) |
+| Falcon with CT60 (68060) | not tested | crashes after the intro page (not supported: switch the CT60 to 68030 mode) |
 
 The `IK+.PRG` column was checked in the Hatari emulator.
 
@@ -37,7 +38,7 @@ What was fixed:
 
 - **The game's random number generator** read the TOS 1.x ROM at `$FC0000`. That address does not exist on STE and Mega STE, nor with TOS 2.06, so each read caused a bus error, and the game crashed or restarted in a loop. It now reads graphics data in RAM instead. This is a one-byte change.
 - **The floppy disk check**: `IK+.PRG` still runs it at start-up, then waits for the floppy drive motor to stop, which never happens without a disk in the drive. Reforged skips it.
-- **The new loader** shows "Loading, please wait..." (white on black) while it reads the game into reserved memory and copies it into place safely. On a Mega STE it switches off the serial chip (SCC) interrupts and selects 8 MHz with the cache off. On a Falcon030 it also switches off the SCC interrupts, the 68030 caches and its MMU (TOS 4 keeps the MMU table at `$700`, where the game goes), and selects 16 MHz: at 8 MHz the Falcon is slower than an ST. The game counts its frames in VBLs, so it runs at the same speed. There is no DMA sound or blitter on the Falcon: sound effects still cut the music, as on an STF. The CT60 (68060) is not supported. All unused exception vectors point to a safe place. Before the game starts, it shows an intro page: the IK+ logo and the game's font, both taken from your copy of the game, two drawings, "REFORGED" and "EDITION", on each side of the logo, the joystick of each player, the training mode, "PRESS SPACE TO START" (then "PLEASE WAIT"), "ENHANCED BY CLAUDE AI - 2026" with the version (`make TAG=…`, by default the git tag), and "IN MEMORY OF ARCHER MACLEAN (1962-2022)".
+- **The new loader** shows "Loading, please wait..." (white on black) while it reads the game into reserved memory and copies it into place safely. On a Mega STE it switches off the serial chip (SCC) interrupts and selects 8 MHz with the cache off. On a Falcon030 it also switches off the SCC interrupts, the 68030 caches and its MMU (TOS 4 keeps the MMU table at `$700`, where the game goes), and selects 16 MHz: at 8 MHz the Falcon is slower than an ST. The game counts its frames in VBLs, so it runs at the same speed. There is no DMA sound or blitter on the Falcon: sound effects still cut the music, as on an STF. On a VGA monitor the game works, but the music plays too fast (the screen is not at 50 Hz). The CT60 (68060) is not supported: the game crashes after the intro page; switch the CT60 to 68030 mode. All unused exception vectors point to a safe place. Before the game starts, it shows an intro page: the IK+ logo and the game's font, both taken from your copy of the game, two drawings, "REFORGED" and "EDITION", on each side of the logo, the joystick of each player, the training mode, "PRESS SPACE TO START" (then "PLEASE WAIT"), "ENHANCED BY CLAUDE AI - 2026" with the version (`make TAG=…`, by default the git tag), and "IN MEMORY OF ARCHER MACLEAN (1962-2022)".
 - **Training mode**: **F4** on the intro page turns it on (it is never saved). During a game, the round time no longer counts down and shows "TIME: --", and nobody scores round points (the score still goes up): rounds never end, and a 3-player match no longer ends after 5 minutes. The demo and the bonus stages are unchanged.
 
 ### 3-player mode
@@ -113,9 +114,9 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 
 | File | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `013611bbd5cd32e80b95482e1696755d` |
+| `IK_PLUS/IKPLUS.IMG` | `c37781546d8a0d30da69ffada25a2bf5` |
 | `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `2d8d92fd5dbe391febd66d4ff42c4f73` |
-| `IK_STE_CHECK.IMG` (control) | `b6eaf97dc6de13dfc49e560aba921663` |
+| `IK_STE_CHECK.IMG` (control) | `ceb320652984ac5858572e451c0ce28d` |
 
 **Option**: `make game LIMIT=180 PRG=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
 

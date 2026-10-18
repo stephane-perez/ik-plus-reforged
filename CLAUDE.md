@@ -33,7 +33,9 @@ de crackers dans le projet.
 Machines visées : STF, STE et Mega STE de base, et Falcon030 (validé sur
 machine réelle : 16 MHz, caches et MMU coupés, ni son DMA ni blitter). Le
 blitter est exploité dès que `_MCH` indique un STE ou un Mega STE ; pas de
-prise en charge des cartes accélératrices (CT60).
+prise en charge des cartes accélératrices : sur CT60 (68060), le jeu plante
+après la page d'introduction (on l'ignore : la CT60 passe en mode 68030). Sur
+Falcon en VGA, le jeu marche mais la musique va trop vite (écran pas à 50 Hz).
 
 Le propriétaire (Stéphane) teste sur **520 STF**, **STE 4 Mo / TOS 1.62**,
 **Mega STE / TOS 2.06** et **Falcon030 14 Mo / TOS 4.04** (moniteur RGB). Ce qu'on ne peut valider que sur la machine, on le
@@ -98,7 +100,7 @@ Listing du jeu pour l'étude : `python3 tools/trace_ik.py IK+.PRG` →
 
 Chaîne des correctifs : `patch_game.py` (image tirée de `IK+.PRG` ;
 RNG lisant la ROM en `$FC0000`, cause du plantage STE ; vérification de la
-disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800`, `src/p3b.s` en `$6A4A`, 31
+disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800`, `src/p3b.s` en `$6A4A`, 32
 accroches, barre du haut, textes, écran d'aide par `tools/helpscreen.py`) → pour le STE, `patch_ste.py` (9 accroches vers `src/ste.s`), posées au
 lancement par le chargeur (table `build/stehooks.i`) sur un STE ou un Mega
 STE avec 1 Mo ; `make check` vérifie aussi l'image de contrôle
@@ -109,7 +111,7 @@ STE avec 1 Mo ; `make check` vérifie aussi l'image de contrôle
 | Zone | Usage |
 |---|---|
 | `$700`–`$537FF` | image du jeu (`$E64`–`$14E5` variables, pile depuis `$F28`) |
-| `$800`–`$BFF` | code 3 joueurs (`p3.s`) : **1 Ko au total**, ~940 octets utilisés ; choix des joysticks `CTL` et mode entraînement `TRAIN` en `$850` |
+| `$800`–`$BFF` | code 3 joueurs (`p3.s`) : **1 Ko au total**, ~970 octets utilisés ; choix des joysticks `CTL` et mode entraînement `TRAIN` en `$850` |
 | `$6A4A`–`$6AF7` | code en plus (`p3b.s` : mode entraînement, retour `rte` du 68030) : 174 octets, dans la vérification de la disquette sautée |
 | `$53800`–`$54FFF` | STE, au lancement seulement : fin de la routine de recopie et module, avant leur départ en `$C0000` |
 | `$70000` / `$78000` | les deux écrans |

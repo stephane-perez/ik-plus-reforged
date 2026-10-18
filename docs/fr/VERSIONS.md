@@ -240,6 +240,7 @@ Ticket #16 : un seul programme pour toutes les machines, une page d'introduction
 - **16 MHz par défaut** sur Falcon (`-DF8` : 8 MHz, pour les essais) ; l'option des caches (`-DFCACHE`) est retirée (jeu figé dans Hatari).
 - Textes de la distribution et README : Falcon030 ajouté (16 MHz, caches coupés, pas de son DMA ni de blitter, CT60 non prise en charge ; manettes JOYPAD A/B sur STE et Falcon). Le `IK+.PRG` d'origine ne démarre pas sur Falcon dans Hatari (écran noir).
 - Empreinte : `IK_PLUS_REF.TOS` = `0f76be43ff62e7301d674e1bce951587`.
+- **Autres essais de Stéphane** : Falcon030 sur moniteur **VGA** : le jeu fonctionne, mais la musique est trop rapide (l'écran n'est pas à 50 Hz) ; accepté. Falcon avec **CT60** (68060) : plantage après la page d'introduction ; ignoré (la CT60 se remet facilement en mode 68030), noté dans les textes et les README comme non pris en charge.
 
 ## 19. Page d'introduction : dessins « REFORGED » et « EDITION »
 
@@ -259,3 +260,13 @@ Ticket #16 : un seul programme pour toutes les machines, une page d'introduction
 - **Essais Hatari** : programme d'essai (hors dépôt) qui réserve 448 Ko ou 800 Ko de mémoire basse puis lance `IK_PLUS.TOS`. STE 1 Mo et 4 Mo, Mega STE 4 Mo : bloc lu jusqu'en `$D4A98` / `$12CAxx` ; ancien chargeur : accroches absentes (`$2064` = `13 C0 00 FF FA 23`), nouveau : accroches et module en place (`jsr $C0004`, `$C0000` = `60 00 01 1E`), partie à 3, turbo à 23,4 images/s. STF 1 Mo (avec et sans programme d'essai) et STE 512 Ko : jeu d'origine, comme avant.
 - Empreinte : `IK_PLUS_REF.TOS` = `2ac168888f2a9be282b8520409a71fe8`.
 - **Retour de la machine réelle** (essai 4) : validé sur STF, STE et Mega STE ; le Mega STE garde le mode STE avec accessoires et bureau alternatif. Fusion dans `master` (après le §19 : empreinte du chargeur avec les deux, `IK_PLUS_REF.TOS` = `a50580870c9f0534922c6f8b02400c18`).
+
+## 21. Feu du joueur 3 : partie à 3 joueurs depuis la démo
+
+- Demande de Stéphane : pendant la démo, le feu du joueur 1 lance une partie à 1, celui du joueur 2 une partie à 2 ; le feu du joueur 3 ne faisait rien.
+- Le jeu teste le feu pendant la démo en `L_073B0` (`$1007` et `$1008` nuls) : `$126C` (joueur 1) → `L_07382`, puis `$126D` (joueur 2) → `L_0736C`. **Accroche 32** (`$73C4`) : `btst #4,$126d.w / bne.b L_0736C` → `jmp fire3` + NOP. `fire3` (`p3.s`, entrée `$848`, libre depuis le mode entraînement) teste le feu du joueur 2 comme avant, puis celui du joueur 3 (`$126E`, rempli à chaque VBL par `vblmap` selon son joystick) : il lance alors la partie à 3 comme F3 (`start3`, partagé avec `f3key` : `$1007`–`$1009` = 1, chronomètre à 0, `$135F` = 1). Rien si le joueur 3 est sur NONE. Comme pour les joueurs 1 et 2, pas de test de `$1006` (F1–F3 l'ont).
+- `p3.s` : 972 octets sur 1 024.
+- Essais Hatari (STF, TOS 1.04, émulation des joysticks par `runx.sh`, joueur 3 sur JOYSTICK 2) : feu du joueur 3 → partie à 3 (trois poings) ; feu du joueur 1 → partie à 1 ; feu du joueur 2 → partie à 2 ; joueur 3 sur NONE → son feu ne fait rien.
+- `README.TXT` / `LISEZMOI.TXT` : mode 3 joueurs, feu du joueur 3 pendant la démo.
+- Empreintes : `IK_PLUS/IKPLUS.IMG` = `8400e5ff1bbdc51e445debf7d909cb61`, `IK_STE_CHECK.IMG` = `5d6a0fa424d0dd333d99f339b6fce926`.
+- **Retour de la machine réelle** (essai 5) : validé (feu du joueur 3 pendant la démo). Fusion dans `master` après le Falcon (§18), l'écran de chargement (§17), les dessins (§19) et le mode STE (§20) : 32 accroches ; `IKPLUS.IMG` identique à celui de l'essai 5. Empreintes : `IK_PLUS/IKPLUS.IMG` = `c37781546d8a0d30da69ffada25a2bf5`, `IK_PLUS_REF.TOS` = `2d8d92fd5dbe391febd66d4ff42c4f73` (inchangée), `IK_STE_CHECK.IMG` = `ceb320652984ac5858572e451c0ce28d`.

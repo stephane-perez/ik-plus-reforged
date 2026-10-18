@@ -62,7 +62,8 @@ FIST_X      equ $70             ; blanc $28, rouge $4C, bleu $70 (pas de 2 pixel
             bra.w blinkset      ; $83C  début de partie : clignotement des poings
             bra.w blinkvbl      ; $840  F_07608 : clignotement (interruption VBL)
             bra.w vblmap        ; $844  VBL ($1BAA) : joysticks des trois joueurs
-            dc.l  0,0           ; $848, $84C  libres (mode entraînement : src/p3b.s)
+            bra.w fire3         ; $848  démo : feu du joueur 3 = partie à 3 joueurs
+            dc.l  0             ; $84C  libre
 
 ; --- écrit par le chargeur (adresse fixe $850, 4 octets) -------------------
 CTL         dc.b 1,0,2          ; sources des joueurs 1, 2, 3 (voir vblmap)
@@ -354,17 +355,32 @@ roundmsg    move.b  d0,$1092.w
 ; partie ($135F, traitée par l'interruption VBL en $1C56).
 ; ----------------------------------------------------------------------------
 f3key       cmpi.b  #6,CTL+2                ; joueur 3 sans joystick : F3 ne fait rien
-            beq.s   .r
+            beq.s   f3none
             moveq   #0,d0
             move.b  $1006.w,d0
             cmpi.w  #$19,d0
-            blt.s   .r
-            move.b  #1,P1.w
+            blt.s   f3none
+start3      move.b  #1,P1.w
             move.b  #1,P2.w
             move.b  #1,P3.w
             clr.w   gamesec
             jmp     $7390                   ; $135F = 1, touches effacées
-.r          jmp     $73cc
+f3none      jmp     $73cc
+
+; ----------------------------------------------------------------------------
+; fire3 : remplace « btst #4,$126d.w / bne.b L_0736c » ($73C4), le feu du
+; joueur 2 pendant la démo (aucun humain : $1007 et $1008 nuls), juste après
+; le feu du joueur 1. Comme eux, le feu du joueur 3 ($126E) lance la partie
+; (à 3, comme F3) ; rien si le joueur 3 n'a pas de joystick (NONE).
+; ----------------------------------------------------------------------------
+fire3       btst    #4,$126d.w              ; feu du joueur 2 : partie à 2
+            bne.s   .p2
+            cmpi.b  #6,CTL+2
+            beq.s   .r
+            btst    #4,$126e.w              ; feu du joueur 3 : partie à 3
+            bne.s   start3
+.r          rts                             ; (L_073CC : rts)
+.p2         jmp     $736c
 
 ; ----------------------------------------------------------------------------
 ; f5key : F5 ($7322 saute ici) : musique marche / arrêt, l'ancienne action

@@ -29,7 +29,8 @@ Correctifs et outils pour **International Karate +** (IK+) sur Atari ST :
 | STF / TOS 2.06 | plante au démarrage | fonctionne |
 | STE / TOS 1.62 | plante au démarrage | fonctionne (testé sur machine réelle) |
 | Mega STE / TOS 2.06 | plante au démarrage | fonctionne (testé sur machine réelle) |
-| Falcon030 / TOS 4.04 | ne démarre pas (écran noir) | fonctionne (testé sur machine réelle, moniteur RGB) |
+| Falcon030 / TOS 4.04 | ne démarre pas (écran noir) | fonctionne (testé sur machine réelle, moniteur RGB ; en VGA, la musique est trop rapide, l'écran n'étant pas à 50 Hz) |
+| Falcon avec CT60 (68060) | non testé | plante après la page d'introduction (non pris en charge : passer la CT60 en mode 68030) |
 
 La colonne `IK+.PRG` a été vérifiée dans l'émulateur Hatari.
 
@@ -37,7 +38,7 @@ Ce qui a été corrigé :
 
 - **Le générateur de nombres aléatoires du jeu** lisait la ROM du TOS 1.x en `$FC0000`. Cette adresse n'existe ni sur STE et Mega STE, ni avec le TOS 2.06 : chaque lecture provoquait une erreur de bus, et le jeu plantait ou redémarrait en boucle. Il lit maintenant des données graphiques en RAM. La modification tient en un octet.
 - **La vérification de la disquette** : `IK+.PRG` la lance toujours au démarrage, puis attend l'arrêt du moteur du lecteur, qui n'arrive jamais sans disquette dans le lecteur. Reforged la saute.
-- **Le nouveau chargeur** affiche « Loading, please wait... » (blanc sur noir) pendant qu'il lit le jeu dans une zone mémoire réservée et le met en place sans risque. Sur Mega STE, il coupe les interruptions de la puce série (SCC) et passe en 8 MHz sans cache. Sur Falcon030, il coupe aussi les interruptions de la SCC, les caches du 68030 et sa MMU (le TOS 4 met la table de la MMU en `$700`, là où va le jeu), et passe en 16 MHz : à 8 MHz, le Falcon est plus lent qu'un ST. Le jeu compte ses images en VBL : sa vitesse ne change pas. Pas de son DMA ni de blitter sur Falcon : les bruitages coupent toujours la musique, comme sur STF. La CT60 (68060) n'est pas prise en charge. Tous les vecteurs d'exception inutilisés pointent vers un endroit sûr. Avant le jeu, il affiche une page d'introduction : le logo IK+ et la police du jeu, tous deux pris dans votre copie du jeu, deux dessins, « REFORGED » et « EDITION », de part et d'autre du logo, le joystick de chaque joueur, le mode entraînement, « PRESS SPACE TO START » (puis « PLEASE WAIT »), « ENHANCED BY CLAUDE AI - 2026 » avec la version (`make TAG=…`, par défaut l'étiquette git), et « IN MEMORY OF ARCHER MACLEAN (1962-2022) ».
+- **Le nouveau chargeur** affiche « Loading, please wait... » (blanc sur noir) pendant qu'il lit le jeu dans une zone mémoire réservée et le met en place sans risque. Sur Mega STE, il coupe les interruptions de la puce série (SCC) et passe en 8 MHz sans cache. Sur Falcon030, il coupe aussi les interruptions de la SCC, les caches du 68030 et sa MMU (le TOS 4 met la table de la MMU en `$700`, là où va le jeu), et passe en 16 MHz : à 8 MHz, le Falcon est plus lent qu'un ST. Le jeu compte ses images en VBL : sa vitesse ne change pas. Pas de son DMA ni de blitter sur Falcon : les bruitages coupent toujours la musique, comme sur STF. Sur moniteur VGA, le jeu fonctionne, mais la musique est trop rapide (l'écran n'est pas à 50 Hz). La CT60 (68060) n'est pas prise en charge : le jeu plante après la page d'introduction ; passer la CT60 en mode 68030. Tous les vecteurs d'exception inutilisés pointent vers un endroit sûr. Avant le jeu, il affiche une page d'introduction : le logo IK+ et la police du jeu, tous deux pris dans votre copie du jeu, deux dessins, « REFORGED » et « EDITION », de part et d'autre du logo, le joystick de chaque joueur, le mode entraînement, « PRESS SPACE TO START » (puis « PLEASE WAIT »), « ENHANCED BY CLAUDE AI - 2026 » avec la version (`make TAG=…`, par défaut l'étiquette git), et « IN MEMORY OF ARCHER MACLEAN (1962-2022) ».
 - **Mode entraînement** : **F4** sur la page d'introduction l'active (il n'est jamais mémorisé). Pendant une partie, le temps du round ne baisse plus et s'affiche « TIME: -- », et personne ne marque de points de round (le score, lui, augmente) : les rounds ne finissent jamais, et une partie à 3 ne s'arrête plus au bout de 5 minutes. La démo et les épreuves bonus ne changent pas.
 
 ### Mode 3 joueurs
@@ -113,9 +114,9 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 
 | Fichier | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `013611bbd5cd32e80b95482e1696755d` |
+| `IK_PLUS/IKPLUS.IMG` | `c37781546d8a0d30da69ffada25a2bf5` |
 | `IK_PLUS_REF.TOS` (le chargeur avec le texte de version `V0.0.0`) | `2d8d92fd5dbe391febd66d4ff42c4f73` |
-| `IK_STE_CHECK.IMG` (contrôle) | `b6eaf97dc6de13dfc49e560aba921663` |
+| `IK_STE_CHECK.IMG` (contrôle) | `ceb320652984ac5858572e451c0ce28d` |
 
 **Option** : `make game LIMIT=180 PRG=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.
 

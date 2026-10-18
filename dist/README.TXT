@@ -30,8 +30,10 @@ Start-up
 - Mega STE: the game runs at 8 MHz with the cache off, as it expects.
 - Falcon030: the game runs at 16 MHz with the caches off (at 8 MHz the
   Falcon is slower than an ST); its speed is the same as on an ST. No DMA
-  sound or blitter: sound effects cut the music, as on an STF. The CT60
-  (68060) is not supported.
+  sound or blitter: sound effects cut the music, as on an STF. On a VGA
+  monitor the music plays too fast (the screen is not at 50 Hz).
+- CT60 (68060): not supported, the game crashes after the intro page.
+  Switch the CT60 to 68030 mode.
 - The reset button resets the machine instead of restarting the game.
 
 Joysticks (intro page)
@@ -53,8 +55,9 @@ Joysticks (intro page)
 
 3-player mode
 - F3 starts a 3-player game, like F1 (1 player) and F2 (2 players): the
-  three fists flash, and player 3 gets the blue fighter. If player 3 is
-  set to NONE, F3 does nothing.
+  three fists flash, and player 3 gets the blue fighter. During the demo,
+  player 3's fire button does the same, as fire does for players 1 and 2.
+  If player 3 is set to NONE, F3 and his fire button do nothing.
 - With 3 players: nobody is eliminated, the referee announces neutral
   results (X IS BEST / Y IS SECOND / Z IS WORST...), and the match ends
   after 5 minutes of fighting with "MATCH OVER".
