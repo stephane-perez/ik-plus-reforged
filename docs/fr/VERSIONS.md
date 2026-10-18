@@ -209,6 +209,16 @@ Ticket #16 : un seul programme pour toutes les machines, une page d'introduction
 - Empreintes : `IK_PLUS/IKPLUS.IMG` = `90c05ec22bd45bc9898ed30653b37300`, `IK_PLUS_REF.TOS` = `2b13ae7a9cbff22b48d9e2a0fbbafdd3`, `IK_STE_CHECK.IMG` = `368df6c7c8ae7cd4bc9c729f61e6f341`.
 - **Retour de la machine réelle** : tout validé sur STE et Mega STE (page, entraînement sans points, mode STE). Fusion dans `master`.
 
+## 19. Page d'introduction : dessins « REFORGED » et « EDITION »
+
+- Les textes « REFORGED » et « EDITION » (police du jeu, ligne 49) sont remplacés par deux dessins de Stéphane, de part et d'autre du logo, lignes 43 à 60 (gauche : x = 0 à 82 ; droite : x = 245 à 318).
+- Source : son écran Degas `IKPLUS2.PI1` (MD5 `b42973810f1abce24c1b5523601727d8`), hors du dépôt dans `../ikplus-local/` puisqu'il contient aussi le logo du jeu. `tools/sides.py` en tire les deux blocs (6 et 5 groupes de 16 pixels, 4 plans entrelacés, 1 584 octets), seuls dans le dépôt : `src/sides.i`. La palette du PI1 est d'un cran plus sombre (conversion PNG → PI1) : chaque couleur est remontée d'un cran et retrouvée dans la palette du chargeur, qui ne change pas (rouges du logo 9 à 13, gris clair 15).
+- Chargeur : `dside` pose chaque bloc après le logo, avec un masque (les pixels noirs du dessin ne touchent pas l'écran).
+- Page d'introduction : le « + » des versions de développement (« V1.0.9+ ») utilise la lettre 11 de la police du jeu (avant : un pavé ; même correctif que sur la branche `falcon`).
+- Essais Hatari (STF TOS 1.04, STE TOS 1.62, Mega STE TOS 2.06) : l'écran obtenu est identique, au pixel près, à la maquette tirée du PI1 (couleurs corrigées), hormis la ligne de version ; le jeu démarre après Espace.
+- Empreinte : `IK_PLUS_REF.TOS` = `c457539f4593793a993c093c5b8fa94f`.
+- **Retour de la machine réelle** (essai 4) : validé sur STF, STE et Mega STE. Fusion dans `master`.
+
 ## 20. Mode STE quelle que soit la mémoire occupée au lancement
 
 - **Constat** (Stéphane, Mega STE réel) : le jeu était plus lent que sur STE quand le Mega STE démarrait avec plusieurs accessoires et un bureau alternatif ; avec un démarrage propre, même vitesse que le STE.
@@ -216,3 +226,4 @@ Ticket #16 : un seul programme pour toutes les machines, une page d'introduction
 - **Correctif** (chargeur) : la condition sur la fin du bloc disparaît. La routine de recopie, posée après l'image lue, est suivie du module STE (bloc `Malloc` agrandi : `STUBSPACE` = 4 Ko). Elle recopie d'abord le jeu en `$700` (toujours vers le bas, sans risque) ; en mode STE, elle déplace ensuite sa fin et le module en `TAIL` = `$53800`, juste après l'image du jeu, et de là pose le module en `$C0000` et lance son `init`. Ainsi, ni la pose du module ni les sons rééchantillonnés (`$D0000`–`$EBE74`) ne peuvent écraser la routine en cours, où que soit le bloc lu. Seule condition restante sur le bloc : commencer au-dessus de `$10000` (toujours vrai).
 - **Essais Hatari** : programme d'essai (hors dépôt) qui réserve 448 Ko ou 800 Ko de mémoire basse puis lance `IK_PLUS.TOS`. STE 1 Mo et 4 Mo, Mega STE 4 Mo : bloc lu jusqu'en `$D4A98` / `$12CAxx` ; ancien chargeur : accroches absentes (`$2064` = `13 C0 00 FF FA 23`), nouveau : accroches et module en place (`jsr $C0004`, `$C0000` = `60 00 01 1E`), partie à 3, turbo à 23,4 images/s. STF 1 Mo (avec et sans programme d'essai) et STE 512 Ko : jeu d'origine, comme avant.
 - Empreinte : `IK_PLUS_REF.TOS` = `2ac168888f2a9be282b8520409a71fe8`.
+- **Retour de la machine réelle** (essai 4) : validé sur STF, STE et Mega STE ; le Mega STE garde le mode STE avec accessoires et bureau alternatif. Fusion dans `master` (après le §19 : empreinte du chargeur avec les deux, `IK_PLUS_REF.TOS` = `a50580870c9f0534922c6f8b02400c18`).
