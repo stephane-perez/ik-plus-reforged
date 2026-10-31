@@ -387,19 +387,23 @@ pass2       dc.w    0,0,$0204, 4,0,$0207    ; bleu : plan 0 = sprite 1,
 ; la boucle le relance juste avant que le 68000 prenne l'interruption, il le
 ; reprend aussitôt. Le gestionnaire raster (Timer B) écrit alors ses couleurs
 ; trop tard : dégradé du reflet décalé, voire compteur suivant raté.
-; Garde : on ne lance ni ne relance jamais le blitter pendant la dernière
-; ligne avant une interruption raster (compteur du Timer B, $FFFA21, à 1) ;
-; on le met en pause et on attend que l'interruption soit passée. Lancé
-; quand il reste au moins 2 lignes (>= 512 cycles), il rend le bus au bout
+; Garde : on ne lance ni ne relance jamais le blitter pendant les deux
+; dernières lignes avant une interruption raster (compteur du Timer B,
+; $FFFA21, à 1 ou 2) ; on le met en pause et on attend que l'interruption
+; soit passée. Lancé quand il reste au moins 3 lignes, il rend le bus au bout
 ; de 256 cycles au plus, et la boucle le met en pause avant l'interruption.
+; Une seule ligne de marge (jusqu'à l'essai 9) ne suffisait pas quand le
+; gestionnaire du clavier (P_02492) prend la main entre-temps : le blitter
+; partage le bus avec lui, et la boucle ne reprend qu'à son retour (ligne
+; noire vers les pieds, VERSIONS.md §25). Même vitesse (turbo : 24 images/s).
 ; La fin se teste sur le compteur de lignes, jamais sur le bit 7 (qui se
 ; relit à 0 après une pause).
 ; -DNOGUARD : ancienne boucle, sans garde (essais de comparaison).
 ; ----------------------------------------------------------------------------
 bwait
             ifnd NOGUARD
-.lp         cmpi.b  #1,$fffffa21.w          ; dernière ligne avant le raster ?
-            bne.s   .run
+.lp         cmpi.b  #2,$fffffa21.w          ; 2 dernières lignes avant le raster ?
+            bhi.s   .run
             tst.b   $fffffa1b.w             ; Timer B arrêté : pas d'interruption
             beq.s   .run
             bclr.b  #7,B_CTL(a6)            ; pause jusqu'à l'interruption

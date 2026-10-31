@@ -56,7 +56,8 @@ Le jeu a été conçu autour de trois combattants, et ses données avaient déj�
 - Sans joueur 3, le jeu se joue comme l'original, à quelques changements près :
   - la vitesse choisie avec F6–F10 est gardée au début d'une nouvelle partie et après HELP (l'original revenait à « normal ») ;
   - le bouton **reset** redémarre la machine au lieu de relancer le jeu ;
-  - dans la barre du haut, les scores, barres de vie et poings du rouge et du bleu sont un peu décalés vers la gauche : le poing bleu ne touche plus « LV ».
+  - dans la barre du haut, les scores, barres de vie et poings du rouge et du bleu sont un peu décalés vers la gauche : le poing bleu ne touche plus « LV » ;
+  - plus de ligne noire qui clignote vers le bas du combat (surtout sur STE) : l'interruption du clavier ne retarde plus les changements de couleurs.
 
 Le joueur 3 utilise un **adaptateur joystick sur le port parallèle**, du type de ceux de *Gauntlet II*, *Leatherneck* ou *Dynabusters+* (prise joystick 3 : directions D4–D7, tir sur BUSY), ou une **manette Jaguar** sur un port joystick étendu du STE. Un seul dossier, `IK_PLUS`, sert sur toutes les machines.
 
@@ -109,9 +110,9 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 
 | Fichier | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `67fcd27cdfcfa60d98c4eb2ac840a18c` |
-| `IK_PLUS_REF.TOS` (le chargeur avec le texte de version `V0.0.0`) | `43d5472991cbe18e0228b19e8ab649ef` |
-| `IK_STE_CHECK.IMG` (contrôle) | `c73aa58f6f91c58741f8a7ac1e3c28aa` |
+| `IK_PLUS/IKPLUS.IMG` | `c6aa495e52b83acd7a04727ae7a7324a` |
+| `IK_PLUS_REF.TOS` (le chargeur avec le texte de version `V0.0.0`) | `c9dbbf0f2e5f998bc08c9869a70f2a30` |
+| `IK_STE_CHECK.IMG` (contrôle) | `f06635988bd770f63fb4802eeb382b36` |
 
 **Option** : `make game LIMIT=180 PRG=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.
 

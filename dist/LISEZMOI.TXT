@@ -93,6 +93,8 @@ Touches
 Affichage
 - Barre du haut : les barres de vie, scores et poings du rouge et du bleu
   sont un peu décalés vers la gauche ; le poing bleu ne touche plus « LV ».
+- Plus de ligne noire qui clignote vers le bas du combat (surtout sur
+  STE) : le clavier ne retarde plus les changements de couleurs.
 
 STE ou Mega STE avec au moins 1 Mo
 - Bruitages joués par le DMA, à 12,5 kHz. La musique garde ses trois voix

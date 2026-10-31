@@ -26,6 +26,24 @@ P3          equ $1009
             bra.w ptschk        ; $6A52  F_08564 ($8586) : points de round
             bra.w restart       ; $6A56  $1C9C : retour en P_014FA par rte
 
+; acia ($6A5A, adresse fixe : bra.w depuis $2496) : suite du gestionnaire de
+; l'ACIA du clavier (P_02492), dont l'accroche 34 remplace les deux premières
+; instructions, « movem.l d0-d2/a0-a2,-(a7) / clr.w $102c.w », par
+; « move.w #$2500,sr / bra.w acia ». Le MFP est en fin d'interruption
+; automatique (VR = $40) : seul le masque du 68000 (niveau 6 pendant le
+; gestionnaire) empêchait le raster (Timer B, prioritaire dans le MFP) de
+; passer. Un octet de l'IKBD reçu juste avant une interruption raster la
+; retardait de ~300 cycles : couleurs écrites au milieu de la ligne
+; suivante (ligne noire vers les pieds, ligne 190, sur STE). Masque à 5 dès
+; la première instruction : le raster interrompt le gestionnaire ; la VBL
+; (niveau 4) reste masquée.
+acia        movem.l d0-d2/a0-a2,-(a7)
+            clr.w   $102c.w
+            jmp     $249a
+            if acia!=$6a5a
+            fail "acia doit rester en $6A5A (accroche 34)"
+            endif
+
 ; training : Z = 1 si le mode entraînement s'applique. Détruit d0.
 training    tst.b   TRAIN.w
             beq.s   .no

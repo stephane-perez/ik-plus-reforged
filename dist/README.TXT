@@ -87,6 +87,8 @@ Keys
 Display
 - Top bar: the red and blue energy bars, scores and fists are moved a
   little to the left, so that the blue fist no longer touches "LV".
+- No more black line flickering near the bottom of the fight (mostly on
+  STE): the keyboard no longer delays the colour changes.
 
 STE or Mega STE with 1 MB or more
 - Sound effects are played by DMA, at 12.5 kHz. The music keeps its three

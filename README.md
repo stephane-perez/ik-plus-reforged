@@ -56,7 +56,8 @@ The game was designed around three fighters, and its data already had room for a
 - Without player 3, the game plays like the original, with a few changes:
   - the speed chosen with F6–F10 is kept when a new game starts and after HELP (the original went back to "normal");
   - the **reset** button resets the machine instead of restarting the game;
-  - the red and blue scores, energy bars and fists in the top bar are moved a little to the left, so that the blue fist no longer touches "LV".
+  - the red and blue scores, energy bars and fists in the top bar are moved a little to the left, so that the blue fist no longer touches "LV";
+  - no more black line flickering near the bottom of the fight (mostly on STE): the keyboard interrupt no longer delays the raster colour changes.
 
 Player 3 uses a **parallel-port joystick adapter**, the kind used by *Gauntlet II*, *Leatherneck* or *Dynabusters+* (joystick 3 socket: directions D4–D7, fire on BUSY), or a **Jaguar pad** on an STE's enhanced joystick port. A single folder, `IK_PLUS`, works on every machine.
 
@@ -109,9 +110,9 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 
 | File | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `67fcd27cdfcfa60d98c4eb2ac840a18c` |
-| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `43d5472991cbe18e0228b19e8ab649ef` |
-| `IK_STE_CHECK.IMG` (control) | `c73aa58f6f91c58741f8a7ac1e3c28aa` |
+| `IK_PLUS/IKPLUS.IMG` | `c6aa495e52b83acd7a04727ae7a7324a` |
+| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `c9dbbf0f2e5f998bc08c9869a70f2a30` |
+| `IK_STE_CHECK.IMG` (control) | `f06635988bd770f63fb4802eeb382b36` |
 
 **Option**: `make game LIMIT=180 PRG=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
 

@@ -102,7 +102,7 @@ Listing du jeu pour l'étude : `python3 tools/trace_ik.py IK+.PRG` →
 
 Chaîne des correctifs : `patch_game.py` (image tirée de `IK+.PRG` ;
 RNG lisant la ROM en `$FC0000`, cause du plantage STE ; vérification de la
-disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800`, `src/p3b.s` en `$6A4A`, 33
+disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800`, `src/p3b.s` en `$6A4A`, 34
 accroches, barre du haut, textes, écran d'aide par `tools/helpscreen.py`) → pour le STE, `patch_ste.py` (9 accroches vers `src/ste.s`), posées au
 lancement par le chargeur (table `build/stehooks.i`) sur un STE ou un Mega
 STE avec 1 Mo ; `make check` vérifie aussi l'image de contrôle
@@ -114,7 +114,7 @@ STE avec 1 Mo ; `make check` vérifie aussi l'image de contrôle
 |---|---|
 | `$700`–`$537FF` | image du jeu (`$E64`–`$14E5` variables, pile depuis `$F28`) |
 | `$800`–`$BFF` | code 3 joueurs (`p3.s`) : **1 Ko au total**, ~970 octets utilisés ; choix des joysticks `CTL` et mode entraînement `TRAIN` en `$850` |
-| `$6A4A`–`$6AF7` | code en plus (`p3b.s` : mode entraînement, retour `rte` du 68030) : 174 octets, dans la vérification de la disquette sautée |
+| `$6A4A`–`$6AF7` | code en plus (`p3b.s` : mode entraînement, retour `rte` du 68030, gestionnaire clavier en `$6A5A`) : 174 octets (130 utilisés), dans la vérification de la disquette sautée |
 | `$53800`–`$54FFF` | STE, au lancement seulement : fin de la routine de recopie et module, avant leur départ en `$C0000` |
 | `$6C000`–`$6CAFF` | module Échap (`src/esc.s`) : page d'introduction pendant le jeu ; `$6B078`–`$6FFFF` est libre (VERSIONS.md §23) |
 | `$70000` / `$78000` | les deux écrans |
@@ -206,10 +206,17 @@ Tu fournis les ROM TOS (pas dans le dépôt). Scripts dans `hatari/` :
 - **Blitter et interruptions raster sur la machine réelle** : une interruption
   qui arrive pendant un paquet du blitter attend jusqu'à ~256 cycles, et
   Hatari ne reproduit pas tous les cas. `bwait` (seule façon de lancer le
-  blitter) ne le lance jamais quand le Timer B est à 1 ligne de son
-  interruption (`$FFFA21` = 1). Le dégradé du reflet (lignes 68–76, couleur
+  blitter) ne le lance jamais quand le Timer B est à 1 ou 2 lignes de son
+  interruption (`$FFFA21` ≤ 2). Le dégradé du reflet (lignes 68–76, couleur
   10) est la zone la plus sensible. Mesure : points d'arrêt à l'entrée du
   gestionnaire avec `HBL` / `LineCycles` (VERSIONS.md §11).
+- **Clavier et raster** : le MFP est en fin d'interruption automatique
+  (VR = `$40`) ; seuls Timer B et ACIA sont actifs. Le gestionnaire de
+  l'ACIA (`$2492`) passe le masque à 5 (accroche 34), sinon un octet de
+  l'IKBD retarde le raster de ~300 cycles (ligne noire vers les pieds sur
+  STE, VERSIONS.md §25). Mesure : point d'arrêt sur l'écriture des couleurs
+  (`$1B36`, ligne 190) avec `HBL` / `LineCycles` ; `history on` puis
+  `history 40` montre ce qui a retardé l'interruption.
 - Le hasard du jeu (`F_036B2`) dépend du VBL et du faisceau : deux versions
   n'évoluent pas pareil. Pour comparer, préférer le mode contrôle.
 - Dans IK+, une image = un pas du jeu (table de vitesse `$6EB8`) : plus
