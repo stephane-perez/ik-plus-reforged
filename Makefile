@@ -23,7 +23,7 @@ TAG    ?= $(shell git describe --tags --exact-match 2>/dev/null || \
             (t=$$(git describe --tags --abbrev=0 2>/dev/null); echo "$${t:-v?}+"))
 VFLAGS := -quiet -m68000
 
-TOOLS_OUT := $(B)/IK_PLUS.TOS $(B)/IK_PLUS_REF.TOS $(B)/p3.bin $(B)/p3b.bin $(B)/ste.bin
+TOOLS_OUT := $(B)/IK_PLUS.TOS $(B)/IK_PLUS_REF.TOS $(B)/p3.bin $(B)/p3b.bin $(B)/ste.bin $(B)/esc.bin
 
 .PHONY: all game check vasm clean FORCE
 all: $(TOOLS_OUT)
@@ -38,11 +38,11 @@ $(B):
 
 # --- our own programs (no game data involved) ------------------------------
 # the loader includes the STE module, the table of its hooks and the version
-$(B)/IK_PLUS.TOS: src/loader.s src/sides.i $(B)/ste.bin $(B)/stehooks.i $(B)/version.i | $(B) $(VASM)
+$(B)/IK_PLUS.TOS: src/loader.s src/sides.i $(B)/ste.bin $(B)/esc.bin $(B)/stehooks.i $(B)/version.i | $(B) $(VASM)
 	$(VASM) $(VFLAGS) -Ftos -o $@ $<
 
 # same loader with a fixed version text, for make check
-$(B)/IK_PLUS_REF.TOS: src/loader.s src/sides.i $(B)/ste.bin $(B)/stehooks.i | $(B) $(VASM)
+$(B)/IK_PLUS_REF.TOS: src/loader.s src/sides.i $(B)/ste.bin $(B)/esc_ref.bin $(B)/stehooks.i | $(B) $(VASM)
 	$(VASM) $(VFLAGS) -Ftos -DREFTAG -o $@ $<
 
 # version text, rewritten only when the tag changes
@@ -65,6 +65,13 @@ $(B)/p3b.bin: src/p3b.s | $(B) $(VASM)
 $(B)/ste.bin: src/ste.s | $(B) $(VASM)
 	$(VASM) $(VFLAGS) -Fbin -o $@ $<
 
+# resident Escape page (intro page during the game), placed at $6C000 by the loader
+$(B)/esc.bin: src/esc.s src/sides.i $(B)/version.i | $(B) $(VASM)
+	$(VASM) $(VFLAGS) -Fbin -o $@ $<
+
+$(B)/esc_ref.bin: src/esc.s src/sides.i | $(B) $(VASM)
+	$(VASM) $(VFLAGS) -Fbin -DREFTAG -o $@ $<
+
 # --- the game: built from the user's own IK+.PRG ---------------------------
 $(B)/IK_BASE.IMG: $(PRG) tools/patch_game.py tools/ikimg.py | $(B)
 	$(PY) tools/patch_game.py "$(PRG)" $@
@@ -84,7 +91,7 @@ game: all $(B)/IK_BASE.IMG
 # version text: IK_PLUS_REF.TOS)
 check:
 	@$(PY) -c "import hashlib,sys; \
-exp={'$(B)/IK_PLUS/IKPLUS.IMG':'c37781546d8a0d30da69ffada25a2bf5','$(B)/IK_PLUS_REF.TOS':'2d8d92fd5dbe391febd66d4ff42c4f73','$(B)/IK_STE_CHECK.IMG':'ceb320652984ac5858572e451c0ce28d'}; \
+exp={'$(B)/IK_PLUS/IKPLUS.IMG':'c6aa495e52b83acd7a04727ae7a7324a','$(B)/IK_PLUS_REF.TOS':'c9dbbf0f2e5f998bc08c9869a70f2a30','$(B)/IK_STE_CHECK.IMG':'f06635988bd770f63fb4802eeb382b36'}; \
 bad=[f for f,h in exp.items() if hashlib.md5(open(f,'rb').read()).hexdigest()!=h]; \
 print('OK' if not bad else 'MISMATCH: '+' '.join(bad)); sys.exit(1 if bad else 0)"
 

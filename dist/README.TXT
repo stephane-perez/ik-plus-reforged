@@ -71,10 +71,13 @@ Training mode (F4 on the intro page)
   stages are unchanged. Quit the game to get the normal rules back.
 
 Keys
+- Esc: back to the intro page during the game, to change the joysticks
+  and the training mode (F1 to F4, as at start-up; not saved in
+  IKPLUS.CFG). Space then restarts the game on its demo.
 - F3: 3-player game (was: music on/off).
 - F5: music on/off (was unused).
-- F6 to F10: the chosen speed is kept when a new game starts (the
-  original went back to "normal").
+- F6 to F10: the chosen speed is kept when a new game starts and after
+  HELP (the original went back to "normal").
 - The help screen ("F3 ..... 3 PLAYER GAME", "F4/F5 .. FX/MUSIC ON/OFF"),
   the referee's tip ("PRESS F5 FOR MUSIC ON OR OFF") and the demo message
   ("OR F1 F2 F3 KEYS") show the new keys.
@@ -84,6 +87,8 @@ Keys
 Display
 - Top bar: the red and blue energy bars, scores and fists are moved a
   little to the left, so that the blue fist no longer touches "LV".
+- No more black line flickering near the bottom of the fight (mostly on
+  STE): the keyboard no longer delays the colour changes.
 
 STE or Mega STE with 1 MB or more
 - Sound effects are played by DMA, at 12.5 kHz. The music keeps its three

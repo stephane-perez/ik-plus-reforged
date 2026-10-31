@@ -76,10 +76,13 @@ Mode entraînement (F4 sur la page d'introduction)
   retrouver les règles normales.
 
 Touches
+- Échap : retour à la page d'introduction pendant le jeu, pour changer les
+  joysticks et le mode entraînement (F1 à F4, comme au démarrage ; pas
+  mémorisé dans IKPLUS.CFG). Espace relance ensuite le jeu sur sa démo.
 - F3 : partie à 3 joueurs (avant : musique marche / arrêt).
 - F5 : musique marche / arrêt (avant : inutilisée).
 - F6 à F10 : la vitesse choisie est gardée au début d'une nouvelle partie
-  (l'original revenait à « normal »).
+  et après HELP (l'original revenait à « normal »).
 - L'écran d'aide (« F3 ..... 3 PLAYER GAME », « F4/F5 .. FX/MUSIC
   ON/OFF »), le conseil de l'arbitre (« PRESS F5 FOR MUSIC ON OR OFF ») et
   le message de la démo (« OR F1 F2 F3 KEYS ») indiquent les nouvelles
@@ -90,6 +93,8 @@ Touches
 Affichage
 - Barre du haut : les barres de vie, scores et poings du rouge et du bleu
   sont un peu décalés vers la gauche ; le poing bleu ne touche plus « LV ».
+- Plus de ligne noire qui clignote vers le bas du combat (surtout sur
+  STE) : le clavier ne retarde plus les changements de couleurs.
 
 STE ou Mega STE avec au moins 1 Mo
 - Bruitages joués par le DMA, à 12,5 kHz. La musique garde ses trois voix

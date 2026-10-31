@@ -27,6 +27,8 @@ de crackers dans le projet.
   joueur 3 = manette Jaguar sur le port joystick étendu A ;
   bruitages en DMA ; combattants dessinés au blitter ; turbo (F6) à
   25 images/s en permanence.
+- **Échap** pendant le jeu : retour à la page d'introduction (module résident
+  `src/esc.s` en `$6C000`, posé par le chargeur ; accroche 11 en `$732E`).
 - **JOYTEST** (testeur de joysticks) : sorti du projet après la v1.1.0, dans
   son propre dépôt, https://github.com/stephane-perez/joystick-tester.
 
@@ -100,7 +102,7 @@ Listing du jeu pour l'étude : `python3 tools/trace_ik.py IK+.PRG` →
 
 Chaîne des correctifs : `patch_game.py` (image tirée de `IK+.PRG` ;
 RNG lisant la ROM en `$FC0000`, cause du plantage STE ; vérification de la
-disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800`, `src/p3b.s` en `$6A4A`, 32
+disquette sautée en `$6A44`) → `patch_p3.py` (code `src/p3.s` en `$800`, `src/p3b.s` en `$6A4A`, 34
 accroches, barre du haut, textes, écran d'aide par `tools/helpscreen.py`) → pour le STE, `patch_ste.py` (9 accroches vers `src/ste.s`), posées au
 lancement par le chargeur (table `build/stehooks.i`) sur un STE ou un Mega
 STE avec 1 Mo ; `make check` vérifie aussi l'image de contrôle
@@ -112,8 +114,9 @@ STE avec 1 Mo ; `make check` vérifie aussi l'image de contrôle
 |---|---|
 | `$700`–`$537FF` | image du jeu (`$E64`–`$14E5` variables, pile depuis `$F28`) |
 | `$800`–`$BFF` | code 3 joueurs (`p3.s`) : **1 Ko au total**, ~970 octets utilisés ; choix des joysticks `CTL` et mode entraînement `TRAIN` en `$850` |
-| `$6A4A`–`$6AF7` | code en plus (`p3b.s` : mode entraînement, retour `rte` du 68030) : 174 octets, dans la vérification de la disquette sautée |
+| `$6A4A`–`$6AF7` | code en plus (`p3b.s` : mode entraînement, retour `rte` du 68030, gestionnaire clavier en `$6A5A`) : 174 octets (130 utilisés), dans la vérification de la disquette sautée |
 | `$53800`–`$54FFF` | STE, au lancement seulement : fin de la routine de recopie et module, avant leur départ en `$C0000` |
+| `$6C000`–`$6CAFF` | module Échap (`src/esc.s`) : page d'introduction pendant le jeu ; `$6B078`–`$6FFFF` est libre (VERSIONS.md §23) |
 | `$70000` / `$78000` | les deux écrans |
 | `$80000`–`$A37FF` | STE : sprites convertis pour le blitter |
 | `$A7000`–`$BFFFF` | STE, mode contrôle (`-DCHECK`) seulement : copies de travail |
@@ -136,6 +139,34 @@ Tu fournis les ROM TOS (pas dans le dépôt). Scripts dans `hatari/` :
   à cause de la conversion des sons).
 - `runx.sh` : Xvfb + xdotool, pour passer par l'émulation des joysticks
   (configurations `joy3.cfg`, `joy4.cfg`, `joyall.cfg`, `joyste.cfg`).
+- Échap dans `KEYS` : `0x01` (`"60:0x01"`) ; « 1 » serait la touche du
+  chiffre 1 (code `$02`). Dans `runx.sh`, noms de touches xdotool, en
+  minuscules pour les joysticks (`space`, `F1`, `Escape`, `u`).
+- **Accéléré** (fast forward, AltGr + X dans Hatari) : `FF=t` dans `run.sh`
+  et `runx.sh` le met à la seconde t, après les touches (envoyées à heure
+  fixe en temps réel) ; le temps émulé (VBL, cycles) n'en dépend pas.
+- **État sauvé** (méthode reprise de Bubble Bobble Reforged) : arriver une
+  fois en temps réel au point voulu (combat…), sauver l'état, puis lancer
+  chaque essai depuis cet état, en accéléré :
+  - sauver : `CMDS=f.cmds` (lignes `t commande`) avec
+    `52 hatari-path memsave /chemin/f.sav` puis `53 hatari-shortcut savemem`
+    (`runx.sh` : lignes `t cmd commande`) ;
+  - repartir : option `--memstate /chemin/f.sav` ;
+  - **la restauration efface les points d'arrêt** (`--parse` ne sert à
+    rien) : les poser après, par `1 hatari-debug b pc = ...` dans `CMDS` ;
+    `hatari-debug w $adr ...` pour écrire en mémoire ;
+  - l'état contient le programme : un état par version construite.
+  Exemple : Échap testé depuis un état sauvé, en 22 s au lieu de ~1 min 40.
+- Débogueur : `b ($ADR).w ! ($ADR).w` s'arrête quand la valeur change
+  (trouver qui écrit où) ; `loadbin` / `savebin` pour remplir ou relever la
+  mémoire (zone libre trouvée ainsi, VERSIONS.md §23).
+- Arrêter un Hatari par son numéro (`kill $(pgrep -x hatari)`), jamais par
+  `pkill -f motif` : le motif est aussi dans la ligne de commande du shell,
+  qui se tue lui-même.
+- Sans `IK+.PRG` (nouvelle session), le `IKPLUS.IMG` d'une version publiée
+  (empreinte connue) permet d'étudier (`tools/trace_ik.py` accepte une image)
+  et de tester ; l'accroche à essayer s'applique alors par un script hors
+  dépôt qui vérifie l'empreinte et les octets d'origine.
 - `hatari/measure/` (lancer depuis ce dossier, options `--parse …`) :
   - vitesse : `unlock.py` (copie du jeu sans limite de vitesse), `frames.dbg`
     puis `frames.py out/<nom>/log.txt` (images par seconde, par état du jeu) ;
@@ -175,10 +206,17 @@ Tu fournis les ROM TOS (pas dans le dépôt). Scripts dans `hatari/` :
 - **Blitter et interruptions raster sur la machine réelle** : une interruption
   qui arrive pendant un paquet du blitter attend jusqu'à ~256 cycles, et
   Hatari ne reproduit pas tous les cas. `bwait` (seule façon de lancer le
-  blitter) ne le lance jamais quand le Timer B est à 1 ligne de son
-  interruption (`$FFFA21` = 1). Le dégradé du reflet (lignes 68–76, couleur
+  blitter) ne le lance jamais quand le Timer B est à 1 ou 2 lignes de son
+  interruption (`$FFFA21` ≤ 2). Le dégradé du reflet (lignes 68–76, couleur
   10) est la zone la plus sensible. Mesure : points d'arrêt à l'entrée du
   gestionnaire avec `HBL` / `LineCycles` (VERSIONS.md §11).
+- **Clavier et raster** : le MFP est en fin d'interruption automatique
+  (VR = `$40`) ; seuls Timer B et ACIA sont actifs. Le gestionnaire de
+  l'ACIA (`$2492`) passe le masque à 5 (accroche 34), sinon un octet de
+  l'IKBD retarde le raster de ~300 cycles (ligne noire vers les pieds sur
+  STE, VERSIONS.md §25). Mesure : point d'arrêt sur l'écriture des couleurs
+  (`$1B36`, ligne 190) avec `HBL` / `LineCycles` ; `history on` puis
+  `history 40` montre ce qui a retardé l'interruption.
 - Le hasard du jeu (`F_036B2`) dépend du VBL et du faisceau : deux versions
   n'évoluent pas pareil. Pour comparer, préférer le mode contrôle.
 - Dans IK+, une image = un pas du jeu (table de vitesse `$6EB8`) : plus

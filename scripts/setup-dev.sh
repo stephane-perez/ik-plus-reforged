@@ -21,19 +21,21 @@ if [ "$(id -u)" = 0 ]; then SUDO=; else SUDO=sudo; fi
 # vasm
 sh scripts/get-vasm.sh .tools
 
-# Hatari
-if ! command -v hatari >/dev/null 2>&1; then
-    echo "setup-dev : installation de Hatari"
-    $SUDO apt-get install -y -q hatari >/dev/null 2>&1 || {
+# Hatari, et Xvfb + xdotool pour hatari/runx.sh (émulation des joysticks)
+for p in hatari:hatari Xvfb:xvfb xdotool:xdotool; do
+    command -v ${p%%:*} >/dev/null 2>&1 && continue
+    echo "setup-dev : installation de ${p##*:}"
+    $SUDO apt-get install -y -q ${p##*:} >/dev/null 2>&1 || {
         $SUDO apt-get update -q >/dev/null
-        $SUDO apt-get install -y -q hatari >/dev/null
+        $SUDO apt-get install -y -q ${p##*:} >/dev/null
     }
-fi
+done
 
-# modules Python
-for m in capstone:capstone PIL:pillow numpy:numpy; do
+# modules Python (PIL.Image : un Pillow du système peut s'importer sans
+# fonctionner ; il est alors remplacé)
+for m in capstone:capstone PIL.Image:pillow numpy:numpy; do
     python3 -c "import ${m%%:*}" 2>/dev/null ||
-        python3 -m pip install -q "${m##*:}" 2>&1 | grep -v -i warning || true
+        python3 -m pip install -q --upgrade "${m##*:}" 2>&1 | grep -v -i warning || true
 done
 
 # construction

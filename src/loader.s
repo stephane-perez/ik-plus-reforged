@@ -30,8 +30,9 @@
 SIZE        equ $53100              ; taille de IKPLUS.IMG
 DEST        equ $700
 STEBASE     equ $C0000              ; module STE
-TAIL        equ DEST+SIZE           ; fin de la routine de recopie, en mode STE
-STUBSPACE   equ $1000               ; après l'image lue : routine de recopie et module STE
+TAIL        equ DEST+SIZE           ; fin de la routine de recopie (libre au lancement)
+STUBSPACE   equ $2000               ; après l'image lue : routine de recopie, module Échap, module STE
+ESCBASE     equ $6C000              ; module Échap (src/esc.s), libre pour le jeu
 
             section text
 start       move.l  4(a7),a5                ; basepage
@@ -61,10 +62,9 @@ start       move.l  4(a7),a5                ; basepage
             addq.l  #3,d0                   ; aligné sur 4
             and.b   #$fc,d0
             move.l  d0,buf
-            cmp.l   #$10000,d0              ; mode STE : la routine de recopie (après
-            bhs.s   .blk                    ; l'image lue) doit être au-dessus de TAIL
-            clr.b   stecan                  ; (toujours vrai en pratique)
-.blk
+            cmp.l   #$10000,d0              ; la routine de recopie (après l'image
+            blo     lderr                   ; lue) doit être au-dessus de TAIL
+                                            ; (toujours vrai en pratique)
 
             bsr     loading                 ; « Loading, please wait... »
 
@@ -767,10 +767,21 @@ go          move.w  #$2700,sr
 .vec        move.l  #$6f0,(a0)+
             dbra    d0,.vec
             move.b  stemode,stubste         ; pour la routine de recopie
+            ; module Échap : ce qu'il doit savoir de la machine
+            lea     escblob+4,a0
+            move.b  haspad,(a0)+            ; manettes possibles
+            move.b  isste,d0                ; son DMA : STE, Mega STE, Falcon
+            or.b    ismste,d0
+            cmp.w   #3,d6
+            bne.s   .nf
+            st      d0
+.nf         move.b  d0,(a0)+
+            move.b  stemode,(a0)+           ; blitter utilisé (mode STE)
 
             ; routine de recopie posée après les données, suivie du module
-            ; STE en mode STE. Le bloc lu peut être n'importe où (même sur
-            ; STEBASE) : le module n'est posé qu'une fois le jeu recopié.
+            ; Échap puis du module STE (mode STE). Le bloc lu peut être
+            ; n'importe où : les modules ne sont posés qu'une fois le jeu
+            ; recopié.
             move.l  buf,a0
             move.l  a0,a1
             adda.l  #SIZE,a1
@@ -779,6 +790,10 @@ go          move.w  #$2700,sr
             move.w  #(stubend-stub)/2-1,d0
 .cp         move.w  (a3)+,(a1)+
             dbra    d0,.cp
+            lea     escblob,a3
+            move.w  #ESCSIZE/2-1,d0
+.ce         move.w  (a3)+,(a1)+
+            dbra    d0,.ce
             tst.b   stubste
             beq.s   .nste
             lea     steblob,a3
@@ -794,20 +809,25 @@ stub        lea     DEST.w,a1
 .l          move.l  (a0)+,(a1)+
             subq.l  #1,d0
             bpl.s   .l
-            move.b  stubste(pc),d0
-            beq.s   stubgo
-            ; mode STE : la fin de cette routine et le module qui la suit
-            ; vont en TAIL, juste après l'image du jeu (place libre) ; de là,
-            ; le module va en STEBASE, et son init (sons en $D0000, sprites
-            ; plus tard en $80000) ne peut plus écraser la routine.
+            ; la fin de cette routine et les modules qui la suivent vont en
+            ; TAIL, juste après l'image du jeu (place libre au lancement) ;
+            ; de là, le module Échap va en ESCBASE et le module STE en
+            ; STEBASE, dont l'init (sons en $D0000, sprites plus tard en
+            ; $80000) ne peut plus écraser la routine.
             lea     tail(pc),a0
             lea     TAIL,a1
-            move.w  #(stubend-tail+STESIZE)/2-1,d0
+            move.w  #(stubend-tail+ESCSIZE+STESIZE)/2-1,d0
 .t          move.w  (a0)+,(a1)+
             dbra    d0,.t
             jmp     TAIL
-tail        lea     stubend(pc),a0          ; module STE (après la routine)
-            lea     STEBASE,a1
+tail        lea     stubend(pc),a0          ; module Échap (après la routine)
+            lea     ESCBASE,a1
+            move.w  #ESCSIZE/2-1,d0
+.e          move.w  (a0)+,(a1)+
+            dbra    d0,.e
+            move.b  stubste(pc),d0
+            beq.s   stubgo
+            lea     STEBASE,a1              ; module STE (après le module Échap)
             move.w  #STESIZE/2-1,d0
 .m          move.w  (a0)+,(a1)+
             dbra    d0,.m
@@ -818,7 +838,7 @@ stubgo
             jmp     $1000.w
 regs        dc.l    $ffff,$ffff,$123400fb,0,0,$1f33a,$ffff,$ffff
             dc.l    $97c,$946,$70000,0,$fffffa01,$ffff8604,$ffff8606,$f28
-stubste     dc.w    0                       ; 1 : mode STE (module après stubend)
+stubste     dc.w    0                       ; 1 : mode STE (module STE après le module Échap)
 stubend
             if (stubend-stub)>$100
             fail "routine de recopie trop longue"
@@ -837,8 +857,17 @@ steblob     incbin  "build/ste.bin"
             even
 steend
 STESIZE     equ     steend-steblob
-            if STESIZE>STUBSPACE-$100
-            fail "module STE trop long pour STUBSPACE"
+escblob                                     ; module Échap (src/esc.s)
+            ifd     REFTAG
+            incbin  "build/esc_ref.bin"
+            else
+            incbin  "build/esc.bin"
+            endif
+            even
+escend
+ESCSIZE     equ     escend-escblob
+            if STESIZE+ESCSIZE>STUBSPACE-$100
+            fail "modules STE et Échap trop longs pour STUBSPACE"
             endif
             include "build/stehooks.i"
             even
