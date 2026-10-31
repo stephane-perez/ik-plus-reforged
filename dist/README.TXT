@@ -71,6 +71,9 @@ Training mode (F4 on the intro page)
   stages are unchanged. Quit the game to get the normal rules back.
 
 Keys
+- Esc: back to the intro page during the game, to change the joysticks
+  and the training mode (F1 to F4, as at start-up; not saved in
+  IKPLUS.CFG). Space then restarts the game on its demo.
 - F3: 3-player game (was: music on/off).
 - F5: music on/off (was unused).
 - F6 to F10: the chosen speed is kept when a new game starts (the

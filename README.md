@@ -40,6 +40,7 @@ What was fixed:
 - **The floppy disk check**: `IK+.PRG` still runs it at start-up, then waits for the floppy drive motor to stop, which never happens without a disk in the drive. Reforged skips it.
 - **The new loader** shows "Loading, please wait..." (white on black) while it reads the game into reserved memory and copies it into place safely. On a Mega STE it switches off the serial chip (SCC) interrupts and selects 8 MHz with the cache off. On a Falcon030 it also switches off the SCC interrupts, the 68030 caches and its MMU (TOS 4 keeps the MMU table at `$700`, where the game goes), and selects 16 MHz: at 8 MHz the Falcon is slower than an ST. The game counts its frames in VBLs, so it runs at the same speed. There is no DMA sound or blitter on the Falcon: sound effects still cut the music, as on an STF. On a VGA monitor the game works, but the music plays too fast (the screen is not at 50 Hz). The CT60 (68060) is not supported: the game crashes after the intro page; switch the CT60 to 68030 mode. All unused exception vectors point to a safe place. Before the game starts, it shows an intro page: the IK+ logo and the game's font, both taken from your copy of the game, two drawings, "REFORGED" and "EDITION", on each side of the logo, the joystick of each player, the training mode, "PRESS SPACE TO START" (then "PLEASE WAIT"), "ENHANCED BY CLAUDE AI - 2026" with the version (`make TAG=…`, by default the git tag), and "IN MEMORY OF ARCHER MACLEAN (1962-2022)".
 - **Training mode**: **F4** on the intro page turns it on (it is never saved). During a game, the round time no longer counts down and shows "TIME: --", and nobody scores round points (the score still goes up): rounds never end, and a 3-player match no longer ends after 5 minutes. The demo and the bonus stages are unchanged.
+- **Escape**: during the game, **Esc** brings back the intro page, to change the joysticks and the training mode (not saved in `IKPLUS.CFG`: the TOS is gone by then). **Space** then restarts the game on its demo. The page is drawn by a small resident module placed at `$6C000`, in memory the game never uses.
 
 ### 3-player mode
 
@@ -108,9 +109,9 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 
 | File | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `c37781546d8a0d30da69ffada25a2bf5` |
-| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `2d8d92fd5dbe391febd66d4ff42c4f73` |
-| `IK_STE_CHECK.IMG` (control) | `ceb320652984ac5858572e451c0ce28d` |
+| `IK_PLUS/IKPLUS.IMG` | `be351fa7f5d013334608b5a8d497123e` |
+| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `f2e4a712b5c1e172c1410ba0af35d600` |
+| `IK_STE_CHECK.IMG` (control) | `04799834dd1744a6400d8e2a5e399332` |
 
 **Option**: `make game LIMIT=180 PRG=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
 
@@ -128,6 +129,7 @@ Note: Hatari 2.4.1 is more permissive than real hardware on the parallel port. I
 - `src/loader.s`: the loader, which reads `IKPLUS.IMG` and starts the game. Assembled with `-DSTE`, it also loads the STE module.
 - `src/p3.s`: the 3-player code, placed at `$800` in unused memory.
 - `src/ste.s`: the STE module (DMA sound, blitter), placed at `$C0000`, above the 512 KB the game was written for.
+- `src/esc.s`: the Escape page (intro page during the game), a resident module placed at `$6C000` by the loader.
 - `tools/ikimg.py`: extracts the game's memory image from `IK+.PRG`.
 - `tools/patch_game.py`, `tools/patch_p3.py` and `tools/patch_ste.py`: apply the patches. Before changing any byte, they check the checksum and the original bytes.
 - `tools/trace_ik.py` and `tools/show.py`: a recursive disassembler and a listing viewer, for study. They need `pip install capstone`.

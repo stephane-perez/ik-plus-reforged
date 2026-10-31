@@ -77,11 +77,14 @@ def main(src, binf, dst, binb):
     put(0x662C, '11c01092' '343c0002', jsr(0x820) + nops(1))
 
     # 11. touche F3 (musique, $7316-$733B)  ->  F3 : jmp f3key (partie à
-    #     3 joueurs) ; F5 (code $3F, inutilisé par le jeu) : jmp f5key (musique)
+    #     3 joueurs) ; F5 (code $3F, inutilisé par le jeu) : jmp f5key (musique) ;
+    #     Échap (code $01, inutilisé) : jmp $6C000 (page d'introduction pendant
+    #     le jeu, module src/esc.s posé là par le chargeur)
     put(0x7316, '0c11003d' '66000020'
         '4a38100e' '6700000a' '4eb81706' '6000007c' '11fc0001100e' '4eb81734' '6000006e',
         bytes.fromhex('0c11003d' '6606') + jmp(0x824)
-        + bytes.fromhex('0c11003f' '6614') + jmp(0x834) + nops(7))
+        + bytes.fromhex('0c11003f' '6606') + jmp(0x834)
+        + bytes.fromhex('0c110001' '6608') + jmp(0x6C000) + nops(1))
     # 12. message $0B de l'arbitre : « PRESS F3 FOR MUSIC » -> « PRESS F5 FOR MUSIC »
     #     et message des démos : « OR F1 AND F2 KEYS » -> « OR F1 F2 F3 KEYS »
     for old, new in ((b'@PRESS@F3@FOR@', b'@PRESS@F5@FOR@'),

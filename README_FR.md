@@ -40,6 +40,7 @@ Ce qui a été corrigé :
 - **La vérification de la disquette** : `IK+.PRG` la lance toujours au démarrage, puis attend l'arrêt du moteur du lecteur, qui n'arrive jamais sans disquette dans le lecteur. Reforged la saute.
 - **Le nouveau chargeur** affiche « Loading, please wait... » (blanc sur noir) pendant qu'il lit le jeu dans une zone mémoire réservée et le met en place sans risque. Sur Mega STE, il coupe les interruptions de la puce série (SCC) et passe en 8 MHz sans cache. Sur Falcon030, il coupe aussi les interruptions de la SCC, les caches du 68030 et sa MMU (le TOS 4 met la table de la MMU en `$700`, là où va le jeu), et passe en 16 MHz : à 8 MHz, le Falcon est plus lent qu'un ST. Le jeu compte ses images en VBL : sa vitesse ne change pas. Pas de son DMA ni de blitter sur Falcon : les bruitages coupent toujours la musique, comme sur STF. Sur moniteur VGA, le jeu fonctionne, mais la musique est trop rapide (l'écran n'est pas à 50 Hz). La CT60 (68060) n'est pas prise en charge : le jeu plante après la page d'introduction ; passer la CT60 en mode 68030. Tous les vecteurs d'exception inutilisés pointent vers un endroit sûr. Avant le jeu, il affiche une page d'introduction : le logo IK+ et la police du jeu, tous deux pris dans votre copie du jeu, deux dessins, « REFORGED » et « EDITION », de part et d'autre du logo, le joystick de chaque joueur, le mode entraînement, « PRESS SPACE TO START » (puis « PLEASE WAIT »), « ENHANCED BY CLAUDE AI - 2026 » avec la version (`make TAG=…`, par défaut l'étiquette git), et « IN MEMORY OF ARCHER MACLEAN (1962-2022) ».
 - **Mode entraînement** : **F4** sur la page d'introduction l'active (il n'est jamais mémorisé). Pendant une partie, le temps du round ne baisse plus et s'affiche « TIME: -- », et personne ne marque de points de round (le score, lui, augmente) : les rounds ne finissent jamais, et une partie à 3 ne s'arrête plus au bout de 5 minutes. La démo et les épreuves bonus ne changent pas.
+- **Échap** : pendant le jeu, **Échap** ramène la page d'introduction, pour changer les joysticks et le mode entraînement (pas mémorisé dans `IKPLUS.CFG` : le TOS n'est plus là). **Espace** relance ensuite le jeu sur sa démo. La page est dessinée par un petit module résident placé en `$6C000`, dans une mémoire que le jeu n'utilise jamais.
 
 ### Mode 3 joueurs
 
@@ -108,9 +109,9 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 
 | Fichier | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `c37781546d8a0d30da69ffada25a2bf5` |
-| `IK_PLUS_REF.TOS` (le chargeur avec le texte de version `V0.0.0`) | `2d8d92fd5dbe391febd66d4ff42c4f73` |
-| `IK_STE_CHECK.IMG` (contrôle) | `ceb320652984ac5858572e451c0ce28d` |
+| `IK_PLUS/IKPLUS.IMG` | `be351fa7f5d013334608b5a8d497123e` |
+| `IK_PLUS_REF.TOS` (le chargeur avec le texte de version `V0.0.0`) | `f2e4a712b5c1e172c1410ba0af35d600` |
+| `IK_STE_CHECK.IMG` (contrôle) | `04799834dd1744a6400d8e2a5e399332` |
 
 **Option** : `make game LIMIT=180 PRG=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.
 
@@ -128,6 +129,7 @@ Attention : Hatari 2.4.1 est plus permissif que la vraie machine sur le port par
 - `src/loader.s` : le chargeur, qui lit `IKPLUS.IMG` et lance le jeu. Assemblé avec `-DSTE`, il charge aussi le module STE.
 - `src/p3.s` : le code du mode 3 joueurs, placé en `$800` dans une zone mémoire inutilisée.
 - `src/ste.s` : le module STE (son DMA, blitter), placé en `$C0000`, au-dessus des 512 Ko prévus par le jeu.
+- `src/esc.s` : la page Échap (page d'introduction pendant le jeu), module résident posé en `$6C000` par le chargeur.
 - `tools/ikimg.py` : tire l'image mémoire du jeu de `IK+.PRG`.
 - `tools/patch_game.py`, `tools/patch_p3.py` et `tools/patch_ste.py` : appliquent les correctifs. Avant de modifier le moindre octet, ils vérifient l'empreinte et les octets d'origine.
 - `tools/trace_ik.py` et `tools/show.py` : un désassembleur récursif et un visualiseur de listing, pour l'étude. Ils nécessitent `pip install capstone`.

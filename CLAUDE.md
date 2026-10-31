@@ -27,6 +27,8 @@ de crackers dans le projet.
   joueur 3 = manette Jaguar sur le port joystick étendu A ;
   bruitages en DMA ; combattants dessinés au blitter ; turbo (F6) à
   25 images/s en permanence.
+- **Échap** pendant le jeu : retour à la page d'introduction (module résident
+  `src/esc.s` en `$6C000`, posé par le chargeur ; accroche 11 en `$732E`).
 - **JOYTEST** (testeur de joysticks) : sorti du projet après la v1.1.0, dans
   son propre dépôt, https://github.com/stephane-perez/joystick-tester.
 
@@ -114,6 +116,7 @@ STE avec 1 Mo ; `make check` vérifie aussi l'image de contrôle
 | `$800`–`$BFF` | code 3 joueurs (`p3.s`) : **1 Ko au total**, ~970 octets utilisés ; choix des joysticks `CTL` et mode entraînement `TRAIN` en `$850` |
 | `$6A4A`–`$6AF7` | code en plus (`p3b.s` : mode entraînement, retour `rte` du 68030) : 174 octets, dans la vérification de la disquette sautée |
 | `$53800`–`$54FFF` | STE, au lancement seulement : fin de la routine de recopie et module, avant leur départ en `$C0000` |
+| `$6C000`–`$6CAFF` | module Échap (`src/esc.s`) : page d'introduction pendant le jeu ; `$6B078`–`$6FFFF` est libre (VERSIONS.md §23) |
 | `$70000` / `$78000` | les deux écrans |
 | `$80000`–`$A37FF` | STE : sprites convertis pour le blitter |
 | `$A7000`–`$BFFFF` | STE, mode contrôle (`-DCHECK`) seulement : copies de travail |
@@ -136,6 +139,12 @@ Tu fournis les ROM TOS (pas dans le dépôt). Scripts dans `hatari/` :
   à cause de la conversion des sons).
 - `runx.sh` : Xvfb + xdotool, pour passer par l'émulation des joysticks
   (configurations `joy3.cfg`, `joy4.cfg`, `joyall.cfg`, `joyste.cfg`).
+- Échap dans `KEYS` : `0x01` (`"60:0x01"`) ; « 1 » serait la touche du
+  chiffre 1 (code `$02`).
+- Sans `IK+.PRG` (nouvelle session), le `IKPLUS.IMG` d'une version publiée
+  (empreinte connue) permet d'étudier (`tools/trace_ik.py` accepte une image)
+  et de tester ; l'accroche à essayer s'applique alors par un script hors
+  dépôt qui vérifie l'empreinte et les octets d'origine.
 - `hatari/measure/` (lancer depuis ce dossier, options `--parse …`) :
   - vitesse : `unlock.py` (copie du jeu sans limite de vitesse), `frames.dbg`
     puis `frames.py out/<nom>/log.txt` (images par seconde, par état du jeu) ;

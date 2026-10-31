@@ -76,6 +76,9 @@ Mode entraînement (F4 sur la page d'introduction)
   retrouver les règles normales.
 
 Touches
+- Échap : retour à la page d'introduction pendant le jeu, pour changer les
+  joysticks et le mode entraînement (F1 à F4, comme au démarrage ; pas
+  mémorisé dans IKPLUS.CFG). Espace relance ensuite le jeu sur sa démo.
 - F3 : partie à 3 joueurs (avant : musique marche / arrêt).
 - F5 : musique marche / arrêt (avant : inutilisée).
 - F6 à F10 : la vitesse choisie est gardée au début d'une nouvelle partie
