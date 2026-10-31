@@ -54,7 +54,7 @@ The game was designed around three fighters, and its data already had room for a
 - The music is switched on and off with **F5** (F3 in the original game). The help screen and the referee's tips show the new keys.
 - Player 3 also takes part in the two **bonus stages** (deflecting balls with the shield, kicking bombs), taking turns with the other human players. In the bomb stage, the fighter's jacket colour is also used for the explosions: during player 3's turn they are blue instead of red.
 - Without player 3, the game plays like the original, with a few changes:
-  - the speed chosen with F6–F10 is kept when a new game starts (the original went back to "normal");
+  - the speed chosen with F6–F10 is kept when a new game starts and after HELP (the original went back to "normal");
   - the **reset** button resets the machine instead of restarting the game;
   - the red and blue scores, energy bars and fists in the top bar are moved a little to the left, so that the blue fist no longer touches "LV".
 
@@ -109,9 +109,9 @@ On the first run, `make` builds the [vasm](http://sun.hasenbraten.de/vasm/) asse
 
 | File | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `be351fa7f5d013334608b5a8d497123e` |
-| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `f2e4a712b5c1e172c1410ba0af35d600` |
-| `IK_STE_CHECK.IMG` (control) | `04799834dd1744a6400d8e2a5e399332` |
+| `IK_PLUS/IKPLUS.IMG` | `67fcd27cdfcfa60d98c4eb2ac840a18c` |
+| `IK_PLUS_REF.TOS` (the loader with the version text `V0.0.0`) | `43d5472991cbe18e0228b19e8ab649ef` |
+| `IK_STE_CHECK.IMG` (control) | `c73aa58f6f91c58741f8a7ac1e3c28aa` |
 
 **Option**: `make game LIMIT=180 PRG=…` sets the length of a 3-player match, in seconds of fighting (300 by default). `make check` only applies to the default value.
 

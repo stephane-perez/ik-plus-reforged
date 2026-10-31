@@ -1,7 +1,7 @@
 """patch_p3.py <image du jeu corrigée (patch_game.py)> <build/p3.bin> <sortie> <build/p3b.bin>
 
 Pose le code du mode 3 joueurs (src/p3.s, assemblé en $800) dans l'image
-du jeu et le relie par 32 accroches. Chaque accroche vérifie les octets
+du jeu et le relie par 33 accroches. Chaque accroche vérifie les octets
 d'origine avant de les remplacer. Corrige aussi quelques réglages du jeu
 (vitesse gardée, bouton reset, barre du haut, textes, écran d'aide).
 Entrées fixes de p3.s : $800 pre, $804 looptail, $808 other, $80C elim,
@@ -140,6 +140,9 @@ def main(src, binf, dst, binb):
     # 25. nouvelle partie (P_014FA) : move.b #2,$100d.w (vitesse « normal »)
     #     -> NOP : la vitesse choisie (F6-F10) est gardée
     put(0x151E, '11fc0002100d', nops(3))
+    # 33. touche HELP (L_072E2) : move.b #2,$100d.w (vitesse « normal »)
+    #     -> 3 NOP : l'aide ne change plus la vitesse (F_0759E l'affiche)
+    put(0x7306, '11fc0002100d', nops(3))
     # 26. démarrage (L_02160) : le jeu écrit resvalid ($426) et resvector ($42A)
     #     pour que le bouton reset le relance. -> clr.l $426.w : le reset rend
     #     la main au TOS.
@@ -157,7 +160,7 @@ def main(src, binf, dst, binb):
     helpscreen.patch(d, BASE)
 
     open(dst, 'wb').write(d)
-    print('%s : code 3 joueurs %d octets en $800, 32 accroches' % (dst, len(code)))
+    print('%s : code 3 joueurs %d octets en $800, 33 accroches' % (dst, len(code)))
 
 
 if __name__ == '__main__':

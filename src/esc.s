@@ -37,6 +37,9 @@ P1          equ $1007               ; drapeaux humain des combattants 0 à 2
 KEY         equ $13ac               ; dernière touche enfoncée (gestionnaire du jeu)
 RESTART     equ $135f               ; 1 : nouvelle partie (VBL du jeu, $1C56)
 PAUSE       equ $1372
+SCORES      equ $11f2               ; scores des combattants 0 à 2 (3 octets BCD)
+LEVEL       equ $11eb               ; « LV » : numéro du round (BCD)
+ROUNDS      equ $1269               ; rounds depuis la dernière épreuve bonus
 BACKDROP    equ $2550               ; F_02550 : décor ($23378) recopié dans les deux écrans
 NSRC        equ 7                   ; sources 0 à 6 (6 = aucune)
 NAMECOL     equ 26
@@ -112,6 +115,12 @@ escmain     move.w  #$2700,sr
             clr.b   P1+2.w
             clr.w   PAUSE.w
             clr.b   KEY.w
+            lea     SCORES.w,a0             ; scores à zéro (comme L_06BBA, au
+            moveq   #8,d0                   ; début d'un round sans humain) :
+.sc         clr.b   (a0)+                   ; la couleur des ceintures
+            dbra    d0,.sc                  ; ($101C/$101E, F_0B200) en dépend
+            clr.b   LEVEL.w                 ; « LV » : round 1
+            clr.b   ROUNDS.w                ; épreuve bonus tous les 3 rounds
             jsr     BACKDROP.w              ; la page effacée des écrans (la
                                             ; relance ne redessine que le bas)
             move.b  #1,RESTART.w

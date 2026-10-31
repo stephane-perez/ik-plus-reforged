@@ -54,7 +54,7 @@ Le jeu a été conçu autour de trois combattants, et ses données avaient déj�
 - La musique se coupe et se remet avec **F5** (F3 dans le jeu d'origine). L'écran d'aide et les conseils de l'arbitre indiquent les nouvelles touches.
 - Le joueur 3 participe aussi aux deux **épreuves bonus** (balles à renvoyer avec le bouclier, bombes à écarter), à tour de rôle avec les autres joueurs humains. Dans l'épreuve des bombes, la couleur de la veste du bleu sert aussi aux explosions : pendant son tour, elles sont bleues au lieu de rouges.
 - Sans joueur 3, le jeu se joue comme l'original, à quelques changements près :
-  - la vitesse choisie avec F6–F10 est gardée au début d'une nouvelle partie (l'original revenait à « normal ») ;
+  - la vitesse choisie avec F6–F10 est gardée au début d'une nouvelle partie et après HELP (l'original revenait à « normal ») ;
   - le bouton **reset** redémarre la machine au lieu de relancer le jeu ;
   - dans la barre du haut, les scores, barres de vie et poings du rouge et du bleu sont un peu décalés vers la gauche : le poing bleu ne touche plus « LV ».
 
@@ -109,9 +109,9 @@ Au premier lancement, `make` construit l'assembleur [vasm](http://sun.hasenbrate
 
 | Fichier | MD5 |
 |---|---|
-| `IK_PLUS/IKPLUS.IMG` | `be351fa7f5d013334608b5a8d497123e` |
-| `IK_PLUS_REF.TOS` (le chargeur avec le texte de version `V0.0.0`) | `f2e4a712b5c1e172c1410ba0af35d600` |
-| `IK_STE_CHECK.IMG` (contrôle) | `04799834dd1744a6400d8e2a5e399332` |
+| `IK_PLUS/IKPLUS.IMG` | `67fcd27cdfcfa60d98c4eb2ac840a18c` |
+| `IK_PLUS_REF.TOS` (le chargeur avec le texte de version `V0.0.0`) | `43d5472991cbe18e0228b19e8ab649ef` |
+| `IK_STE_CHECK.IMG` (contrôle) | `c73aa58f6f91c58741f8a7ac1e3c28aa` |
 
 **Option** : `make game LIMIT=180 PRG=…` règle la durée d'un match à trois, en secondes de combat (300 par défaut). `make check` ne s'applique qu'à la valeur par défaut.
 

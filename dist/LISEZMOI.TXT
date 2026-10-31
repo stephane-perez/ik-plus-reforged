@@ -82,7 +82,7 @@ Touches
 - F3 : partie à 3 joueurs (avant : musique marche / arrêt).
 - F5 : musique marche / arrêt (avant : inutilisée).
 - F6 à F10 : la vitesse choisie est gardée au début d'une nouvelle partie
-  (l'original revenait à « normal »).
+  et après HELP (l'original revenait à « normal »).
 - L'écran d'aide (« F3 ..... 3 PLAYER GAME », « F4/F5 .. FX/MUSIC
   ON/OFF »), le conseil de l'arbitre (« PRESS F5 FOR MUSIC ON OR OFF ») et
   le message de la démo (« OR F1 F2 F3 KEYS ») indiquent les nouvelles

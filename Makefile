@@ -91,7 +91,7 @@ game: all $(B)/IK_BASE.IMG
 # version text: IK_PLUS_REF.TOS)
 check:
 	@$(PY) -c "import hashlib,sys; \
-exp={'$(B)/IK_PLUS/IKPLUS.IMG':'be351fa7f5d013334608b5a8d497123e','$(B)/IK_PLUS_REF.TOS':'f2e4a712b5c1e172c1410ba0af35d600','$(B)/IK_STE_CHECK.IMG':'04799834dd1744a6400d8e2a5e399332'}; \
+exp={'$(B)/IK_PLUS/IKPLUS.IMG':'67fcd27cdfcfa60d98c4eb2ac840a18c','$(B)/IK_PLUS_REF.TOS':'43d5472991cbe18e0228b19e8ab649ef','$(B)/IK_STE_CHECK.IMG':'c73aa58f6f91c58741f8a7ac1e3c28aa'}; \
 bad=[f for f,h in exp.items() if hashlib.md5(open(f,'rb').read()).hexdigest()!=h]; \
 print('OK' if not bad else 'MISMATCH: '+' '.join(bad)); sys.exit(1 if bad else 0)"
 
