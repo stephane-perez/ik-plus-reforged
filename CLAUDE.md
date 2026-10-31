@@ -140,7 +140,29 @@ Tu fournis les ROM TOS (pas dans le dépôt). Scripts dans `hatari/` :
 - `runx.sh` : Xvfb + xdotool, pour passer par l'émulation des joysticks
   (configurations `joy3.cfg`, `joy4.cfg`, `joyall.cfg`, `joyste.cfg`).
 - Échap dans `KEYS` : `0x01` (`"60:0x01"`) ; « 1 » serait la touche du
-  chiffre 1 (code `$02`).
+  chiffre 1 (code `$02`). Dans `runx.sh`, noms de touches xdotool, en
+  minuscules pour les joysticks (`space`, `F1`, `Escape`, `u`).
+- **Accéléré** (fast forward, AltGr + X dans Hatari) : `FF=t` dans `run.sh`
+  et `runx.sh` le met à la seconde t, après les touches (envoyées à heure
+  fixe en temps réel) ; le temps émulé (VBL, cycles) n'en dépend pas.
+- **État sauvé** (méthode reprise de Bubble Bobble Reforged) : arriver une
+  fois en temps réel au point voulu (combat…), sauver l'état, puis lancer
+  chaque essai depuis cet état, en accéléré :
+  - sauver : `CMDS=f.cmds` (lignes `t commande`) avec
+    `52 hatari-path memsave /chemin/f.sav` puis `53 hatari-shortcut savemem`
+    (`runx.sh` : lignes `t cmd commande`) ;
+  - repartir : option `--memstate /chemin/f.sav` ;
+  - **la restauration efface les points d'arrêt** (`--parse` ne sert à
+    rien) : les poser après, par `1 hatari-debug b pc = ...` dans `CMDS` ;
+    `hatari-debug w $adr ...` pour écrire en mémoire ;
+  - l'état contient le programme : un état par version construite.
+  Exemple : Échap testé depuis un état sauvé, en 22 s au lieu de ~1 min 40.
+- Débogueur : `b ($ADR).w ! ($ADR).w` s'arrête quand la valeur change
+  (trouver qui écrit où) ; `loadbin` / `savebin` pour remplir ou relever la
+  mémoire (zone libre trouvée ainsi, VERSIONS.md §23).
+- Arrêter un Hatari par son numéro (`kill $(pgrep -x hatari)`), jamais par
+  `pkill -f motif` : le motif est aussi dans la ligne de commande du shell,
+  qui se tue lui-même.
 - Sans `IK+.PRG` (nouvelle session), le `IKPLUS.IMG` d'une version publiée
   (empreinte connue) permet d'étudier (`tools/trace_ik.py` accepte une image)
   et de tester ; l'accroche à essayer s'applique alors par un script hors
