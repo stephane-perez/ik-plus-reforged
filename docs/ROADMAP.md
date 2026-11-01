@@ -10,23 +10,23 @@ accélératrices ne sont pas prises en charge.
 Validée sur STE (affichage, manette Jaguar, bruitages, turbo) : étiquette
 `v1.0.6`, puis `v1.0.7` (jeu tiré de `IK+.PRG`).
 
-## 2. Mega STE dans le même dossier
+## 2. Mega STE dans le même dossier : fait
 
-- Accepter `_MCH` = `$00010010` ; joueur 3 sur l'adaptateur parallèle
-  (pas de ports étendus : ne jamais lire `$FF9202`) ; son DMA et Microwire
-  identiques au STE ; blitter (toujours présent).
-- Étudier le 16 MHz avec cache (aujourd'hui le chargeur force 8 MHz) : la
-  version STE n'a plus le code qui se modifie lui-même (lecteur Timer C),
-  mais la boucle d'attente du raster est calée pour 8 MHz.
+Un seul dossier `IK_PLUS` depuis la v9 : le chargeur choisit le mode STE
+sur un STE ou un Mega STE (8 MHz sans cache), validé sur machine réelle.
 
-## 3. Falcon030 : essai exploratoire
+## 3. Falcon030 : fait
 
-D'abord : le jeu d'origine tourne-t-il dans Hatari en mode Falcon (vidéo
-compatible ST, rasters) ? Points connus : ports étendus présents, son DMA
-compatible mais pas de Microwire, caches du 68030, blitter à laisser éteint.
-Ne rien promettre avant cet essai.
+Validé sur machine réelle (VERSIONS.md §18) : 16 MHz, caches et MMU coupés,
+ni son DMA ni blitter. En VGA, la musique va trop vite (écran pas à 50 Hz).
+Les cartes accélératrices (CT60) ne sont pas prises en charge.
 
-## 4. Idées en attente
+## 4. Échap, HELP, ligne noire du STE : fait (v1.1.1)
+
+VERSIONS.md §23 à §25. Reste : `make check` avec `IK+.PRG` (empreintes
+calculées sans lui) et un passage sur STF, Mega STE et Falcon réels.
+
+## 5. Idées en attente
 
 - 4ᵉ joueur par rotation : 4 manettes, 3 combattants ; le dernier du round
   cède sa place à celui qui attend (scores par joueur à sauvegarder).
