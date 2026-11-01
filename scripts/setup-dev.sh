@@ -9,7 +9,7 @@
 #
 # Fichiers du jeu, jamais dans le dépôt : dossier IKPLUS_LOCAL (par défaut
 # ../ikplus-local, à côté du dépôt) avec IK+.PRG et les ROM TOS
-# (rom/tos104.img, rom/tos162.img, rom/tos206.img). S'il contient IK+.PRG,
+# (rom/tos104.img, rom/tos162.img, rom/tos206.img, rom/tos404.img). S'il contient IK+.PRG,
 # le script corrige aussi le jeu (make game) et vérifie les empreintes
 # (make check).
 set -e
@@ -47,7 +47,7 @@ if [ -f "$LOCAL/IK+.PRG" ]; then
 else
     echo "setup-dev : pas de $LOCAL/IK+.PRG ; make game et make check non lancés"
 fi
-for t in tos104 tos162 tos206; do
+for t in tos104 tos162 tos206 tos404; do
     [ -f "$LOCAL/rom/$t.img" ] || echo "setup-dev : ROM absente : $LOCAL/rom/$t.img"
 done
 echo "setup-dev : prêt"

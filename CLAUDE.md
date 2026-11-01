@@ -29,6 +29,14 @@ de crackers dans le projet.
   25 images/s en permanence.
 - **Échap** pendant le jeu : retour à la page d'introduction (module résident
   `src/esc.s` en `$6C000`, posé par le chargeur ; accroche 11 en `$732E`).
+- **Version publiée : v1.1.1** (31 octobre 2026) : Échap (VERSIONS.md §23), HELP qui
+  garde la vitesse et ceintures remises à zéro après Échap (§24), ligne
+  noire du STE corrigée (§25 : clavier et raster). Validée sur STE réel ;
+  de rares reliquats de quelques pixels au bord gauche restent, acceptés
+  par Stéphane. Pas encore revue sur STF, Mega STE et Falcon réels.
+- **À faire dès que `IK+.PRG` est là** : `make game` puis `make check`. Les
+  empreintes depuis le §23 ont été calculées sans lui (image de la v1.1.0
+  plus les accroches) ; si elles diffèrent, chercher pourquoi avant tout.
 - **JOYTEST** (testeur de joysticks) : sorti du projet après la v1.1.0, dans
   son propre dépôt, https://github.com/stephane-perez/joystick-tester.
 
@@ -82,9 +90,24 @@ temporaire : tout ce qui n'est pas poussé disparaît avec elle.
 3. **Où on en est** : la section « Le projet » ci-dessus, `docs/ROADMAP.md`
    et les tickets GitHub ouverts ; l'historique dans `docs/fr/VERSIONS.md`.
 4. **Étiquettes** : format `v1.N.M` (`v1.0.0`, `v1.0.9`, puis `v1.1.0`) ;
-   jamais `vN`. Stéphane choisit le numéro (après la v1.0.9 : `v1.1.0`). Le proxy git des
+   jamais `vN`. Stéphane choisit le numéro (dernière : `v1.1.1`). Le proxy git des
    sessions refuse de pousser les étiquettes (`git push origin v1.0.7` →
-   403) : donner la commande à Stéphane.
+   403) et de supprimer une branche distante (`git push origin --delete` :
+   connexion coupée) : donner la commande à Stéphane.
+5. **GitHub** : pas de `gh` ; les outils MCP GitHub (`mcp__github__…`)
+   ouvrent, décrivent, passent en « prête » et fusionnent les PR. On ne
+   fusionne que sur l'accord de Stéphane, après la machine réelle.
+6. **Sans `IK+.PRG`** : Stéphane peut envoyer le dossier `IK_PLUS` d'une
+   version publiée. `IKPLUS.IMG` de la v1.1.1 : MD5
+   `c6aa495e52b83acd7a04727ae7a7324a` (v1.1.0 : `c37781546d8a0d30da69ffada25a2bf5`).
+   Étude : `python3 tools/trace_ik.py IKPLUS.IMG` → `work/ik.lst`. Essai
+   d'un correctif : petit script hors dépôt (dossier temporaire de la
+   session) qui vérifie l'empreinte et les octets d'origine, puis pose
+   l'accroche ou le nouveau `p3b.bin` sur cette image.
+7. **Dans la session** : les essais Hatari longs (plus de ~2 min) se lancent
+   en arrière-plan, et on attend la fin par une boucle `until` (une suite de
+   `sleep` est refusée). Deux Hatari en même temps se ralentissent : les
+   touches, envoyées à heure fixe, tombent alors trop tôt.
 
 ## Construire
 
@@ -159,7 +182,11 @@ Tu fournis les ROM TOS (pas dans le dépôt). Scripts dans `hatari/` :
   Exemple : Échap testé depuis un état sauvé, en 22 s au lieu de ~1 min 40.
 - Débogueur : `b ($ADR).w ! ($ADR).w` s'arrête quand la valeur change
   (trouver qui écrit où) ; `loadbin` / `savebin` pour remplir ou relever la
-  mémoire (zone libre trouvée ainsi, VERSIONS.md §23).
+  mémoire (zone libre trouvée ainsi, VERSIONS.md §23). Sans arrêter
+  l'émulation : `b pc = $X && HBL = 253 :trace :quiet :file cmds.dbg` ;
+  `history on` puis `history 40` (dernières instructions) ; lecture ou
+  écriture en cours de route par `CMDS` (`45 hatari-debug m $11f2 9`,
+  `40 hatari-debug w $11f2 $09 $50`), résultat dans `out/<nom>/log.txt`.
 - Arrêter un Hatari par son numéro (`kill $(pgrep -x hatari)`), jamais par
   `pkill -f motif` : le motif est aussi dans la ligne de commande du shell,
   qui se tue lui-même.
